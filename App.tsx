@@ -1,45 +1,40 @@
 /**
- * Sample React Native App
- * https://github.com/facebook/react-native
+ * LogiChain Mobile — application terrain (offline-first).
  *
  * @format
  */
+import React from 'react';
+import {StatusBar} from 'react-native';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {NavigationContainer, DarkTheme} from '@react-navigation/native';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
-import { NewAppScreen } from '@react-native/new-app-screen';
-import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import {COLORS} from '@/config/theme';
+import {AuthProvider} from '@/hooks/useAuth';
+import {RootNavigator} from '@/navigation/RootNavigator';
+
+const queryClient = new QueryClient({
+  defaultOptions: {queries: {retry: 1, staleTime: 30_000}},
+});
+
+const navTheme = {
+  ...DarkTheme,
+  colors: {...DarkTheme.colors, background: COLORS.bg, card: COLORS.surface, text: COLORS.text, primary: COLORS.primary},
+};
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <StatusBar barStyle="light-content" />
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <NavigationContainer theme={navTheme}>
+            <RootNavigator />
+          </NavigationContainer>
+        </AuthProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }
-
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
-
-  return (
-    <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
 
 export default App;
