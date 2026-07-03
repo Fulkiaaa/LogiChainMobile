@@ -5,10 +5,10 @@ import type {SqlDb} from './SqlDb';
  * rejouable à chaque ouverture sans risque.
  */
 export const MIGRATIONS: string[] = [
-  `CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, name TEXT, status TEXT,
-     startsAt TEXT, endsAt TEXT, version INTEGER, syncedAt TEXT)`,
+  `CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, name TEXT, slug TEXT, status TEXT,
+     startDate TEXT, endDate TEXT, version INTEGER, syncedAt TEXT)`,
   `CREATE TABLE IF NOT EXISTS zones (id TEXT PRIMARY KEY, eventId TEXT, name TEXT,
-     geojson TEXT, syncedAt TEXT)`,
+     category TEXT, area TEXT, syncedAt TEXT)`,
   `CREATE TABLE IF NOT EXISTS items (id TEXT PRIMARY KEY, qrCode TEXT, label TEXT,
      category TEXT, status TEXT, eventId TEXT, lng REAL, lat REAL, weightKg REAL,
      version INTEGER, updatedAt TEXT, syncedAt TEXT)`,

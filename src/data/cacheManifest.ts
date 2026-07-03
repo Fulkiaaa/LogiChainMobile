@@ -3,9 +3,9 @@ export const CACHE_MANIFEST = {
     fields: ['id','qrCode','label','category','status','eventId','lng','lat','weightKg','version','updatedAt'] as const,
     drop: ['history','purchasePriceEur','manufacturingCo2Kg'] as const },
   event: { persist: true, clearOnSync: false,
-    fields: ['id','name','status','startsAt','endsAt','version'] as const },
+    fields: ['id','name','slug','status','startDate','endDate','version'] as const },
   zone: { persist: true, clearOnSync: false,
-    fields: ['id','eventId','name','geojson'] as const },
+    fields: ['id','eventId','name','category','area'] as const },
   outbox: { persist: true, clearOnSync: true },
 } as const;
 
