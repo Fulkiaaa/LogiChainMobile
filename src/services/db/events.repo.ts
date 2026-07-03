@@ -1,5 +1,4 @@
-import {v4 as uuid} from 'uuid';
-
+import {makeId} from '@/services/util/id';
 import type {EventJSON, EventStatus, EventZone, ZoneCategory} from '@/types/api';
 
 import type {SqlDb} from './SqlDb';
@@ -52,7 +51,7 @@ export function createZonesRepo(db: SqlDb) {
           db.run(
             `INSERT INTO zones (id,eventId,name,category,area,syncedAt)
              VALUES (?,?,?,?,?,datetime('now'))`,
-            [z.id ?? uuid(), eventId, z.name, z.category, JSON.stringify(z.area)],
+            [z.id ?? makeId('zone'), eventId, z.name, z.category, JSON.stringify(z.area)],
           );
         }
         db.run('COMMIT');
