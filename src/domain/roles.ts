@@ -1,3 +1,4 @@
+import {unmetPasswordRules} from '@/domain/passwordChange';
 import type {UserRole} from '@/types/api';
 
 /** Libellés lisibles des rôles définis par l'API (`USER_ROLES`). */
@@ -24,7 +25,7 @@ export interface NewUserForm {
 export type NewUserErrors = Partial<Record<keyof NewUserForm, string>>;
 
 /**
- * Reproduit `registerSchema` de l'API (email, password 8-128, fullName 1-120)
+ * Reproduit `registerSchema` de l'API (email, mot de passe robuste, fullName 1-120)
  * pour donner un retour immédiat, y compris hors ligne. L'API reste l'autorité.
  */
 export function validateNewUser(form: NewUserForm): NewUserErrors {
@@ -33,8 +34,11 @@ export function validateNewUser(form: NewUserForm): NewUserErrors {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
     errors.email = 'Adresse email invalide.';
   }
-  if (form.password.length < 8 || form.password.length > 128) {
-    errors.password = 'Le mot de passe doit faire entre 8 et 128 caractères.';
+  // Mêmes critères que le mot de passe définitif : le temporaire est transmis
+  // hors de l'application et reste valable jusqu'à la première connexion.
+  const unmet = unmetPasswordRules(form.password);
+  if (unmet.length > 0) {
+    errors.password = `Il manque : ${unmet.join(', ').toLowerCase()}.`;
   }
   const name = form.fullName.trim();
   if (name.length < 1 || name.length > 120) {

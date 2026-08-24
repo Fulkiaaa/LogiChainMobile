@@ -20,9 +20,25 @@ describe('validatePasswordChange', () => {
     expect(validatePasswordChange(form({currentPassword: ''})).currentPassword).toBeDefined();
   });
 
-  it('refuse un nouveau mot de passe de moins de 8 caractères', () => {
-    expect(validatePasswordChange(form({newPassword: 'court1!', confirmPassword: 'court1!'})).newPassword)
-      .toBeDefined();
+  it.each([
+    ['moins de 8 caractères', 'Ab1!'],
+    ['sans majuscule', 'monmotdepasse1!'],
+    ['sans minuscule', 'MONMOTDEPASSE1!'],
+    ['sans chiffre', 'MonMotDePasse!'],
+    ['sans caractère spécial', 'MonMotDePasse1'],
+  ])('refuse un nouveau mot de passe %s', (_libelle, faible) => {
+    // Mêmes critères que strongPasswordSchema côté API : autant les signaler
+    // avant l'aller-retour réseau, et hors ligne.
+    const errors = validatePasswordChange(
+      form({newPassword: faible, confirmPassword: faible}),
+    );
+    expect(errors.newPassword).toBeDefined();
+  });
+
+  it('accepte un mot de passe remplissant tous les critères', () => {
+    const fort = 'Chantier2026#';
+    expect(validatePasswordChange(form({newPassword: fort, confirmPassword: fort})).newPassword)
+      .toBeUndefined();
   });
 
   it('refuse un nouveau mot de passe identique à l\'actuel', () => {

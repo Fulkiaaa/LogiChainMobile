@@ -8,11 +8,16 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  View,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import type {Palette} from '@/config/theme';
-import {validatePasswordChange, type PasswordChangeErrors} from '@/domain/passwordChange';
+import {
+  PASSWORD_RULES,
+  validatePasswordChange,
+  type PasswordChangeErrors,
+} from '@/domain/passwordChange';
 import {useAuth} from '@/hooks/useAuth';
 import {useTheme} from '@/hooks/useTheme';
 
@@ -87,6 +92,23 @@ export function ChangePasswordScreen() {
           value={newPassword}
           onChangeText={setNewPassword}
         />
+        {/*
+          * Critères affichés en permanence et cochés à la frappe, plutôt qu'une
+          * erreur après validation : l'utilisateur sait ce qu'on attend avant
+          * d'échouer, au lieu de le découvrir par tâtonnement.
+          */}
+        <View style={styles.rules}>
+          {PASSWORD_RULES.map((rule) => {
+            const met = rule.test(newPassword);
+            return (
+              <Text
+                key={rule.label}
+                style={[styles.rule, met ? styles.ruleMet : null]}>
+                {met ? '✓' : '○'}  {rule.label}
+              </Text>
+            );
+          })}
+        </View>
         {errors.newPassword ? <Text style={styles.error}>{errors.newPassword}</Text> : null}
 
         <TextInput
@@ -134,6 +156,9 @@ const makeStyles = (c: Palette) =>
       borderWidth: 1,
       borderColor: c.border,
     },
+    rules: {marginBottom: 12, marginTop: 2, gap: 2},
+    rule: {color: c.textMuted, fontSize: 13},
+    ruleMet: {color: c.primary},
     error: {color: c.danger, marginBottom: 8},
     button: {
       backgroundColor: c.primary,

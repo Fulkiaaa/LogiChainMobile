@@ -14,14 +14,35 @@ export interface PasswordChangeForm {
 
 export type PasswordChangeErrors = Partial<Record<keyof PasswordChangeForm, string>>;
 
+/**
+ * Critères de robustesse, miroir de `strongPasswordSchema` côté API.
+ * Toute modification ici doit être répercutée là-bas, et réciproquement.
+ */
+export const PASSWORD_RULES = [
+  {test: (v: string) => v.length >= 8 && v.length <= 128, label: 'Entre 8 et 128 caractères'},
+  {test: (v: string) => /[a-z]/.test(v), label: 'Une minuscule'},
+  {test: (v: string) => /[A-Z]/.test(v), label: 'Une majuscule'},
+  {test: (v: string) => /[0-9]/.test(v), label: 'Un chiffre'},
+  {test: (v: string) => /[^A-Za-z0-9]/.test(v), label: 'Un caractère spécial'},
+] as const;
+
+/** Critères non satisfaits, pour un affichage sous forme de liste à cocher. */
+export function unmetPasswordRules(password: string): string[] {
+  return PASSWORD_RULES.filter((r) => !r.test(password)).map((r) => r.label);
+}
+
+export const isStrongPassword = (password: string): boolean =>
+  unmetPasswordRules(password).length === 0;
+
 export function validatePasswordChange(form: PasswordChangeForm): PasswordChangeErrors {
   const errors: PasswordChangeErrors = {};
 
   if (form.currentPassword.length === 0) {
     errors.currentPassword = 'Saisis ton mot de passe actuel.';
   }
-  if (form.newPassword.length < 8 || form.newPassword.length > 128) {
-    errors.newPassword = 'Le nouveau mot de passe doit faire entre 8 et 128 caractères.';
+  const unmet = unmetPasswordRules(form.newPassword);
+  if (unmet.length > 0) {
+    errors.newPassword = `Il manque : ${unmet.join(', ').toLowerCase()}.`;
   } else if (form.newPassword === form.currentPassword) {
     errors.newPassword = "Choisis un mot de passe différent de l'actuel.";
   }

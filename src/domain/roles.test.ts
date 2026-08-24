@@ -25,7 +25,7 @@ describe('ROLE_LABELS', () => {
 });
 
 describe('validateNewUser', () => {
-  const valid = {email: 'a@b.fr', password: 'motdepasse1', fullName: 'Sofia Lemaire'};
+  const valid = {email: 'a@b.fr', password: 'Motdepasse1!', fullName: 'Sofia Lemaire'};
 
   it('accepte un formulaire valide', () => {
     expect(validateNewUser(valid)).toEqual({});
@@ -41,6 +41,17 @@ describe('validateNewUser', () => {
 
   it('rejette un mot de passe de plus de 128 caractères (contrainte API)', () => {
     expect(validateNewUser({...valid, password: 'x'.repeat(129)}).password).toBeDefined();
+  });
+
+  it.each([
+    ['sans majuscule', 'motdepasse1!'],
+    ['sans minuscule', 'MOTDEPASSE1!'],
+    ['sans chiffre', 'Motdepasse!'],
+    ['sans caractère spécial', 'Motdepasse1'],
+  ])('refuse un mot de passe temporaire %s', (_l, faible) => {
+    // Le mot de passe posé par l'admin obéit aux mêmes critères que le
+    // définitif : il circule hors de l'app jusqu'à la première connexion.
+    expect(validateNewUser({...valid, password: faible}).password).toBeDefined();
   });
 
   it('rejette un nom vide ou uniquement des espaces', () => {
