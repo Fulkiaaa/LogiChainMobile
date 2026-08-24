@@ -3,15 +3,11 @@ import {AppState} from 'react-native';
 import EventSource from 'react-native-sse';
 import {useQueryClient} from '@tanstack/react-query';
 
+import {toAlert, type Alert} from '@/domain/alert';
 import {ENV} from '@/config/env';
 import {tokenStore} from '@/services/api/tokenStore';
 
-export interface Alert {
-  id: string;
-  type: string;
-  message: string;
-  at: string;
-}
+export type {Alert} from '@/domain/alert';
 
 /**
  * Écoute le flux SSE d'alertes critiques quand l'app est au premier plan
@@ -23,7 +19,9 @@ export function useNotificationsSSE(): {alerts: Alert[]} {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    let es: EventSource | null = null;
+    // Le générique déclare l'événement nommé émis par l'API, sinon le typage
+    // de la lib n'autorise que les 4 types standard.
+    let es: EventSource<'notification'> | null = null;
     let cancelled = false;
 
     const openStream = async () => {
@@ -31,24 +29,25 @@ export function useNotificationsSSE(): {alerts: Alert[]} {
       if (!tokens || cancelled) {
         return;
       }
-      es = new EventSource(
+      es = new EventSource<'notification'>(
         `${ENV.API_BASE_URL}/notifications/stream?token=${encodeURIComponent(tokens.token)}`,
       );
-      es.addEventListener('message', event => {
-        try {
-          const data = JSON.parse((event as {data: string}).data ?? '{}');
-          const alert: Alert = {
-            id: data.id ?? String(Date.now()),
-            type: data.type ?? 'info',
-            message: data.message ?? data.type ?? 'Alerte',
-            at: data.at ?? new Date().toISOString(),
-          };
-          setAlerts(prev => [alert, ...prev].slice(0, 50));
-          queryClient.invalidateQueries();
-        } catch {
-          // message non-JSON (heartbeat) : ignoré
+
+      const onPush = (event: unknown) => {
+        const alert = toAlert((event as {data?: string}).data);
+        if (!alert) {
+          return; // heartbeat, poignée de main, ou charge utile illisible
         }
-      });
+        setAlerts(prev => [alert, ...prev].slice(0, 50));
+        queryClient.invalidateQueries();
+      };
+
+      // L'API nomme son événement (`event: notification`). react-native-sse
+      // dispatche alors vers ce nom et JAMAIS vers 'message', qui n'est le
+      // type par défaut que si le serveur ne nomme pas l'événement.
+      // On garde 'message' pour rester compatible si l'API cessait de le nommer.
+      es.addEventListener('notification', onPush);
+      es.addEventListener('message', onPush);
     };
 
     const closeStream = () => {

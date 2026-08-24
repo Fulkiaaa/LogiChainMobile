@@ -29,6 +29,22 @@ export const authApi = {
     const {data} = await api.apiFetch<MeUser>('/auth/me', {auth: true});
     return data;
   },
+  /**
+   * Remplacement du mot de passe temporaire. L'API renvoie une NOUVELLE paire de
+   * jetons : l'ancienne porte encore `mustChangePassword` et resterait bloquée
+   * par le middleware côté serveur.
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<LoginResult> {
+    const {status, data} = await api.apiFetch<LoginResult | ApiErrorEnvelope>('/auth/password', {
+      method: 'PATCH',
+      body: {currentPassword, newPassword},
+      auth: true,
+    });
+    if (status < 200 || status >= 300) {
+      throw new Error(readApiError(data, status));
+    }
+    return data as LoginResult;
+  },
   /** Création d'un utilisateur. Réservé aux admins côté API (`requireRole`). */
   async register(payload: {
     email: string;

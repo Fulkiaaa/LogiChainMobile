@@ -8,6 +8,7 @@ import {
 } from 'react-native-vision-camera';
 
 import {useIsFocused} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ModeSelector} from '@/components/ModeSelector';
 import type {Palette} from '@/config/theme';
@@ -25,6 +26,7 @@ export function ScanScreen() {
   // La caméra ne tourne que si l'onglet Scan est au premier plan : sinon elle
   // continuait de lire les QR depuis un autre onglet, et vidait la batterie.
   const isFocused = useIsFocused();
+  const insets = useSafeAreaInsets();
   const device = useCameraDevice('back');
   const [manual, setManual] = useState('');
   const [pending, setPending] = useState(0);
@@ -67,7 +69,7 @@ export function ScanScreen() {
         </View>
       )}
 
-      <View style={styles.top}>
+      <View style={[styles.top, {paddingTop: insets.top + 8}]}>
         <ModeSelector mode={mode} onChange={setMode} />
         <View style={styles.counters}>
           <Text style={styles.count}>{sessionCount} scannés</Text>

@@ -28,3 +28,21 @@ export async function runInitialSync(): Promise<InitialSyncResult> {
   metaRepo.set('lastFullSyncAt', new Date().toISOString());
   return {eventId: ev.id, itemCount: items.length};
 }
+
+/**
+ * Retélécharge le secteur depuis zéro.
+ *
+ * `runInitialSync` n'est déclenchée qu'en l'absence de secteur en cache : sans
+ * ce point d'entrée, un agent réaffecté à un autre événement resterait
+ * indéfiniment sur l'ancien. On purge d'abord l'ancien secteur, sinon ses
+ * items resteraient en base sans jamais être affichés ni nettoyés.
+ */
+export async function resyncSector(): Promise<InitialSyncResult> {
+  const previous = metaRepo.get('assignedEventId');
+  if (previous) {
+    itemsRepo.deleteByEvent(previous);
+    zonesRepo.replaceForEvent(previous, []);
+  }
+  metaRepo.set('assignedEventId', '');
+  return runInitialSync();
+}

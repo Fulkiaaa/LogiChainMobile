@@ -1,4 +1,6 @@
 import React from 'react';
+import {View} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {BarChart3, LayoutDashboard, RefreshCw, ScanLine, User} from 'lucide-react-native';
 
@@ -12,6 +14,28 @@ import {SyncCenterScreen} from '@/screens/SyncCenterScreen';
 import type {AgentTabParamList} from './types';
 
 const Tab = createBottomTabNavigator<AgentTabParamList>();
+
+/**
+ * Sans en-tête, le contenu passerait sous l'encoche. On réinjecte la marge
+ * haute ici plutôt que dans chaque écran. Défini au niveau module : un
+ * composant recréé à chaque rendu remonterait tout l'écran.
+ */
+const withSafeTop = (Screen: React.ComponentType) =>
+  function SafeTopScreen() {
+    const insets = useSafeAreaInsets();
+    return (
+      <View style={{flex: 1, paddingTop: insets.top}}>
+        <Screen />
+      </View>
+    );
+  };
+
+// Le Scan garde sa caméra en plein écran : il gère sa propre marge sur le
+// calque des contrôles.
+const SafeDashboard = withSafeTop(DashboardScreen);
+const SafeSyncCenter = withSafeTop(SyncCenterScreen);
+const SafeKpi = withSafeTop(KpiScreen);
+const SafeProfile = withSafeTop(ProfileScreen);
 
 /** Icône Lucide par onglet. Elles reçoivent la couleur de React Navigation,
  *  qui gère lui-même l'état actif/inactif. */
@@ -36,19 +60,18 @@ export function AgentTabs() {
     <Tab.Navigator
       screenOptions={({route}) => {
         return {
-          headerStyle: {backgroundColor: c.surface},
-          headerTintColor: c.text,
+          headerShown: false,
           tabBarStyle: {backgroundColor: c.surface, borderTopColor: c.border},
           tabBarActiveTintColor: c.primary,
           tabBarInactiveTintColor: c.textMuted,
           tabBarIcon: makeTabBarIcon(ICONS[route.name]),
         };
       }}>
-      <Tab.Screen name="Dashboard" component={DashboardScreen} options={{title: 'Tableau de bord'}} />
+      <Tab.Screen name="Dashboard" component={SafeDashboard} options={{title: 'Tableau de bord'}} />
+      <Tab.Screen name="SyncCenter" component={SafeSyncCenter} options={{title: 'Synchro'}} />
       <Tab.Screen name="Scan" component={ScanScreen} options={{title: 'Scan'}} />
-      <Tab.Screen name="SyncCenter" component={SyncCenterScreen} options={{title: 'Synchro'}} />
-      <Tab.Screen name="Kpi" component={KpiScreen} options={{title: 'KPI'}} />
-      <Tab.Screen name="Profile" component={ProfileScreen} options={{title: 'Profil'}} />
+      <Tab.Screen name="Kpi" component={SafeKpi} options={{title: 'KPI'}} />
+      <Tab.Screen name="Profile" component={SafeProfile} options={{title: 'Profil'}} />
     </Tab.Navigator>
   );
 }

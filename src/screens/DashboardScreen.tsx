@@ -3,7 +3,7 @@ import {FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View} 
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {AlertTriangle, Search, X} from 'lucide-react-native';
+import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, X} from 'lucide-react-native';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import type {Palette} from '@/config/theme';
@@ -66,6 +66,10 @@ export function DashboardScreen() {
         <View>
           <View style={styles.headerRow}>
             <Text style={styles.hello}>Bonjour, {user?.email ?? 'agent'}</Text>
+            <Pressable style={styles.mapLink} onPress={() => nav.navigate('Map')}>
+              <MapIcon color={c.primary} size={16} strokeWidth={2.5} />
+              <Text style={styles.mapLinkText}>Carte</Text>
+            </Pressable>
           </View>
 
           <View style={[styles.banner, {backgroundColor: online ? c.surface : c.warning + '22'}]}>
@@ -97,14 +101,23 @@ export function DashboardScreen() {
           {alerts.length > 0 ? (
             <>
               <Text style={styles.section}>Alertes</Text>
-              {alerts.slice(0, 5).map(a => (
-                <View key={a.id} style={styles.alert}>
-                  <View style={styles.alertLine}>
-                    <AlertTriangle color={c.warning} size={15} strokeWidth={2.5} />
-                    <Text style={styles.alertText}>{a.message}</Text>
+              {alerts.slice(0, 5).map(a => {
+                const tint =
+                  a.severity === 'critical' ? c.danger : a.severity === 'warning' ? c.warning : c.primary;
+                const Icon =
+                  a.severity === 'critical' ? ShieldAlert : a.severity === 'warning' ? AlertTriangle : Info;
+                return (
+                  <View
+                    key={a.id}
+                    style={[styles.alert, {backgroundColor: tint + '1f', borderLeftColor: tint}]}>
+                    <Icon color={tint} size={18} strokeWidth={2.5} />
+                    <View style={styles.alertBody}>
+                      <Text style={[styles.alertTitle, {color: tint}]}>{a.title}</Text>
+                      <Text style={styles.alertText}>{a.message}</Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </>
           ) : null}
 
@@ -163,7 +176,9 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, backgroundColor: c.bg, padding: 16},
   headerRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  hello: {color: c.text, fontSize: 16, fontWeight: '600'},
+  hello: {color: c.text, fontSize: 16, fontWeight: '600', flexShrink: 1},
+  mapLink: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingLeft: 10},
+  mapLinkText: {color: c.primary, fontWeight: '600'},
   logout: {color: c.primary},
   banner: {padding: 12, borderRadius: 10, marginTop: 12},
   bannerText: {color: c.text},
@@ -193,9 +208,18 @@ const makeStyles = (c: Palette) =>
   },
   searchInput: {flex: 1, color: c.text, paddingVertical: 10},
   statusCount: {color: c.text, fontSize: 24, fontWeight: '800'},
-  alert: {backgroundColor: c.surface, borderRadius: 8, padding: 10, marginBottom: 6},
-  alertText: {color: c.text, flexShrink: 1},
-  alertLine: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  alert: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    padding: 12,
+    marginBottom: 8,
+  },
+  alertBody: {flex: 1, gap: 2},
+  alertTitle: {fontWeight: '700', fontSize: 13},
+  alertText: {color: c.text, flexShrink: 1, fontSize: 13, lineHeight: 18},
   itemRow: {flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface, borderRadius: 10, padding: 14, marginBottom: 8},
   itemLabel: {color: c.text, fontWeight: '600'},
   itemQr: {color: c.textMuted, fontSize: 12, marginTop: 2},

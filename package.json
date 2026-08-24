@@ -23,6 +23,7 @@
     "react-native-geolocation-service": "^5.3.1",
     "react-native-haptic-feedback": "^3.0.0",
     "react-native-keychain": "^10.0.0",
+    "react-native-maps": "^1.29.0",
     "react-native-safe-area-context": "^5.8.0",
     "react-native-screens": "^4.25.2",
     "react-native-sound": "^0.13.0",

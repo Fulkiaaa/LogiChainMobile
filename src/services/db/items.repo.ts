@@ -70,6 +70,11 @@ export function createItemsRepo(db: SqlDb) {
       db.run('UPDATE items SET status=?, version=? WHERE id=?', [status, version, id]);
       changeBus.emit('items');
     },
+    /** Purge les items d'un secteur qu'on quitte (réaffectation d'agent). */
+    deleteByEvent(eventId: string): void {
+      db.run('DELETE FROM items WHERE eventId=?', [eventId]);
+      changeBus.emit('items');
+    },
     listByEvent(eventId: string): CachedItem[] {
       return db.all<CachedItem>('SELECT * FROM items WHERE eventId=? ORDER BY label', [eventId]);
     },

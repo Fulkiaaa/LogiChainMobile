@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {DownloadCloud} from 'lucide-react-native';
 import {useFocusEffect} from '@react-navigation/native';
 
 import {AlertTriangle} from 'lucide-react-native';
@@ -7,6 +8,7 @@ import {AlertTriangle} from 'lucide-react-native';
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import {outboxService} from '@/services/sync/outboxService.instance';
 import {changeBus} from '@/services/store/changeBus';
+import {resyncSector} from '@/services/sync/initialSync';
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
@@ -21,6 +23,7 @@ export function SyncCenterScreen() {
   const {pending, syncing, lastResult, forceSync} = useSync();
   const [rows, setRows] = useState<OutboxRow[]>([]);
   const [conflicts, setConflicts] = useState<OutboxRow[]>([]);
+  const [resyncing, setResyncing] = useState(false);
 
   const refresh = useCallback(() => {
     setRows(outboxRepo.listPending());
@@ -42,6 +45,19 @@ export function SyncCenterScreen() {
     refresh();
   };
 
+  const onResync = async () => {
+    setResyncing(true);
+    try {
+      const res = await resyncSector();
+      Alert.alert('Secteur retéléchargé', `${res.itemCount} équipement(s) en cache.`);
+    } catch (e) {
+      Alert.alert('Échec', e instanceof Error ? e.message : 'Retéléchargement impossible.');
+    } finally {
+      setResyncing(false);
+      refresh();
+    }
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
       <View style={styles.summary}>
@@ -59,6 +75,21 @@ export function SyncCenterScreen() {
       <Pressable style={[styles.button, (!online || syncing) && styles.buttonDisabled]} onPress={onForce} disabled={!online || syncing}>
         <Text style={styles.buttonText}>{syncing ? 'Synchronisation…' : 'Forcer la synchro'}</Text>
       </Pressable>
+
+      <Pressable style={styles.secondary} onPress={onResync} disabled={resyncing || !online}>
+        {resyncing ? (
+          <ActivityIndicator color={c.primary} />
+        ) : (
+          <>
+            <DownloadCloud color={c.primary} size={16} strokeWidth={2.5} />
+            <Text style={styles.secondaryText}>Retélécharger le secteur</Text>
+          </>
+        )}
+      </Pressable>
+      <Text style={styles.secondaryHint}>
+        Purge le cache local et retélécharge l'événement assigné. À utiliser après une
+        réaffectation de secteur.
+      </Text>
 
       <Text style={styles.section}>File d'attente ({rows.length})</Text>
       {rows.length === 0 ? (
@@ -118,6 +149,19 @@ const makeStyles = (c: Palette) =>
   button: {backgroundColor: c.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 14},
   buttonDisabled: {opacity: 0.5},
   buttonText: {color: '#0f172a', fontWeight: '700'},
+  secondary: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: c.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 10,
+  },
+  secondaryText: {color: c.primary, fontWeight: '700'},
+  secondaryHint: {color: c.textMuted, fontSize: 11, marginTop: 6, lineHeight: 15},
   section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
   empty: {color: c.textMuted},
   row: {backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 8},
