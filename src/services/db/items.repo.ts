@@ -1,5 +1,7 @@
 import type {ItemCategory, ItemJSON, ItemStatus} from '@/types/api';
 
+import {changeBus} from '@/services/store/changeBus';
+
 import type {SqlDb} from './SqlDb';
 
 export interface CachedItem {
@@ -52,6 +54,7 @@ export function createItemsRepo(db: SqlDb) {
           );
         }
         db.run('COMMIT');
+        changeBus.emit('items');
       } catch (e) {
         db.run('ROLLBACK');
         throw e;
@@ -65,6 +68,7 @@ export function createItemsRepo(db: SqlDb) {
     },
     updateStatus(id: string, status: ItemStatus, version: number): void {
       db.run('UPDATE items SET status=?, version=? WHERE id=?', [status, version, id]);
+      changeBus.emit('items');
     },
     listByEvent(eventId: string): CachedItem[] {
       return db.all<CachedItem>('SELECT * FROM items WHERE eventId=? ORDER BY label', [eventId]);

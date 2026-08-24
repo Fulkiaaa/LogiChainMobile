@@ -1,8 +1,11 @@
-import React, {useMemo} from 'react';
-import {ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {AlertTriangle, PackageX} from 'lucide-react-native';
 import {useQuery} from '@tanstack/react-query';
 
+import {ReportSheet} from '@/components/ReportSheet';
 import {StatusBadge} from '@/components/StatusBadge';
+import type {ReportKind} from '@/domain/anomaly';
 import {STATUS_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {itemsApi} from '@/services/api/items.api';
@@ -13,6 +16,7 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
   const {c} = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
   const {id} = route.params;
+  const [sheet, setSheet] = useState<ReportKind | null>(null);
   const cached = itemsRepo.findById(id);
 
   const {data, isLoading} = useQuery({
@@ -30,6 +34,31 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
       <Text style={styles.meta}>QR : {data?.qrCode ?? cached?.qrCode}</Text>
       <Text style={styles.meta}>Catégorie : {data?.category ?? cached?.category}</Text>
       <Text style={styles.meta}>Poids : {data?.weightKg ?? cached?.weightKg} kg</Text>
+
+      <Text style={styles.section}>Signalement terrain</Text>
+      <View style={styles.actions}>
+        <Pressable style={styles.action} onPress={() => setSheet('anomaly')}>
+          <AlertTriangle color={c.warning} size={17} strokeWidth={2.5} />
+          <Text style={styles.actionText}>Signaler une anomalie</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.action, styles.actionDanger]}
+          onPress={() => setSheet('lost')}>
+          <PackageX color={c.danger} size={17} strokeWidth={2.5} />
+          <Text style={[styles.actionText, styles.actionTextDanger]}>Déclarer perdu</Text>
+        </Pressable>
+      </View>
+      <Text style={styles.offlineHint}>
+        Fonctionne hors ligne : la position est capturée par le GPS et l’action attend la synchro.
+      </Text>
+
+      <ReportSheet
+        visible={sheet !== null}
+        kind={sheet ?? 'anomaly'}
+        itemId={id}
+        onClose={() => setSheet(null)}
+        onDone={msg => Alert.alert('Enregistré', msg)}
+      />
 
       <Text style={styles.section}>Historique</Text>
       {isLoading ? (
@@ -64,4 +93,22 @@ const makeStyles = (c: Palette) =>
   histType: {color: c.text, fontWeight: '600'},
   histMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
   muted: {color: c.textMuted},
+  actions: {flexDirection: 'row', gap: 10},
+  action: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.surface,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: c.border,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+  },
+  actionDanger: {borderColor: c.danger},
+  actionText: {color: c.text, fontWeight: '600', fontSize: 13, flexShrink: 1},
+  actionTextDanger: {color: c.danger},
+  offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 8, lineHeight: 17},
 });

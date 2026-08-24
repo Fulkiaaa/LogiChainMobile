@@ -1,3 +1,5 @@
+import {changeBus} from '@/services/store/changeBus';
+
 import type {SqlDb} from './SqlDb';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'conflict';
@@ -28,6 +30,7 @@ export function createOutboxRepo(db: SqlDb) {
           r.payload, r.baseVersion, r.status, r.attempts, r.lastError ?? null,
         ],
       );
+      changeBus.emit('outbox');
     },
     listPending(): OutboxRow[] {
       return db.all<OutboxRow>(
@@ -39,11 +42,13 @@ export function createOutboxRepo(db: SqlDb) {
     },
     remove(localId: string): void {
       db.run('DELETE FROM outbox WHERE localId=?', [localId]);
+      changeBus.emit('outbox');
     },
     mark(localId: string, status: OutboxStatus, lastError?: string): void {
       db.run('UPDATE outbox SET status=?, attempts=attempts+1, lastError=? WHERE localId=?', [
         status, lastError ?? null, localId,
       ]);
+      changeBus.emit('outbox');
     },
     countPending(): number {
       const row = db.get<{c: number}>(

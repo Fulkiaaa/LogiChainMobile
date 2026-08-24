@@ -12,6 +12,8 @@
 		6AD80D5BC33D9FD06DA0F764 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A33330B26AD1855023791A39 /* beep_ok.wav in Resources */ = {isa = PBXBuildFile; fileRef = 5461A7DEA459FFAFCE33DF42 /* beep_ok.wav */; };
+		F49AAEED8DD2B547A3BD33E5 /* beep_ko.wav in Resources */ = {isa = PBXBuildFile; fileRef = FFF46D3B263B3851A1F45471 /* beep_ko.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,11 +22,13 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LogiChainMobile/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = LogiChainMobile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-LogiChainMobile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LogiChainMobile.debug.xcconfig"; path = "Target Support Files/Pods-LogiChainMobile/Pods-LogiChainMobile.debug.xcconfig"; sourceTree = "<group>"; };
+		5461A7DEA459FFAFCE33DF42 /* beep_ok.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = beep_ok.wav; path = LogiChainMobile/beep_ok.wav; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-LogiChainMobile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LogiChainMobile.release.xcconfig"; path = "Target Support Files/Pods-LogiChainMobile/Pods-LogiChainMobile.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-LogiChainMobile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LogiChainMobile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LogiChainMobile/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LogiChainMobile/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		FFF46D3B263B3851A1F45471 /* beep_ko.wav */ = {isa = PBXFileReference; includeInIndex = 1; name = beep_ko.wav; path = LogiChainMobile/beep_ko.wav; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +51,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				5461A7DEA459FFAFCE33DF42 /* beep_ok.wav */,
+				FFF46D3B263B3851A1F45471 /* beep_ko.wav */,
 			);
 			name = LogiChainMobile;
 			sourceTree = "<group>";
@@ -161,6 +167,8 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				6AD80D5BC33D9FD06DA0F764 /* PrivacyInfo.xcprivacy in Resources */,
+				A33330B26AD1855023791A39 /* beep_ok.wav in Resources */,
+				F49AAEED8DD2B547A3BD33E5 /* beep_ko.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

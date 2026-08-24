@@ -1,15 +1,16 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 
 import {outboxRepo} from '@/services/db/database';
-import {syncEngine} from '@/services/sync/syncEngine.instance';
+import {runFlush} from '@/services/sync/syncEngine.instance';
+import {changeBus} from '@/services/store/changeBus';
 
 import {useConnectivity} from './useConnectivity';
 
 export interface SyncState {
   pending: number;
   syncing: boolean;
-  lastResult: {synced: number; conflicts: number; failed: number} | null;
+  lastResult: {synced: number; conflicts: number; failed: number; rolledBack: number} | null;
   forceSync: () => Promise<void>;
   refreshPending: () => void;
 }
@@ -19,7 +20,6 @@ export function useSync(): SyncState {
   const [pending, setPending] = useState(0);
   const [syncing, setSyncing] = useState(false);
   const [lastResult, setLastResult] = useState<SyncState['lastResult']>(null);
-  const busy = useRef(false);
   const queryClient = useQueryClient();
 
   const refreshPending = useCallback(() => {
@@ -27,21 +27,23 @@ export function useSync(): SyncState {
   }, []);
 
   const forceSync = useCallback(async () => {
-    if (busy.current) {
-      return;
-    }
-    busy.current = true;
     setSyncing(true);
     try {
-      const result = await syncEngine.flush();
-      setLastResult(result);
-      queryClient.invalidateQueries();
+      // Verrou global : si un autre écran synchronise déjà, on n'envoie pas
+      // les mêmes actions une seconde fois (runFlush renvoie null).
+      const result = await runFlush();
+      if (result) {
+        setLastResult(result);
+        queryClient.invalidateQueries();
+      }
     } finally {
-      busy.current = false;
       setSyncing(false);
       refreshPending();
     }
   }, [queryClient, refreshPending]);
+
+  // Le compteur suit les écritures locales, d'où qu'elles viennent.
+  useEffect(() => changeBus.subscribe('outbox', refreshPending), [refreshPending]);
 
   // Sync auto au retour du réseau si des actions sont en attente.
   useEffect(() => {

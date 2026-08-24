@@ -29,4 +29,7 @@ export const itemsApi = {
   anomaly(id: string, body: {location: GeoPoint; note: string}): Promise<ItemActionResult> {
     return api.apiFetch<ItemJSON>(`/items/${id}/anomaly`, {method: 'POST', body, auth: true});
   },
+  lost(id: string, body: {note?: string}): Promise<ItemActionResult> {
+    return api.apiFetch<ItemJSON>(`/items/${id}/lost`, {method: 'POST', body, auth: true});
+  },
 };

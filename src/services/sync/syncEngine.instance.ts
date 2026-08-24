@@ -6,7 +6,9 @@ import type {OutboxRow} from '@/services/db/outbox.repo';
 import type {ApiOutcome} from '@/domain/reconcile';
 import type {GeoPoint, ItemJSON} from '@/types/api';
 
+import {createGuardedFlush} from './runFlush';
 import {createSyncEngine} from './SyncEngine';
+import {outboxService} from './outboxService.instance';
 
 interface ScanPayload {
   location: GeoPoint;
@@ -27,6 +29,10 @@ async function sendAction(row: OutboxRow): Promise<ApiOutcome & {item?: ItemJSON
     case 'anomaly':
       res = await itemsApi.anomaly(row.entityId, {location: p.location, note: p.note ?? ''});
       break;
+    case 'lost':
+      // Sans ce cas, 'lost' tombait dans le default et appelait /scan.
+      res = await itemsApi.lost(row.entityId, p.note ? {note: p.note} : {});
+      break;
     default:
       res = await itemsApi.scan(row.entityId, {location: p.location, note: p.note});
   }
@@ -43,5 +49,9 @@ export const syncEngine = createSyncEngine({
   maxAttempts: ENV.SYNC_MAX_ATTEMPTS,
   outbox: outboxRepo,
   sendAction,
+  rollback: row => outboxService.rollbackRow(row),
   applyServerItem: (item: ItemJSON) => itemsRepo.upsertMany([fromItemJSON(item)]),
 });
+
+/** Flush applicatif unique, protégé contre les déclenchements concurrents. */
+export const runFlush = createGuardedFlush(() => syncEngine.flush());

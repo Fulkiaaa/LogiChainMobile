@@ -7,6 +7,8 @@ import {
   useCodeScanner,
 } from 'react-native-vision-camera';
 
+import {useIsFocused} from '@react-navigation/native';
+
 import {ModeSelector} from '@/components/ModeSelector';
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
@@ -20,6 +22,9 @@ export function ScanScreen() {
   const {mode, setMode} = useScanMode();
   const {onCode, sessionCount, lastResults} = useScanner(mode);
   const {hasPermission, requestPermission} = useCameraPermission();
+  // La caméra ne tourne que si l'onglet Scan est au premier plan : sinon elle
+  // continuait de lire les QR depuis un autre onglet, et vidait la batterie.
+  const isFocused = useIsFocused();
   const device = useCameraDevice('back');
   const [manual, setManual] = useState('');
   const [pending, setPending] = useState(0);
@@ -48,7 +53,12 @@ export function ScanScreen() {
   return (
     <View style={styles.container}>
       {hasPermission && device ? (
-        <Camera style={StyleSheet.absoluteFill} device={device} isActive codeScanner={codeScanner} />
+        <Camera
+          style={StyleSheet.absoluteFill}
+          device={device}
+          isActive={isFocused}
+          codeScanner={codeScanner}
+        />
       ) : (
         <View style={styles.noCam}>
           <Text style={styles.noCamText}>

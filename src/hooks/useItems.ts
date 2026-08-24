@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 
 import {itemsRepo, metaRepo} from '@/services/db/database';
+import {changeBus} from '@/services/store/changeBus';
 import type {CachedItem} from '@/services/db/items.repo';
 import type {ItemStatus} from '@/types/api';
 
@@ -24,6 +25,9 @@ export function useItems(): ItemsState {
 
   useEffect(() => {
     reload();
+    // Toute écriture locale (scan, perte, synchro) rafraîchit la liste sans
+    // que l'utilisateur ait à tirer pour recharger.
+    return changeBus.subscribe('items', reload);
   }, [reload]);
 
   const byStatus = items.reduce<Record<string, number>>((acc, it) => {

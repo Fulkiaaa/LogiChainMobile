@@ -1,10 +1,12 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 
 import {AlertTriangle} from 'lucide-react-native';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
+import {outboxService} from '@/services/sync/outboxService.instance';
+import {changeBus} from '@/services/store/changeBus';
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
@@ -31,6 +33,10 @@ export function SyncCenterScreen() {
     }, [refresh]),
   );
 
+  // La file se vide sous les yeux de l'utilisateur, y compris quand la synchro
+  // part toute seule au retour du réseau.
+  useEffect(() => changeBus.subscribe('outbox', refresh), [refresh]);
+
   const onForce = async () => {
     await forceSync();
     refresh();
@@ -45,6 +51,7 @@ export function SyncCenterScreen() {
         {lastResult ? (
           <Text style={styles.lastResult}>
             Dernière synchro : {lastResult.synced} OK, {lastResult.conflicts} conflits, {lastResult.failed} échecs
+            {lastResult.rolledBack > 0 ? `, ${lastResult.rolledBack} annulée(s)` : ''}
           </Text>
         ) : null}
       </View>
@@ -86,6 +93,9 @@ export function SyncCenterScreen() {
               </Pressable>
               <Pressable
                 onPress={() => {
+                  // Rollback visuel : l'équipement retrouve son état réel
+                  // avant qu'on retire l'action de la file.
+                  outboxService.rollbackRow(cf);
                   outboxRepo.remove(cf.localId);
                   refresh();
                 }}>
