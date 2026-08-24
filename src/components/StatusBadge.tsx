@@ -1,13 +1,16 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
-import {STATUS_COLORS, STATUS_LABELS} from '@/config/theme';
+import {STATUS_LABELS} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import type {ItemStatus} from '@/types/api';
 
 export function StatusBadge({status}: {status: ItemStatus}) {
+  const {statusColors} = useTheme();
+  const tint = statusColors[status];
   return (
-    <View style={[styles.badge, {backgroundColor: STATUS_COLORS[status] + '33', borderColor: STATUS_COLORS[status]}]}>
-      <Text style={[styles.text, {color: STATUS_COLORS[status]}]}>{STATUS_LABELS[status]}</Text>
+    <View style={[styles.badge, {backgroundColor: tint + '22', borderColor: tint}]}>
+      <Text style={[styles.text, {color: tint}]}>{STATUS_LABELS[status]}</Text>
     </View>
   );
 }

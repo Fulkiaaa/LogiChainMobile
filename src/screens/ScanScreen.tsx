@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 import {
   Camera,
@@ -8,12 +8,15 @@ import {
 } from 'react-native-vision-camera';
 
 import {ModeSelector} from '@/components/ModeSelector';
-import {COLORS} from '@/config/theme';
+import type {Palette} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {useScanMode} from '@/hooks/useScanMode';
 import {useScanner} from '@/hooks/useScanner';
 import {outboxRepo} from '@/services/db/database';
 
 export function ScanScreen() {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const {mode, setMode} = useScanMode();
   const {onCode, sessionCount, lastResults} = useScanner(mode);
   const {hasPermission, requestPermission} = useCameraPermission();
@@ -67,7 +70,7 @@ export function ScanScreen() {
           <TextInput
             style={styles.manualInput}
             placeholder="Saisir un QR / code…"
-            placeholderTextColor={COLORS.textMuted}
+            placeholderTextColor={c.textMuted}
             autoCapitalize="characters"
             value={manual}
             onChangeText={setManual}
@@ -90,7 +93,7 @@ export function ScanScreen() {
           </Pressable>
         </View>
         {lastResults.slice(0, 4).map((r, i) => (
-          <Text key={i} style={[styles.result, {color: r.ok ? COLORS.success : COLORS.danger}]}>
+          <Text key={i} style={[styles.result, {color: r.ok ? c.success : c.danger}]}>
             {r.ok ? '✓' : '✗'} {r.label}
           </Text>
         ))}
@@ -99,26 +102,27 @@ export function ScanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
   container: {flex: 1, backgroundColor: '#000'},
-  noCam: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', padding: 24, backgroundColor: COLORS.bg},
-  noCamText: {color: COLORS.textMuted, textAlign: 'center'},
+  noCam: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', padding: 24, backgroundColor: c.bg},
+  noCamText: {color: c.textMuted, textAlign: 'center'},
   top: {position: 'absolute', top: 16, left: 12, right: 12, gap: 8},
   counters: {flexDirection: 'row', justifyContent: 'space-between'},
   count: {color: '#fff', fontSize: 18, fontWeight: '700'},
-  pending: {color: COLORS.warning, fontSize: 14, fontWeight: '600'},
+  pending: {color: c.warning, fontSize: 14, fontWeight: '600'},
   bottom: {position: 'absolute', bottom: 24, left: 12, right: 12, gap: 6},
   manualRow: {flexDirection: 'row', gap: 8, marginBottom: 8},
   manualInput: {
     flex: 1,
     backgroundColor: 'rgba(15,23,42,0.85)',
-    color: COLORS.text,
+    color: c.text,
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: c.border,
   },
-  manualBtn: {backgroundColor: COLORS.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
+  manualBtn: {backgroundColor: c.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
   manualBtnText: {color: '#0f172a', fontWeight: '700'},
   result: {fontSize: 14, fontWeight: '600'},
 });

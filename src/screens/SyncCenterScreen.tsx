@@ -1,14 +1,20 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 
-import {COLORS} from '@/config/theme';
+import {AlertTriangle} from 'lucide-react-native';
+
+import {ConnectivityBadge} from '@/components/ConnectivityBadge';
+import type {Palette} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
 import {useSync} from '@/hooks/useSync';
 import {outboxRepo} from '@/services/db/database';
 import type {OutboxRow} from '@/services/db/outbox.repo';
 
 export function SyncCenterScreen() {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const {online} = useConnectivity();
   const {pending, syncing, lastResult, forceSync} = useSync();
   const [rows, setRows] = useState<OutboxRow[]>([]);
@@ -33,9 +39,9 @@ export function SyncCenterScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
       <View style={styles.summary}>
-        <Text style={styles.summaryText}>
-          {online ? '🟢 En ligne' : '🔴 Hors ligne'} · {pending} en attente · {conflicts.length} conflit(s)
-        </Text>
+        <ConnectivityBadge online={online}>
+          {` · ${pending} en attente · ${conflicts.length} conflit(s)`}
+        </ConnectivityBadge>
         {lastResult ? (
           <Text style={styles.lastResult}>
             Dernière synchro : {lastResult.synced} OK, {lastResult.conflicts} conflits, {lastResult.failed} échecs
@@ -63,21 +69,24 @@ export function SyncCenterScreen() {
       {conflicts.length === 0 ? (
         <Text style={styles.empty}>Aucun conflit.</Text>
       ) : (
-        conflicts.map(c => (
-          <View key={c.localId} style={[styles.row, styles.conflict]}>
-            <Text style={styles.rowTitle}>⚠️ {c.actionType} · item {c.entityId.slice(-6)}</Text>
-            <Text style={styles.rowMeta}>{c.lastError ?? 'conflit de version'} · {c.attempts} tentative(s)</Text>
+        conflicts.map(cf => (
+          <View key={cf.localId} style={[styles.row, styles.conflict]}>
+            <View style={styles.rowTitleLine}>
+              <AlertTriangle color={c.warning} size={15} strokeWidth={2.5} />
+              <Text style={styles.rowTitle}>{cf.actionType} · item {cf.entityId.slice(-6)}</Text>
+            </View>
+            <Text style={styles.rowMeta}>{cf.lastError ?? 'conflit de version'} · {cf.attempts} tentative(s)</Text>
             <View style={styles.conflictActions}>
               <Pressable
                 onPress={() => {
-                  outboxRepo.mark(c.localId, 'pending');
+                  outboxRepo.mark(cf.localId, 'pending');
                   refresh();
                 }}>
                 <Text style={styles.replay}>Rejouer</Text>
               </Pressable>
               <Pressable
                 onPress={() => {
-                  outboxRepo.remove(c.localId);
+                  outboxRepo.remove(cf.localId);
                   refresh();
                 }}>
                 <Text style={styles.discard}>Abandonner</Text>
@@ -90,21 +99,23 @@ export function SyncCenterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: COLORS.bg},
-  summary: {backgroundColor: COLORS.surface, borderRadius: 10, padding: 14},
-  summaryText: {color: COLORS.text, fontWeight: '600'},
-  lastResult: {color: COLORS.textMuted, marginTop: 6, fontSize: 12},
-  button: {backgroundColor: COLORS.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 14},
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+  container: {flex: 1, backgroundColor: c.bg},
+  summary: {backgroundColor: c.surface, borderRadius: 10, padding: 14},
+  summaryText: {color: c.text, fontWeight: '600'},
+  lastResult: {color: c.textMuted, marginTop: 6, fontSize: 12},
+  button: {backgroundColor: c.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 14},
   buttonDisabled: {opacity: 0.5},
   buttonText: {color: '#0f172a', fontWeight: '700'},
-  section: {color: COLORS.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  empty: {color: COLORS.textMuted},
-  row: {backgroundColor: COLORS.surface, borderRadius: 8, padding: 12, marginBottom: 8},
-  rowTitle: {color: COLORS.text, fontWeight: '600'},
-  rowMeta: {color: COLORS.textMuted, fontSize: 12, marginTop: 2},
-  conflict: {borderWidth: 1, borderColor: COLORS.danger},
+  section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
+  empty: {color: c.textMuted},
+  row: {backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 8},
+  rowTitle: {color: c.text, fontWeight: '600'},
+  rowTitleLine: {flexDirection: 'row', alignItems: 'center', gap: 6},
+  rowMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
+  conflict: {borderWidth: 1, borderColor: c.danger},
   conflictActions: {flexDirection: 'row', gap: 20, marginTop: 8},
-  replay: {color: COLORS.primary, fontWeight: '600'},
-  discard: {color: COLORS.danger, fontWeight: '600'},
+  replay: {color: c.primary, fontWeight: '600'},
+  discard: {color: c.danger, fontWeight: '600'},
 });

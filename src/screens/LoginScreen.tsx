@@ -1,20 +1,14 @@
-import React, {useState} from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import React, {useMemo, useState} from 'react';
+import {ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput} from 'react-native';
 
-import {COLORS} from '@/config/theme';
+import type {Palette} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {useAuth} from '@/hooks/useAuth';
 import {loginInputSchema} from '@/schemas/item.schema';
 
 export function LoginScreen() {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const {login} = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +42,7 @@ export function LoginScreen() {
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor={COLORS.textMuted}
+        placeholderTextColor={c.textMuted}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -57,7 +51,7 @@ export function LoginScreen() {
       <TextInput
         style={styles.input}
         placeholder="Mot de passe"
-        placeholderTextColor={COLORS.textMuted}
+        placeholderTextColor={c.textMuted}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -76,22 +70,23 @@ export function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {flex: 1, justifyContent: 'center', padding: 24, backgroundColor: COLORS.bg},
-  title: {fontSize: 40, fontWeight: '800', color: COLORS.text, textAlign: 'center'},
-  subtitle: {fontSize: 16, color: COLORS.primary, textAlign: 'center', marginBottom: 32},
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+  container: {flex: 1, justifyContent: 'center', padding: 24, backgroundColor: c.bg},
+  title: {fontSize: 40, fontWeight: '800', color: c.text, textAlign: 'center'},
+  subtitle: {fontSize: 16, color: c.primary, textAlign: 'center', marginBottom: 32},
   input: {
-    backgroundColor: COLORS.surface,
-    color: COLORS.text,
+    backgroundColor: c.surface,
+    color: c.text,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: c.border,
   },
-  error: {color: COLORS.danger, marginBottom: 12},
+  error: {color: c.danger, marginBottom: 12},
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: c.primary,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

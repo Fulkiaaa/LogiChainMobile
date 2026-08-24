@@ -3,35 +3,61 @@
  *
  * @format
  */
-import React from 'react';
+import React, {useMemo} from 'react';
 import {StatusBar} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {NavigationContainer, DarkTheme} from '@react-navigation/native';
+import {NavigationContainer, DarkTheme, DefaultTheme} from '@react-navigation/native';
 import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
-import {COLORS} from '@/config/theme';
 import {AuthProvider} from '@/hooks/useAuth';
+import {ThemeProvider, useTheme} from '@/hooks/useTheme';
 import {RootNavigator} from '@/navigation/RootNavigator';
 
 const queryClient = new QueryClient({
   defaultOptions: {queries: {retry: 1, staleTime: 30_000}},
 });
 
-const navTheme = {
-  ...DarkTheme,
-  colors: {...DarkTheme.colors, background: COLORS.bg, card: COLORS.surface, text: COLORS.text, primary: COLORS.primary},
-};
+/**
+ * Applique la palette au conteneur de navigation et à la barre d'état.
+ * Séparé de `App` car `useTheme` doit être consommé sous le provider.
+ */
+function ThemedApp() {
+  const {c, scheme} = useTheme();
+
+  const navTheme = useMemo(() => {
+    const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      colors: {
+        ...base.colors,
+        background: c.bg,
+        card: c.surface,
+        text: c.text,
+        primary: c.primary,
+        border: c.border,
+      },
+    };
+  }, [c, scheme]);
+
+  return (
+    <>
+      <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
+      <NavigationContainer theme={navTheme}>
+        <RootNavigator />
+      </NavigationContainer>
+    </>
+  );
+}
 
 function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" />
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NavigationContainer theme={navTheme}>
-            <RootNavigator />
-          </NavigationContainer>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <ThemedApp />
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );

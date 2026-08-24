@@ -1,14 +1,17 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
 
 import {StatusBadge} from '@/components/StatusBadge';
-import {COLORS, STATUS_LABELS} from '@/config/theme';
+import {STATUS_LABELS, type Palette} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {itemsApi} from '@/services/api/items.api';
 import {itemsRepo} from '@/services/db/database';
 import type {RootScreenProps} from '@/navigation/types';
 
 export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const {id} = route.params;
   const cached = itemsRepo.findById(id);
 
@@ -30,7 +33,7 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
 
       <Text style={styles.section}>Historique</Text>
       {isLoading ? (
-        <ActivityIndicator color={COLORS.primary} />
+        <ActivityIndicator color={c.primary} />
       ) : data && data.history.length > 0 ? (
         data.history
           .slice()
@@ -51,13 +54,14 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: COLORS.bg},
-  label: {color: COLORS.text, fontSize: 24, fontWeight: '800', marginBottom: 8},
-  meta: {color: COLORS.textMuted, marginTop: 4},
-  section: {color: COLORS.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  histRow: {backgroundColor: COLORS.surface, borderRadius: 8, padding: 12, marginBottom: 6},
-  histType: {color: COLORS.text, fontWeight: '600'},
-  histMeta: {color: COLORS.textMuted, fontSize: 12, marginTop: 2},
-  muted: {color: COLORS.textMuted},
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+  container: {flex: 1, backgroundColor: c.bg},
+  label: {color: c.text, fontSize: 24, fontWeight: '800', marginBottom: 8},
+  meta: {color: c.textMuted, marginTop: 4},
+  section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
+  histRow: {backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 6},
+  histType: {color: c.text, fontWeight: '600'},
+  histMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
+  muted: {color: c.textMuted},
 });

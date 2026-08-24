@@ -1,13 +1,16 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {useQuery} from '@tanstack/react-query';
 
-import {COLORS} from '@/config/theme';
+import type {Palette} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
 import {dashboardApi} from '@/services/api/dashboard.api';
 import {metaRepo} from '@/services/db/database';
 
 export function KpiScreen() {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const {online} = useConnectivity();
   const eventId = metaRepo.get('assignedEventId');
 
@@ -24,7 +27,7 @@ export function KpiScreen() {
       {!online ? (
         <Text style={styles.muted}>Hors ligne — les KPI se chargent en ligne.</Text>
       ) : isLoading ? (
-        <ActivityIndicator color={COLORS.primary} style={{marginTop: 24}} />
+        <ActivityIndicator color={c.primary} style={{marginTop: 24}} />
       ) : isError ? (
         <Text style={styles.error} onPress={() => refetch()}>
           Erreur de chargement. Toucher pour réessayer.
@@ -57,6 +60,8 @@ export function KpiScreen() {
 }
 
 function Stat({label, value}: {label: string; value: string}) {
+  const {c} = useTheme();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.stat}>
       <Text style={styles.statValue}>{value}</Text>
@@ -65,20 +70,21 @@ function Stat({label, value}: {label: string; value: string}) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: COLORS.bg},
-  title: {color: COLORS.text, fontSize: 22, fontWeight: '800', marginBottom: 12},
-  muted: {color: COLORS.textMuted, marginTop: 16},
-  error: {color: COLORS.danger, marginTop: 16},
-  hero: {backgroundColor: COLORS.surface, borderRadius: 14, padding: 20, alignItems: 'center'},
-  heroValue: {color: COLORS.success, fontSize: 40, fontWeight: '800'},
-  heroLabel: {color: COLORS.textMuted, marginTop: 4},
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+  container: {flex: 1, backgroundColor: c.bg},
+  title: {color: c.text, fontSize: 22, fontWeight: '800', marginBottom: 12},
+  muted: {color: c.textMuted, marginTop: 16},
+  error: {color: c.danger, marginTop: 16},
+  hero: {backgroundColor: c.surface, borderRadius: 14, padding: 20, alignItems: 'center'},
+  heroValue: {color: c.success, fontSize: 40, fontWeight: '800'},
+  heroLabel: {color: c.textMuted, marginTop: 4},
   grid: {flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12},
-  stat: {backgroundColor: COLORS.surface, borderRadius: 10, padding: 14, minWidth: 100, flex: 1},
-  statValue: {color: COLORS.text, fontSize: 22, fontWeight: '800'},
-  statLabel: {color: COLORS.textMuted, fontSize: 12, marginTop: 2},
-  section: {color: COLORS.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  catRow: {flexDirection: 'row', justifyContent: 'space-between', backgroundColor: COLORS.surface, borderRadius: 8, padding: 12, marginBottom: 6},
-  catName: {color: COLORS.text},
-  catVal: {color: COLORS.text, fontWeight: '600'},
+  stat: {backgroundColor: c.surface, borderRadius: 10, padding: 14, minWidth: 100, flex: 1},
+  statValue: {color: c.text, fontSize: 22, fontWeight: '800'},
+  statLabel: {color: c.textMuted, fontSize: 12, marginTop: 2},
+  section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
+  catRow: {flexDirection: 'row', justifyContent: 'space-between', backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 6},
+  catName: {color: c.text},
+  catVal: {color: c.text, fontWeight: '600'},
 });

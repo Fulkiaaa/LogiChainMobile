@@ -11,6 +11,7 @@ export type AgentTabParamList = {
   Scan: undefined;
   SyncCenter: undefined;
   Kpi: undefined;
+  Profile: undefined;
 };
 
 export type RootScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

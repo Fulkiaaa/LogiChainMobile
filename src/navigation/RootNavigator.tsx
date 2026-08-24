@@ -2,7 +2,7 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import {COLORS} from '@/config/theme';
+import {useTheme} from '@/hooks/useTheme';
 import {useAuth} from '@/hooks/useAuth';
 import {ItemDetailScreen} from '@/screens/ItemDetailScreen';
 import {LoginScreen} from '@/screens/LoginScreen';
@@ -14,11 +14,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const {status} = useAuth();
+  const {c} = useTheme();
 
   if (status === 'loading') {
     return (
-      <View style={{flex: 1, justifyContent: 'center', backgroundColor: COLORS.bg}}>
-        <ActivityIndicator color={COLORS.primary} />
+      <View style={{flex: 1, justifyContent: 'center', backgroundColor: c.bg}}>
+        <ActivityIndicator color={c.primary} />
       </View>
     );
   }
@@ -26,9 +27,9 @@ export function RootNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {backgroundColor: COLORS.surface},
-        headerTintColor: COLORS.text,
-        contentStyle: {backgroundColor: COLORS.bg},
+        headerStyle: {backgroundColor: c.surface},
+        headerTintColor: c.text,
+        contentStyle: {backgroundColor: c.bg},
       }}>
       {status === 'authed' ? (
         <>
