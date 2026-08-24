@@ -1,5 +1,6 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import {ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-native';
+import {useScrollToTop} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 
 import type {Palette} from '@/config/theme';
@@ -20,8 +21,16 @@ export function KpiScreen() {
     enabled: Boolean(eventId) && online,
   });
 
+  /*
+   * Un appui sur l'onglet déjà actif ramène la liste en haut : comportement
+   * standard iOS/Android, fourni par React Navigation. Le hook n'agit que si
+   * l'écran est déjà au premier plan — il n'interfère pas avec la navigation.
+   */
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={{padding: 16}}>
       <Text style={styles.title}>Empreinte carbone</Text>
 
       {!online ? (

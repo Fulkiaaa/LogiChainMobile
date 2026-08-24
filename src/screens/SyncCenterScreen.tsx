@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {DownloadCloud} from 'lucide-react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useScrollToTop} from '@react-navigation/native';
 
 import {AlertTriangle} from 'lucide-react-native';
 
@@ -58,8 +58,16 @@ export function SyncCenterScreen() {
     }
   };
 
+  /*
+   * Un appui sur l'onglet déjà actif ramène la liste en haut : comportement
+   * standard iOS/Android, fourni par React Navigation. Le hook n'agit que si
+   * l'écran est déjà au premier plan — il n'interfère pas avec la navigation.
+   */
+  const scrollRef = useRef<ScrollView>(null);
+  useScrollToTop(scrollRef);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={{padding: 16}}>
       <View style={styles.summary}>
         <ConnectivityBadge online={online}>
           {` · ${pending} en attente · ${conflicts.length} conflit(s)`}

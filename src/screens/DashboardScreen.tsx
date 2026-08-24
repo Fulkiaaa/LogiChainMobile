@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useScrollToTop} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, X} from 'lucide-react-native';
@@ -56,8 +56,17 @@ export function DashboardScreen() {
     void bootstrap();
   }, [bootstrap]);
 
+  /*
+   * Un appui sur l'onglet déjà actif ramène la liste en haut : comportement
+   * standard iOS/Android, fourni par React Navigation. Le hook n'agit que si
+   * l'écran est déjà au premier plan — il n'interfère pas avec la navigation.
+   */
+  const listRef = useRef<FlatList>(null);
+  useScrollToTop(listRef);
+
   return (
     <FlatList
+      ref={listRef}
       style={styles.container}
       data={visible}
       keyExtractor={i => i.id}
