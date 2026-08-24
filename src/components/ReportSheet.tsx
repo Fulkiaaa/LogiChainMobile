@@ -1,7 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -108,7 +110,16 @@ export function ReportSheet({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={close}>
-      <View style={styles.backdrop}>
+      {/*
+        * Sur iOS, le clavier ne redimensionne pas le contenu d'une modale : il se
+        * dessine par-dessus. Sans ce KeyboardAvoidingView, le bandeau — ancré en
+        * bas — passait entièrement sous le clavier, masquant à la fois la note et
+        * le bouton de validation. Sur Android, `undefined` laisse le système
+        * redimensionner la fenêtre lui-même (même convention que LoginScreen).
+        */}
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.sheet}>
           <View style={styles.head}>
             <Text style={styles.title}>{REPORT_LABELS[kind]}</Text>
@@ -160,7 +171,7 @@ export function ReportSheet({
             )}
           </Pressable>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
