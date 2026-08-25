@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo — Responsable logistique · LC-POWER-002</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --ink:#f7f9fc; --panel:#ffffff; --panel-2:#eef2f7; --line:#d5dee9;
+  --line-soft:rgba(15,23,42,.10);
+  --text:#0f172a; --muted:#5a6c82;
+  --signal:#c2410c; --signal-soft:rgba(194,65,12,.07);
+  --app:#0369a1; --ok:#15803d; --alert:#b91c1c; --warn:#b45309;
+  --display:"Barlow Condensed",Impact,sans-serif;
+  --body:"IBM Plex Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);line-height:1.6}
+.wrap{max-width:1060px;margin:0 auto;padding:44px 24px 90px}
+
+header{border-bottom:2px solid var(--signal);padding-bottom:22px;margin-bottom:34px}
+.eyebrow{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--signal)}
+h1{font-family:var(--display);text-transform:uppercase;font-size:clamp(30px,4.6vw,50px);line-height:1.04;margin:8px 0 10px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:17px;max-width:70ch;margin:0}
+
+h2{font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:23px;margin:44px 0 14px;
+   padding-top:16px;border-top:1px solid var(--line)}
+h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.07em;font-size:17px;margin:0 0 8px}
+
+.setup{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:8px}
+@media (max-width:820px){.setup{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card.hi{border-color:var(--signal);background:linear-gradient(180deg,var(--signal-soft),transparent)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px;margin:0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.92em;color:var(--app)}
+.copy{font-family:var(--mono);font-size:15px;background:var(--panel-2);border:1px solid var(--line);
+  border-radius:8px;padding:9px 12px;display:inline-block;margin-top:4px;color:var(--text)}
+
+.qr-block{display:grid;grid-template-columns:auto 1fr;gap:28px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px;margin:22px 0;
+  box-shadow:0 1px 2px rgba(15,23,42,.04)}
+@media (max-width:820px){.qr-block{grid-template-columns:1fr}}
+.qr{background:#fff;padding:14px;border:1px solid var(--line);border-radius:10px;width:270px}
+.qr svg{display:block;width:100%;height:auto}
+.qr-cap{font-family:var(--mono);font-size:15px;text-align:center;margin-top:10px;color:var(--text);letter-spacing:.04em}
+
+table{width:100%;border-collapse:collapse;font-size:15.5px;margin:0}
+th{text-align:left;font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;font-size:13px;
+   color:var(--signal);padding:0 14px 9px 0;border-bottom:1px solid var(--line);font-weight:600}
+td{padding:12px 14px 12px 0;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.yes{color:var(--ok);font-weight:600}
+.no{color:var(--alert);font-weight:600}
+.mode{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-size:16px;font-weight:600;white-space:nowrap}
+
+.step{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.step:last-child{border-bottom:0}
+.step .i{font-family:var(--mono);font-size:13px;color:var(--signal);border:1px solid var(--signal);
+  border-radius:6px;height:28px;display:grid;place-items:center}
+.step b{display:block;margin-bottom:2px}
+.step span{color:var(--muted);font-size:15px}
+
+.callout{border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 10px 10px 0;
+  padding:16px 20px;margin:22px 0;font-size:15.5px}
+.callout.warn{border-left-color:var(--warn);background:rgba(180,83,9,.07)}
+.callout b{color:var(--signal)}
+.callout.warn b{color:var(--warn)}
+
+ul.clean{list-style:none;padding:0;margin:0}
+ul.clean li{padding:9px 0 9px 24px;position:relative;color:var(--muted);font-size:15.5px;border-bottom:1px solid var(--line-soft)}
+ul.clean li:last-child{border-bottom:0}
+ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--signal)}
+ul.clean li b{color:var(--text);font-weight:600}
+
+footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+
+@media print{
+  body{background:#fff}
+  .wrap{padding:0}
+  .card,.qr-block,table,.callout{break-inside:avoid}
+  h2{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Mise en situation · démonstration</div>
+  <h1>Je suis responsable logistique.<br>Que puis-je faire sur cet équipement&nbsp;?</h1>
+  <p class="lede">Un seul QR code, un seul compte. Cette fiche répond à la question mode par mode, et donne le déroulé exact à jouer devant le jury — y compris les refus, qui sont la partie intéressante.</p>
+</header>
+
+<div class="setup">
+  <div class="card">
+    <h3>Le compte</h3>
+    <dl class="kv">
+      <dt>Identifiant</dt><dd><span class="copy">responsable@logichain.fr</span></dd>
+      <dt>Mot de passe</dt><dd><span class="copy">LogiChain2026!</span></dd>
+      <dt>Rôle API</dt><dd><code>logistics_manager</code></dd>
+      <dt>Dans l'app</dt><dd>« Responsable logistique »</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <h3>L'équipement</h3>
+    <dl class="kv">
+      <dt>Code QR</dt><dd><code>LC-POWER-002</code></dd>
+      <dt>Libellé</dt><dd>Groupe électrogène 100 kVA</dd>
+      <dt>Catégorie</dt><dd>Énergie · 1 200 kg</dd>
+      <dt>Statut de départ</dt><dd><span style="color:var(--warn)">En transit</span> · version 0</dd>
+      <dt>Événement</dt><dd>Festival Vert 2026</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="callout"><b>Vérifié le 25/08 :</b> ce code existe avec le même statut sur l'API locale <b>et</b> sur la production. <b>L'app pointe désormais sur la production</b> (<code>API_ENDPOINTS.PROD</code>) : sur un iPhone physique, <code>localhost</code> désigne le téléphone lui-même, l'API du Mac y est injoignable. Rien à lancer sur ton poste pour démontrer.</div>
+
+<div class="qr-block">
+  <div>
+    <div class="qr">
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#000000" d="M1 1.5h7m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m2 0h1m1 0h2m1 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h4m2 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m5 0h1M3 9.5h2m2 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1M1 10.5h2m1 0h3m1 0h4m2 0h2m1 0h1m1 0h1m3 0h3M1 11.5h1m3 0h5m1 0h1m2 0h1m2 0h1m1 0h1m1 0h2m1 0h2M1 12.5h1m3 0h1m3 0h1m4 0h1m4 0h2m2 0h1m1 0h1M2 13.5h2m2 0h3m2 0h3m2 0h1m1 0h1m5 0h1M2 14.5h1m2 0h1m4 0h2m1 0h1m1 0h1m1 0h2m1 0h3M2 15.5h1m2 0h4m4 0h1m1 0h3m2 0h1m3 0h2M1 16.5h1m3 0h1m5 0h2m1 0h2m1 0h3m2 0h1m1 0h1M4 17.5h1m2 0h2m1 0h2m4 0h7m1 0h2M9 18.5h1m1 0h1m4 0h2m3 0h5M1 19.5h7m1 0h2m1 0h2m2 0h2m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m2 0h4m3 0h1m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h5m1 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m1 0h3m4 0h1m3 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m2 0h2m5 0h4M1 24.5h1m5 0h1m3 0h3m3 0h3m3 0h1m1 0h1M1 25.5h7m4 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+    </div>
+    <div class="qr-cap">LC-POWER-002</div>
+  </div>
+  <div>
+    <h3>Le seul QR dont tu as besoin</h3>
+    <p style="color:var(--muted);margin:0 0 12px">Correction d'erreur maximale, fond blanc forcé : il se lit à l'écran comme sur papier. Imprime cette page, ou affiche-la sur un second écran et scanne dessus.</p>
+    <p style="margin:0;font-size:15.5px"><b>Pourquoi celui-là :</b> parti d'<b>En transit</b>, il accepte le déploiement, puis le retour en transit — donc la démonstration <b>revient à son point de départ</b> et se rejoue autant de fois que nécessaire, sans reseeder la base.</p>
+  </div>
+</div>
+
+<h2>La réponse : trois modes, deux réponses différentes</h2>
+<p style="color:var(--muted);margin:0 0 18px;max-width:74ch">Le mode sélectionné en haut de l'écran de scan décide de ce que <em>signifie</em> le scan. La machine à états décide s'il est <em>permis</em>. Le rôle, lui, n'intervient pas ici — j'y reviens plus bas.</p>
+
+<h3 style="color:var(--warn)">① État de départ — l'équipement est « En transit »</h3>
+<table style="margin-bottom:30px">
+  <tr><th>Mode de scan</th><th>Résultat</th><th>Ce qui se passe</th></tr>
+  <tr>
+    <td class="mode">Pointage</td>
+    <td class="yes">✓ accepté</td>
+    <td>Bip vert. Le statut <b>ne change pas</b> : seule la position GPS est enregistrée, et le mouvement part dans la file sortante.</td>
+  </tr>
+  <tr>
+    <td class="mode">Déploiement</td>
+    <td class="yes">✓ accepté</td>
+    <td>Bip vert. <code>in_transit → deployed</code>. Le statut change immédiatement à l'écran, avant tout appel réseau. Tant que la synchro n'a pas eu lieu, la fiche l'indique : « statut en attente de synchronisation ».</td>
+  </tr>
+  <tr>
+    <td class="mode">Transit</td>
+    <td class="no">✗ refusé</td>
+    <td>Bip rouge, raison affichée : <span class="mono">in_transit → in_transit interdit</span>. Il est déjà en transit, on ne le recharge pas.</td>
+  </tr>
+</table>
+
+<h3 style="color:var(--ok)">② Après le déploiement — le même QR, les réponses s'inversent</h3>
+<table>
+  <tr><th>Mode de scan</th><th>Résultat</th><th>Ce qui se passe</th></tr>
+  <tr>
+    <td class="mode">Pointage</td>
+    <td class="yes">✓ accepté</td>
+    <td>Toujours autorisé, quel que soit le statut. C'est le geste de constat : « je l'ai vu, il est ici ».</td>
+  </tr>
+  <tr>
+    <td class="mode">Transit</td>
+    <td class="yes">✓ accepté</td>
+    <td><code>deployed → in_transit</code>. On démonte et on recharge : c'est ce qui <b>ramène l'équipement à son état initial</b> et rend la démo rejouable.</td>
+  </tr>
+  <tr>
+    <td class="mode">Déploiement</td>
+    <td class="no">✗ refusé</td>
+    <td>Bip rouge : <span class="mono">deployed → deployed interdit</span>. On ne redéploie pas ce qui est déjà installé.</td>
+  </tr>
+</table>
+
+<div class="callout"><b>Le point à faire remarquer :</b> le même code QR, scanné avec le même compte, donne une réponse différente selon l'état de l'équipement. Le refus n'est pas une erreur de l'application — c'est la machine à états de l'API, rejouée sur le téléphone <b>avant</b> tout appel réseau, pour que l'agent l'apprenne tout de suite et non deux heures plus tard.</div>
+
+<h2>Les gestes hors scan, depuis la fiche</h2>
+<p style="color:var(--muted);margin:0 0 18px;max-width:74ch">Ouvre la fiche de l'équipement (tableau de bord, ou après un scan) : trois signalements y sont proposés. Ils passent par la même file sortante.</p>
+
+<table>
+  <tr><th>Geste</th><th>En transit</th><th>Déployé</th><th>Effet</th></tr>
+  <tr>
+    <td class="mode">Signaler une anomalie</td>
+    <td class="yes">✓</td><td class="yes">✓</td>
+    <td><b>Ne change pas le statut</b> — le signalement s'ajoute à l'historique. Note obligatoire.</td>
+  </tr>
+  <tr>
+    <td class="mode">Mettre en maintenance</td>
+    <td class="no">✗</td><td class="yes">✓</td>
+    <td><code>in_transit → in_maintenance</code> n'existe pas : on répare ce qui est posé, pas ce qui roule. Depuis « Déployé », c'est accepté.</td>
+  </tr>
+  <tr>
+    <td class="mode">Déclarer perdu</td>
+    <td class="yes">✓</td><td class="yes">✓</td>
+    <td style="color:var(--alert)"><b>État terminal, irréversible.</b> Ne le joue qu'en toute fin de démonstration, ou pas du tout.</td>
+  </tr>
+</table>
+
+<h2>Ce que le rôle change — et ce qu'il ne change pas</h2>
+
+<div class="callout warn"><b>À savoir avant la démo :</b> en responsable logistique, <b>aucun refus ne viendra du rôle</b>. Ce compte a accès aux six gestes métier ; le seul geste qui lui est fermé est la <b>création de comptes</b>, réservée à l'administrateur. Tous les refus que tu verras à l'écran viennent du <b>statut</b> de l'équipement, jamais de qui tu es.</div>
+
+<ul class="clean">
+  <li><b>Six gestes sur sept</b> — pointer, transit, déployer, anomalie, perte, maintenance. Pas la création de comptes.</li>
+  <li><b>Où le vérifier à l'écran</b> — onglet <b>Profil</b> : la liste des gestes s'affiche avec « Créer des comptes utilisateurs » barré, et la raison nommée : « Réservé à : Administrateur. Vous êtes Responsable logistique. »</li>
+  <li><b>Pour montrer un refus dû au rôle</b>, il faut un autre compte : <code>transports-vert@logichain.fr</code> (transporteur). Le mode <b>Déploiement</b> apparaît alors verrouillé, cadenas visible, sur l'écran de scan lui-même — « il achemine, il n'installe pas ».</li>
+</ul>
+
+<h2>Le déroulé, dans l'ordre</h2>
+
+<div class="step"><span class="i">1</span><span><b>Se connecter</b><span>Compte responsable logistique. Au premier lancement, l'app télécharge le secteur : 51 équipements en cache local.</span></span></div>
+<div class="step"><span class="i">2</span><span><b>Ouvrir l'onglet Profil</b><span>Montrer le rôle et la liste des gestes, dont celui qui est barré. C'est la réponse visuelle à « qui suis-je et que puis-je faire ».</span></span></div>
+<div class="step"><span class="i">3</span><span><b>Passer en mode avion</b><span>Le bandeau du tableau de bord bascule sur « Hors réseau ». Tout ce qui suit se fait sans connexion.</span></span></div>
+<div class="step"><span class="i">4</span><span><b>Scanner en mode Transit</b><span>Refus attendu, bip rouge : il est déjà en transit. Premier enseignement : l'app sait dire non, hors ligne, instantanément.</span></span></div>
+<div class="step"><span class="i">5</span><span><b>Scanner en mode Déploiement</b><span>Accepté. Le statut passe à « Déployé » à l'écran, et le compteur de la file sortante monte à 1. Rien n'est parti sur le réseau.</span></span></div>
+<div class="step"><span class="i">6</span><span><b>Ouvrir la fiche, tenter la maintenance</b><span>Maintenant qu'il est déployé, c'est accepté. Deuxième ligne dans la file. <em>Variante :</em> tenter la maintenance <b>avant</b> le déploiement pour montrer le refus lié au statut.</span></span></div>
+<div class="step"><span class="i">7</span><span><b>Ouvrir le centre de synchronisation</b><span>Les actions en attente sont listées, dans l'ordre où elles ont été faites. C'est la preuve visible du mode hors ligne.</span></span></div>
+<div class="step"><span class="i">8</span><span><b>Couper le mode avion</b><span>La synchronisation part toute seule, la file se vide, les statuts se confirment. Ne touche à rien : c'est le déclenchement automatique au retour du réseau.</span></span></div>
+<div class="step"><span class="i">8<span style="font-size:10px">bis</span></span><span><b>Refaire un scan, en ligne cette fois</b><span>La synchro part également d'elle-même, environ une seconde après le geste — le délai laisse passer les rafales. Deux déclencheurs distincts : le retour du réseau, et l'arrivée d'une action alors qu'on est déjà connecté.</span></span></div>
+<div class="step"><span class="i">9</span><span><b>Remettre en transit</b><span>Un dernier scan en mode Transit ramène l'équipement à « En transit ». La base est comme au départ, la démo est rejouable.</span></span></div>
+
+<div class="callout"><b>Si le jury demande le conflit :</b> avant la démonstration, depuis un autre poste, déploie le même équipement via l'API pendant que le téléphone est en mode avion. Au retour du réseau, la version ne correspond plus : l'action bascule en conflit dans le centre de synchronisation, à arbitrer à la main. C'est le 409 du MP3, joué en vrai.</div>
+
+<footer>
+  LogiChain Mobile · MP4 · fiche de démonstration — équipement <code>LC-POWER-002</code>, compte <code>logistics_manager</code>.<br>
+  Statuts relevés sur l'API locale et sur la production le 25/08/2026. Si la base est reseedée, ils sont inchangés ; s'ils ont bougé, relancer <code>npm run scan</code> pour trouver un équipement « En transit ».
+</footer>
+
+</div>
+</body>
+</html>

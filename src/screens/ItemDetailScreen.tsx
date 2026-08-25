@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {AlertTriangle, MapPin, MapPinned, PackageX, Wrench} from 'lucide-react-native';
 import {useQuery} from '@tanstack/react-query';
@@ -14,7 +14,8 @@ import {toItemDetail} from '@/domain/itemDetail';
 import {CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {itemsApi} from '@/services/api/items.api';
-import {itemsRepo} from '@/services/db/database';
+import {itemsRepo, outboxRepo} from '@/services/db/database';
+import {changeBus} from '@/services/store/changeBus';
 import type {RootScreenProps, RootStackParamList} from '@/navigation/types';
 
 export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
@@ -34,8 +35,31 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
     queryFn: () => itemsApi.getById(id),
   });
 
+  /*
+   * Les repos SQLite sont synchrones et hors de React : une écriture locale
+   * (scan, signalement, synchro) ne provoque aucun rendu par elle-même. Ce
+   * compteur, incrémenté par le bus, force la relecture du cache — sinon une
+   * fiche laissée ouverte affiche indéfiniment l'état d'avant le geste.
+   */
+  const [localRev, setLocalRev] = useState(0);
+  useEffect(() => {
+    const bump = () => setLocalRev((n) => n + 1);
+    const offItems = changeBus.subscribe('items', bump);
+    const offOutbox = changeBus.subscribe('outbox', bump);
+    return () => {
+      offItems();
+      offOutbox();
+    };
+  }, []);
+
   // Tout l'arbitrage serveur/cache vit dans `toItemDetail`, testé à part.
-  const v = useMemo(() => toItemDetail(id, data, itemsRepo.findById(id)), [id, data]);
+  const v = useMemo(
+    () => toItemDetail(id, data, itemsRepo.findById(id), outboxRepo.hasPendingFor(id)),
+    // `localRev` n'est pas lu ici : il sert uniquement à réévaluer le memo
+    // après une écriture locale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id, data, localRev],
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
@@ -48,6 +72,12 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
       {v.offlineOnly && !isLoading ? (
         <Text style={styles.offlineBanner}>
           Données locales. L’historique et les données d’achat remonteront à la synchro.
+        </Text>
+      ) : null}
+
+      {v.pendingSync ? (
+        <Text style={styles.offlineBanner}>
+          Statut en attente de synchronisation : le serveur ne connaît pas encore ce geste.
         </Text>
       ) : null}
 

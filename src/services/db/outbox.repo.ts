@@ -56,6 +56,29 @@ export function createOutboxRepo(db: SqlDb) {
       );
       return row?.c ?? 0;
     },
+    /**
+     * Actions jamais tentées, ou dont la tentative précédente s'est bien
+     * terminée. Sert de DÉCLENCHEUR à la synchro automatique, là où
+     * `countPending` sert d'AFFICHAGE : une ligne `failed` reste à envoyer et
+     * doit se voir, mais la relancer à chaque réécriture de l'outbox ferait
+     * boucler la synchro sur une action que le serveur refuse.
+     */
+    countFresh(): number {
+      const row = db.get<{c: number}>("SELECT COUNT(*) c FROM outbox WHERE status='pending'");
+      return row?.c ?? 0;
+    },
+    /**
+     * Vrai si cet équipement porte une action pas encore confirmée par le
+     * serveur. La fiche s'en sert pour savoir laquelle des deux vérités
+     * afficher : la sienne, ou celle du serveur qui ignore encore le geste.
+     */
+    hasPendingFor(entityId: string): boolean {
+      const row = db.get<{c: number}>(
+        "SELECT COUNT(*) c FROM outbox WHERE entityId=? AND status IN ('pending','failed')",
+        [entityId],
+      );
+      return (row?.c ?? 0) > 0;
+    },
   };
 }
 

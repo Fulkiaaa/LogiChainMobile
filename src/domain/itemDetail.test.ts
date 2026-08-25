@@ -116,3 +116,35 @@ describe('toItemDetail — historique', () => {
     expect(toItemDetail('i1', undefined, CACHED).movements).toEqual([]);
   });
 });
+
+describe('toItemDetail — une action non synchronisée l’emporte sur le serveur', () => {
+  test('sans action en attente, le serveur gagne (comportement d’origine)', () => {
+    const v = toItemDetail('i1', REMOTE, CACHED, false);
+    expect(v.status).toBe('deployed');
+    expect(v.pendingSync).toBe(false);
+  });
+
+  test('avec une action en attente, le statut local est affiché', () => {
+    // L'agent vient de scanner : le cache porte le geste, le serveur ne le
+    // connaît pas encore. Afficher le serveur reviendrait à annuler à l'écran
+    // ce que l'app vient d'accepter.
+    const cached = {...CACHED, status: 'deployed' as const};
+    const remote = {...REMOTE, status: 'in_transit' as const};
+    const v = toItemDetail('i1', remote, cached, true);
+    expect(v.status).toBe('deployed');
+    expect(v.pendingSync).toBe(true);
+  });
+
+  test('le reste de la fiche continue de venir du serveur', () => {
+    const v = toItemDetail('i1', REMOTE, CACHED, true);
+    expect(v.label).toBe('Enceinte façade');
+    expect(v.purchasePriceEur).toBe(1800);
+    expect(v.movements).toHaveLength(2);
+  });
+
+  test('hors ligne, l’action en attente ne change rien : le cache était déjà la seule source', () => {
+    const v = toItemDetail('i1', undefined, CACHED, true);
+    expect(v.status).toBe('in_transit');
+    expect(v.offlineOnly).toBe(true);
+  });
+});

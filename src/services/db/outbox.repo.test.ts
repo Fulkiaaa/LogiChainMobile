@@ -47,3 +47,31 @@ test('mark conflict retire de pending et alimente listConflicts', () => {
   expect(conflicts[0].attempts).toBe(1);
   expect(conflicts[0].lastError).toBe('HTTP 409');
 });
+
+test('countFresh ignore les lignes en échec, countPending les compte', () => {
+  const repo = freshRepo();
+  repo.enqueue(row('a', '2026-07-03T00:00:01Z'));
+  repo.enqueue(row('b', '2026-07-03T00:00:02Z'));
+  repo.mark('a', 'failed', 'HTTP 503');
+  // L'utilisateur doit voir 2 actions encore à envoyer…
+  expect(repo.countPending()).toBe(2);
+  // …mais une seule est « fraîche » : relancer la synchro sur celle en échec
+  // la ferait boucler à chaque réécriture de l'outbox.
+  expect(repo.countFresh()).toBe(1);
+});
+
+test('hasPendingFor répond par équipement', () => {
+  const repo = freshRepo();
+  repo.enqueue({...row('a', '2026-07-03T00:00:01Z'), entityId: 'item-42'});
+  expect(repo.hasPendingFor('item-42')).toBe(true);
+  expect(repo.hasPendingFor('item-99')).toBe(false);
+});
+
+test('hasPendingFor reste vrai tant que l’action est en échec, faux une fois confirmée', () => {
+  const repo = freshRepo();
+  repo.enqueue({...row('a', '2026-07-03T00:00:01Z'), entityId: 'item-42'});
+  repo.mark('a', 'failed', 'HTTP 503');
+  expect(repo.hasPendingFor('item-42')).toBe(true);
+  repo.remove('a');
+  expect(repo.hasPendingFor('item-42')).toBe(false);
+});
