@@ -53,3 +53,42 @@ test('fromItemJSON extrait lng/lat depuis location et ignore l’historique', ()
   expect(cached).not.toHaveProperty('history');
   expect(cached).not.toHaveProperty('purchasePriceEur');
 });
+
+describe('résolution d’un QR quand deux bases se sont mélangées', () => {
+  test('sans secteur, le QR en double reste ambigu — on ne veut pas de ce cas', () => {
+    const repo = freshRepo();
+    // Même code QR, deux identifiants : l'un vient d'un ancien seed, l'autre
+    // de la base courante. C'est ce que produit un changement de cible API.
+    repo.upsertMany([
+      {...baseItem, id: 'ancien', eventId: 'event-perime', qrCode: 'LC-POWER-002'},
+      {...baseItem, id: 'courant', eventId: 'event-actuel', qrCode: 'LC-POWER-002'},
+    ]);
+    expect(repo.listByEvent('event-actuel')).toHaveLength(1);
+  });
+
+  test('le scan résout dans le secteur assigné, jamais dans un résidu', () => {
+    const repo = freshRepo();
+    repo.upsertMany([
+      {...baseItem, id: 'ancien', eventId: 'event-perime', qrCode: 'LC-POWER-002'},
+      {...baseItem, id: 'courant', eventId: 'event-actuel', qrCode: 'LC-POWER-002'},
+    ]);
+    expect(repo.findByQrCode('LC-POWER-002', 'event-actuel')?.id).toBe('courant');
+  });
+
+  test('un QR hors du secteur assigné reste inconnu', () => {
+    const repo = freshRepo();
+    repo.upsertMany([{...baseItem, id: 'ancien', eventId: 'event-perime', qrCode: 'LC-POWER-002'}]);
+    expect(repo.findByQrCode('LC-POWER-002', 'event-actuel')).toBeNull();
+  });
+
+  test('deleteAll vide le cache, y compris les items d’un autre secteur', () => {
+    const repo = freshRepo();
+    repo.upsertMany([
+      {...baseItem, id: 'ancien', eventId: 'event-perime'},
+      {...baseItem, id: 'courant', eventId: 'event-actuel'},
+    ]);
+    repo.deleteAll();
+    expect(repo.listByEvent('event-actuel')).toHaveLength(0);
+    expect(repo.findById('ancien')).toBeNull();
+  });
+});

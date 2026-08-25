@@ -60,7 +60,26 @@ export function createItemsRepo(db: SqlDb) {
         throw e;
       }
     },
-    findByQrCode(qr: string): CachedItem | null {
+    /**
+     * Résolution d'un code QR, restreinte au secteur assigné quand il est
+     * connu.
+     *
+     * Sans ce filtre, deux items venus de bases différentes (changement de
+     * cible API, seed rejoué) partagent le même `qrCode` sans partager leur
+     * `id` : `LIMIT 1` renvoyait alors l'un ou l'autre sans ordre garanti, et
+     * un scan pouvait viser un équipement que le serveur ne connaît pas — 404
+     * à la synchro, action bloquée en file, sans explication à l'écran.
+     *
+     * Le filtre dit aussi la règle métier : un agent ne scanne que le matériel
+     * de son secteur.
+     */
+    findByQrCode(qr: string, eventId?: string | null): CachedItem | null {
+      if (eventId) {
+        return db.get<CachedItem>(
+          'SELECT * FROM items WHERE qrCode=? AND eventId=? LIMIT 1',
+          [qr, eventId],
+        );
+      }
       return db.get<CachedItem>('SELECT * FROM items WHERE qrCode=? LIMIT 1', [qr]);
     },
     findById(id: string): CachedItem | null {
@@ -68,6 +87,18 @@ export function createItemsRepo(db: SqlDb) {
     },
     updateStatus(id: string, status: ItemStatus, version: number): void {
       db.run('UPDATE items SET status=?, version=? WHERE id=?', [status, version, id]);
+      changeBus.emit('items');
+    },
+    /**
+     * Vide entièrement le cache d'équipements.
+     *
+     * `deleteByEvent` ne retire que le secteur nommé : tout résidu rattaché à
+     * un autre événement — ou à une autre base — lui survit. Un
+     * retéléchargement du secteur doit repartir d'une table vide, sinon deux
+     * générations de données cohabitent.
+     */
+    deleteAll(): void {
+      db.run('DELETE FROM items');
       changeBus.emit('items');
     },
     /** Purge les items d'un secteur qu'on quitte (réaffectation d'agent). */

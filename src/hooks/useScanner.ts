@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState} from 'react';
 
 import {ENV} from '@/config/env';
 import type {ScanMode} from '@/domain/scanAction';
-import {itemsRepo} from '@/services/db/database';
+import {itemsRepo, metaRepo} from '@/services/db/database';
 import {feedbackReject, feedbackSuccess} from '@/services/scan/feedback';
 import {createScanDeduper} from '@/services/scan/ScanService';
 import {getCurrentPosition} from '@/services/geo/location';
@@ -38,7 +38,9 @@ export function useScanner(mode: ScanMode): ScannerState {
       if (deduper.isDuplicate(code, Date.now())) {
         return;
       }
-      const item = itemsRepo.findByQrCode(code);
+      // Restreint au secteur assigné : un résidu d'une autre base porte les
+      // mêmes codes QR avec d'autres identifiants, et partirait en 404.
+      const item = itemsRepo.findByQrCode(code, metaRepo.get('assignedEventId'));
       if (!item) {
         feedbackReject();
         push({label: code, ok: false});

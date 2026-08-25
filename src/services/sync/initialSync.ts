@@ -40,9 +40,16 @@ export async function runInitialSync(): Promise<InitialSyncResult> {
 export async function resyncSector(): Promise<InitialSyncResult> {
   const previous = metaRepo.get('assignedEventId');
   if (previous) {
-    itemsRepo.deleteByEvent(previous);
     zonesRepo.replaceForEvent(previous, []);
   }
+  /*
+   * Purge TOTALE, pas seulement le secteur précédent : si un resync antérieur
+   * s'est interrompu, ou si l'application a changé de base (cible API), des
+   * items rattachés à un autre événement subsistent. Ils partagent les codes
+   * QR de la base courante sans partager leurs identifiants — un scan pouvait
+   * alors viser un équipement inexistant côté serveur.
+   */
+  itemsRepo.deleteAll();
   metaRepo.set('assignedEventId', '');
   return runInitialSync();
 }
