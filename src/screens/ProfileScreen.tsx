@@ -21,6 +21,7 @@ import {
   validateNewUser,
   type NewUserErrors,
 } from '@/domain/roles';
+import {RolePermissions} from '@/components/RolePermissions';
 import {useAuth} from '@/hooks/useAuth';
 import {authApi} from '@/services/api/auth.api';
 import type {UserRole} from '@/types/api';
@@ -58,6 +59,11 @@ export function ProfileScreen() {
           <ShieldCheck color={c.primary} size={16} strokeWidth={2} />
           <Text style={styles.value}>{user ? ROLE_LABELS[user.role] : '—'}</Text>
         </View>
+      </View>
+
+      <Text style={styles.section}>Permissions</Text>
+      <View style={styles.card}>
+        <RolePermissions role={user?.role} />
       </View>
 
       <Text style={styles.section}>Apparence</Text>

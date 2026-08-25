@@ -5,7 +5,8 @@ export type RootStackParamList = {
   ChangePassword: undefined;
   AgentTabs: undefined;
   ItemDetail: {id: string};
-  Map: undefined;
+  /** `focusItemId` centre la carte sur un équipement précis. */
+  Map: {focusItemId?: string} | undefined;
 };
 
 export type AgentTabParamList = {

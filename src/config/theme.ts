@@ -1,5 +1,5 @@
 import type {ColorScheme} from '@/domain/theme';
-import type {ItemStatus} from '@/types/api';
+import type {ItemCategory, ItemStatus} from '@/types/api';
 
 export interface Palette {
   bg: string;
@@ -64,6 +64,30 @@ export const STATUS_LABELS: Record<ItemStatus, string> = {
   in_maintenance: 'Maintenance',
   lost: 'Perdu',
 };
+
+export const CATEGORY_LABELS: Record<ItemCategory, string> = {
+  staging: 'Structure scénique',
+  sound: 'Son',
+  lighting: 'Éclairage',
+  video: 'Vidéo',
+  power: 'Énergie',
+  tent: 'Tente',
+  furniture: 'Mobilier',
+  sanitary: 'Sanitaire',
+  fencing: 'Clôture',
+  other: 'Autre',
+};
+
+/**
+ * Libellé affichable d'une catégorie, à partir d'une clé non typée.
+ *
+ * `byCategory` du rapport carbone arrive en `Record<string, number>` : rien ne
+ * garantit que ses clés appartiennent à l'énumération. On retombe sur la clé
+ * brute plutôt que d'afficher « undefined » si l'API en ajoute une.
+ */
+export function categoryLabel(key: string): string {
+  return CATEGORY_LABELS[key as ItemCategory] ?? key;
+}
 
 /** Couleurs de statut déclinées par apparence, pour rester lisibles sur les deux fonds. */
 export const STATUS_COLORS_BY_SCHEME: Record<ColorScheme, Record<ItemStatus, string>> = {

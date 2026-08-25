@@ -1,39 +1,92 @@
 import React, {useMemo, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {AlertTriangle, PackageX} from 'lucide-react-native';
+import {AlertTriangle, MapPin, MapPinned, PackageX} from 'lucide-react-native';
 import {useQuery} from '@tanstack/react-query';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import {ReportSheet} from '@/components/ReportSheet';
 import {StatusBadge} from '@/components/StatusBadge';
 import type {ReportKind} from '@/domain/anomaly';
-import {STATUS_LABELS, type Palette} from '@/config/theme';
+import {toItemDetail} from '@/domain/itemDetail';
+import {CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {itemsApi} from '@/services/api/items.api';
 import {itemsRepo} from '@/services/db/database';
-import type {RootScreenProps} from '@/navigation/types';
+import type {RootScreenProps, RootStackParamList} from '@/navigation/types';
 
 export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
   const {c} = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {id} = route.params;
   const [sheet, setSheet] = useState<ReportKind | null>(null);
-  const cached = itemsRepo.findById(id);
 
   const {data, isLoading} = useQuery({
     queryKey: ['item', id],
     queryFn: () => itemsApi.getById(id),
   });
 
-  const label = data?.label ?? cached?.label ?? id;
-  const status = data?.status ?? cached?.status;
+  // Tout l'arbitrage serveur/cache vit dans `toItemDetail`, testé à part.
+  const v = useMemo(() => toItemDetail(id, data, itemsRepo.findById(id)), [id, data]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{padding: 16}}>
-      <Text style={styles.label}>{label}</Text>
-      {status ? <StatusBadge status={status} /> : null}
-      <Text style={styles.meta}>QR : {data?.qrCode ?? cached?.qrCode}</Text>
-      <Text style={styles.meta}>Catégorie : {data?.category ?? cached?.category}</Text>
-      <Text style={styles.meta}>Poids : {data?.weightKg ?? cached?.weightKg} kg</Text>
+      <Text style={styles.label}>{v.label}</Text>
+      <View style={styles.headRow}>
+        {v.status ? <StatusBadge status={v.status} /> : null}
+        {v.qrCode ? <Text style={styles.qr}>{v.qrCode}</Text> : null}
+      </View>
+
+      {v.offlineOnly && !isLoading ? (
+        <Text style={styles.offlineBanner}>
+          Données locales. L’historique et les données d’achat remonteront à la synchro.
+        </Text>
+      ) : null}
+
+      <Text style={styles.section}>Caractéristiques</Text>
+      <View style={styles.card}>
+        <Row label="Catégorie" value={v.category ? CATEGORY_LABELS[v.category] : null} styles={styles} />
+        <Row label="Poids" value={v.weightKg !== null ? `${v.weightKg} kg` : null} styles={styles} />
+        <Row
+          label="Valeur d’achat"
+          value={v.purchasePriceEur !== null ? `${v.purchasePriceEur} €` : null}
+          styles={styles}
+        />
+        <Row
+          label="Durée de vie"
+          value={v.lifespanYears !== null ? `${v.lifespanYears} ans` : null}
+          styles={styles}
+        />
+        <Row
+          label="CO₂ de fabrication"
+          value={v.manufacturingCo2Kg !== null ? `${v.manufacturingCo2Kg} kg éq. CO₂` : null}
+          styles={styles}
+        />
+        <Row label="Version" value={v.version !== null ? `v${v.version}` : null} styles={styles} last />
+      </View>
+
+      <Text style={styles.section}>Position</Text>
+      <View style={styles.card}>
+        <View style={[styles.geoRow, v.coords && styles.geoRowWithAction]}>
+          <MapPin color={v.coords ? c.primary : c.textMuted} size={16} strokeWidth={2.5} />
+          <Text style={v.coords ? styles.geoText : styles.muted}>
+            {v.coords ?? 'Équipement non localisé'}
+          </Text>
+        </View>
+        {/* Le bouton n'apparaît que si on a une position : proposer « voir sur
+            la carte » sans coordonnées ouvrirait une carte vide. */}
+        {v.coords ? (
+          <Pressable
+            style={styles.mapButton}
+            accessibilityRole="button"
+            accessibilityLabel="Voir cet équipement sur la carte"
+            onPress={() => nav.navigate('Map', {focusItemId: id})}>
+            <MapPinned color={c.onPrimary} size={16} strokeWidth={2.5} />
+            <Text style={styles.mapButtonText}>Voir sur la carte</Text>
+          </Pressable>
+        ) : null}
+      </View>
 
       <Text style={styles.section}>Signalement terrain</Text>
       <View style={styles.actions}>
@@ -60,55 +113,138 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
         onDone={msg => Alert.alert('Enregistré', msg)}
       />
 
-      <Text style={styles.section}>Historique</Text>
+      <Text style={styles.section}>Historique ({v.movements.length})</Text>
       {isLoading ? (
         <ActivityIndicator color={c.primary} />
-      ) : data && data.history.length > 0 ? (
-        data.history
-          .slice()
-          .reverse()
-          .map((m, i) => (
-            <View key={i} style={styles.histRow}>
-              <Text style={styles.histType}>{m.type}</Text>
-              <Text style={styles.histMeta}>
-                {new Date(m.at).toLocaleString('fr-FR')} · {STATUS_LABELS[m.toStatus]}
-                {m.note ? ` · ${m.note}` : ''}
-              </Text>
+      ) : v.movements.length > 0 ? (
+        v.movements.map((m, i) => (
+          <View key={i} style={styles.histRow}>
+            {/* Filet vertical : relie les entrées entre elles, ce qui se lit
+                comme une frise sans coûter un composant de plus. */}
+            <View style={styles.histRail}>
+              <View style={styles.histDot} />
+              {i < v.movements.length - 1 ? <View style={styles.histLine} /> : null}
             </View>
-          ))
+            <View style={styles.histBody}>
+              <View style={styles.histHead}>
+                <Text style={styles.histType}>{m.title}</Text>
+                {m.hasLocation ? (
+                  <MapPin color={c.textMuted} size={12} strokeWidth={2.5} />
+                ) : null}
+              </View>
+              <Text style={styles.histMeta}>{m.at}</Text>
+              {m.transition ? <Text style={styles.histTransition}>{m.transition}</Text> : null}
+              {m.note ? <Text style={styles.histNote}>« {m.note} »</Text> : null}
+            </View>
+          </View>
+        ))
       ) : (
-        <Text style={styles.muted}>Historique indisponible (hors ligne ou vide).</Text>
+        <Text style={styles.muted}>Aucun mouvement enregistré pour cet équipement.</Text>
       )}
     </ScrollView>
   );
 }
 
+/** Ligne libellé / valeur. `—` plutôt qu'une ligne absente : l'absence de
+ *  donnée est elle-même une information, surtout hors ligne. */
+function Row({
+  label,
+  value,
+  styles,
+  last,
+}: {
+  label: string;
+  value: string | null;
+  styles: ReturnType<typeof makeStyles>;
+  last?: boolean;
+}) {
+  return (
+    <View style={[styles.row, last && styles.rowLast]}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={value ? styles.rowValue : styles.rowValueEmpty}>{value ?? '—'}</Text>
+    </View>
+  );
+}
+
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-  container: {flex: 1, backgroundColor: c.bg},
-  label: {color: c.text, fontSize: 24, fontWeight: '800', marginBottom: 8},
-  meta: {color: c.textMuted, marginTop: 4},
-  section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  histRow: {backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 6},
-  histType: {color: c.text, fontWeight: '600'},
-  histMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
-  muted: {color: c.textMuted},
-  actions: {flexDirection: 'row', gap: 10},
-  action: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: c.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: c.border,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-  },
-  actionDanger: {borderColor: c.danger},
-  actionText: {color: c.text, fontWeight: '600', fontSize: 13, flexShrink: 1},
-  actionTextDanger: {color: c.danger},
-  offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 8, lineHeight: 17},
-});
+    container: {flex: 1, backgroundColor: c.bg},
+    label: {color: c.text, fontSize: 24, fontWeight: '800', marginBottom: 8},
+    headRow: {flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap'},
+    qr: {color: c.textMuted, fontSize: 13, fontWeight: '600'},
+    offlineBanner: {
+      color: c.warning,
+      fontSize: 12,
+      fontWeight: '600',
+      marginTop: 12,
+      lineHeight: 17,
+    },
+    section: {
+      color: c.textMuted,
+      marginTop: 22,
+      marginBottom: 8,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      fontSize: 12,
+    },
+    card: {backgroundColor: c.surface, borderRadius: 12, paddingHorizontal: 14},
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 11,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+    },
+    rowLast: {borderBottomWidth: 0},
+    rowLabel: {color: c.textMuted, fontSize: 14},
+    rowValue: {color: c.text, fontSize: 14, fontWeight: '600', flexShrink: 1, textAlign: 'right'},
+    rowValueEmpty: {color: c.textMuted, fontSize: 14, flexShrink: 1, textAlign: 'right'},
+    geoRow: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 13},
+    geoRowWithAction: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+    },
+    mapButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: c.primary,
+      borderRadius: 10,
+      paddingVertical: 12,
+      marginVertical: 12,
+    },
+    mapButtonText: {color: c.onPrimary, fontWeight: '700', fontSize: 14},
+    geoText: {color: c.text, fontSize: 14, fontWeight: '600'},
+    muted: {color: c.textMuted},
+    histRow: {flexDirection: 'row', gap: 12},
+    histRail: {width: 10, alignItems: 'center'},
+    histDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: c.primary, marginTop: 5},
+    histLine: {flex: 1, width: 2, backgroundColor: c.border, marginTop: 2},
+    histBody: {flex: 1, paddingBottom: 16},
+    histHead: {flexDirection: 'row', alignItems: 'center', gap: 6},
+    histType: {color: c.text, fontWeight: '700', fontSize: 14},
+    histMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
+    histTransition: {color: c.primary, fontSize: 12, fontWeight: '600', marginTop: 3},
+    histNote: {color: c.text, fontSize: 13, fontStyle: 'italic', marginTop: 4},
+    actions: {flexDirection: 'row', gap: 10},
+    action: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: c.surface,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: c.border,
+      paddingVertical: 14,
+      paddingHorizontal: 10,
+    },
+    actionDanger: {borderColor: c.danger},
+    actionText: {color: c.text, fontWeight: '600', fontSize: 13, flexShrink: 1},
+    actionTextDanger: {color: c.danger},
+    offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 10, lineHeight: 17},
+  });

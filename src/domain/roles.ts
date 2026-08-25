@@ -1,20 +1,17 @@
+import {can} from '@/domain/capabilities';
 import {unmetPasswordRules} from '@/domain/passwordChange';
 import type {UserRole} from '@/types/api';
 
-/** Libellés lisibles des rôles définis par l'API (`USER_ROLES`). */
-export const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Administrateur',
-  logistics_manager: 'Responsable logistique',
-  field_agent: 'Agent de terrain',
-  transporter: 'Transporteur',
-};
+// La matrice d'autorisation vit dans `capabilities.ts`, seule source de vérité.
+// Ré-exporté ici pour que les écrans gardent un point d'entrée unique.
+export {ROLE_LABELS} from '@/domain/capabilities';
 
 /**
  * Seul l'admin peut créer un utilisateur : `POST /auth/register` est protégé
- * par `requireRole('admin')` côté API. On reproduit la règle ici pour ne pas
- * afficher un formulaire voué à un 403.
+ * par `requireRole('admin')` côté API.
  */
-export const canManageUsers = (role: UserRole | undefined | null): boolean => role === 'admin';
+export const canManageUsers = (role: UserRole | undefined | null): boolean =>
+  can(role, 'manageUsers');
 
 export interface NewUserForm {
   email: string;

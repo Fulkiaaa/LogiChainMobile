@@ -1,55 +1,120 @@
 import React, {useMemo} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
-import {MapPin, PackageCheck, Truck} from 'lucide-react-native';
+import {Lock, MapPin, PackageCheck, Truck} from 'lucide-react-native';
 
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import type {ScanMode} from '@/domain/scanAction';
+import {can, whyNot} from '@/domain/capabilities';
+import type {AppCapability} from '@/domain/capabilities';
+import type {UserRole} from '@/types/api';
 
-const MODES: {key: ScanMode; label: string; Icon: typeof MapPin}[] = [
-  {key: 'deploy', label: 'Déploiement', Icon: PackageCheck},
-  {key: 'transit', label: 'Transit', Icon: Truck},
-  {key: 'pointage', label: 'Pointage', Icon: MapPin},
+/**
+ * `capability` fait le lien entre un mode de scan et le geste correspondant
+ * côté API. `pointage` déclenche `POST /items/:id/scan`, ouvert à tous.
+ */
+const MODES: {key: ScanMode; label: string; Icon: typeof MapPin; capability: AppCapability}[] = [
+  {key: 'deploy', label: 'Déploiement', Icon: PackageCheck, capability: 'deploy'},
+  {key: 'transit', label: 'Transit', Icon: Truck, capability: 'transit'},
+  {key: 'pointage', label: 'Pointage', Icon: MapPin, capability: 'scan'},
 ];
 
-export function ModeSelector({mode, onChange}: {mode: ScanMode; onChange: (m: ScanMode) => void}) {
+export function ModeSelector({
+  mode,
+  role,
+  onChange,
+}: {
+  mode: ScanMode;
+  role: UserRole | null | undefined;
+  onChange: (m: ScanMode) => void;
+}) {
   const {c} = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+
+  /*
+   * On affiche UNE raison, pas une par mode : avec un seul geste restreint
+   * aujourd'hui, une liste ferait du bruit pour rien. La première suffit.
+   */
+  const refus = MODES.map((m) => whyNot(role, m.capability)).find((r) => r !== null) ?? null;
+
   return (
-    <View style={styles.row}>
-      {MODES.map(({key, label, Icon}) => {
-        const active = key === mode;
-        const tint = active ? c.onPrimary : c.text;
-        return (
-          <Pressable
-            key={key}
-            onPress={() => onChange(key)}
-            style={[styles.chip, active && styles.chipActive]}>
-            <Icon color={tint} size={16} strokeWidth={2} />
-            <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
-          </Pressable>
-        );
-      })}
+    <View style={styles.wrap}>
+      <View style={styles.row}>
+        {MODES.map(({key, label, Icon, capability}) => {
+          const autorise = can(role, capability);
+          const active = key === mode && autorise;
+          const tint = active ? c.onPrimary : autorise ? c.text : c.textMuted;
+          return (
+            <Pressable
+              key={key}
+              testID={`mode-${key}`}
+              accessibilityRole="button"
+              accessibilityState={{disabled: !autorise}}
+              accessibilityLabel={
+                autorise ? label : `${label} — indisponible pour votre rôle`
+              }
+              // Le mode reste pressable pour rester focusable et lisible ; c'est
+              // le handler qui refuse. Un Pressable `disabled` est ignoré par
+              // VoiceOver, l'utilisateur ne saurait même pas que le mode existe.
+              onPress={() => {
+                if (autorise) {
+                  onChange(key);
+                }
+              }}
+              style={[
+                styles.chip,
+                active && styles.chipActive,
+                !autorise && styles.chipLocked,
+              ]}>
+              {autorise ? (
+                <Icon color={tint} size={16} strokeWidth={2} />
+              ) : (
+                <Lock color={c.textMuted} size={14} strokeWidth={2.5} />
+              )}
+              <Text
+                style={[
+                  styles.label,
+                  active && styles.labelActive,
+                  !autorise && styles.labelLocked,
+                ]}>
+                {label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {refus ? <Text style={styles.reason}>{refus}</Text> : null}
     </View>
   );
 }
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-  row: {flexDirection: 'row', gap: 8},
-  chip: {
-    flex: 1,
-    flexDirection: 'row',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: 'rgba(15,23,42,0.7)',
-    borderWidth: 1,
-    borderColor: c.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: {backgroundColor: c.primary, borderColor: c.primary},
-  label: {color: c.text, fontWeight: '600', fontSize: 13},
-  labelActive: {color: c.onPrimary},
-});
+    wrap: {gap: 6},
+    row: {flexDirection: 'row', gap: 8},
+    chip: {
+      flex: 1,
+      flexDirection: 'row',
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: 'rgba(15,23,42,0.7)',
+      borderWidth: 1,
+      borderColor: c.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chipActive: {backgroundColor: c.primary, borderColor: c.primary},
+    // Verrouillé : atténué et en pointillés. Le pointillé se lit même en
+    // niveaux de gris, contrairement à une simple baisse d'opacité.
+    chipLocked: {
+      backgroundColor: 'transparent',
+      borderStyle: 'dashed',
+      borderColor: c.textMuted,
+      opacity: 0.75,
+    },
+    label: {color: c.text, fontWeight: '600', fontSize: 13},
+    labelActive: {color: c.onPrimary},
+    labelLocked: {color: c.textMuted, fontWeight: '500'},
+    reason: {color: c.warning, fontSize: 12, fontWeight: '600'},
+  });

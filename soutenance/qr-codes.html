@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR codes — Festival Vert 2026</title>
+<style>
+  /* Fond blanc imposé quel que soit le thème du système : un QR code se lit
+     sombre sur clair, l'inverse casse le scan sur beaucoup de lecteurs. */
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 20px 48px;
+    background: #f1f5f9; color: #0f172a;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  header { max-width: 1100px; margin: 0 auto 8px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 {
+    max-width: 1100px; margin: 34px auto 4px;
+    font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: #64748b;
+  }
+  .sous { max-width: 1100px; margin: 0 auto 14px; color: #475569; font-size: 13px; }
+  .grille { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 14px; }
+  .carte {
+    margin: 0; padding: 14px; background: #fff;
+    border: 1px solid #e2e8f0; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    break-inside: avoid; page-break-inside: avoid;
+  }
+  .carte--inconnu { border-color: #fca5a5; background: #fff5f5; }
+  .qr { line-height: 0; }
+  .qr svg { display: block; height: auto; }
+  figcaption { text-align: center; }
+  .note {
+    margin: 0 0 4px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .05em; color: #0369a1;
+  }
+  .note--ko { color: #b91c1c; }
+  .code { margin: 0; font: 700 14px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .nom { margin: 2px 0 0; font-size: 12px; color: #475569; }
+  .statut { margin: 2px 0 0; font-size: 12px; font-weight: 600; }
+  .modes { margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+  .modes span {
+    font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 999px;
+  }
+  .ok { background: #dcfce7; color: #15803d; }
+  .ko { background: #f1f5f9; color: #94a3b8; text-decoration: line-through; }
+  .carte--inconnu .ko { background: #fee2e2; color: #b91c1c; text-decoration: none; }
+  @media print {
+    body { background: #fff; padding: 0; }
+    .carte { border-color: #cbd5e1; }
+    h2 { break-before: page; page-break-before: always; }
+    h2:first-of-type { break-before: auto; page-break-before: auto; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>QR codes — Festival Vert 2026</h1>
+  <p class="sous">
+    Généré depuis http://localhost:3000/api/v1. Les statuts et la compatibilité des modes viennent de
+    la même fonction que l’application. Scanner depuis l’écran fonctionne ;
+    imprimer aussi.
+  </p>
+</header>
+
+<h2>Planche de démonstration</h2>
+<p class="sous">Les codes à utiliser le jour J, un par situation à montrer.</p>
+<div class="grille">
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h3m1 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h5m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h4m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h1m1 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m2 0h4M4 9.5h1m2 0h1m4 0h1m7 0h3m1 0h2M3 10.5h1m2 0h1m1 0h1m3 0h1m1 0h2m2 0h1m1 0h1m1 0h3M2 11.5h2m1 0h4m1 0h1m1 0h4m1 0h2m1 0h2M1 12.5h2m8 0h2m2 0h3m1 0h5m1 0h1M2 13.5h1m1 0h5m1 0h1m1 0h2m2 0h3m5 0h1M2 14.5h1m5 0h1m1 0h3m1 0h3m1 0h1m1 0h4M1 15.5h1m3 0h1m1 0h1m4 0h1m2 0h5m2 0h1M2 16.5h1m1 0h1m1 0h1m5 0h2m1 0h1m1 0h1m2 0h1m4 0h1M1 17.5h3m2 0h3m1 0h3m2 0h8M9 18.5h1m2 0h4m1 0h1m3 0h2m1 0h2M1 19.5h7m4 0h3m2 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m3 0h1m2 0h4m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m2 0h3m1 0h1m2 0h7m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h2m3 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m3 0h1m2 0h6m1 0h1M1 24.5h1m5 0h1m7 0h2m1 0h2m1 0h2m2 0h1M1 25.5h7m3 0h2m2 0h2m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Déploiement</p>
+          <p class="code">LC-FENCE-007</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m2 0h1m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h1m2 0h2m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h1m5 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m4 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h2m3 0h2M3 9.5h2m2 0h3m2 0h4m1 0h3m1 0h1M11 10.5h3m5 0h5m1 0h1M2 11.5h2m2 0h2m3 0h3m3 0h2m3 0h1m1 0h2M1 12.5h2m1 0h3m4 0h1m1 0h3m2 0h1m2 0h3m1 0h1M2 13.5h1m3 0h3m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m4 0h1M3 14.5h1m1 0h2m2 0h2m3 0h2m5 0h1m1 0h1M2 15.5h8m1 0h1m1 0h1m4 0h3m2 0h3M1 16.5h1m2 0h2m2 0h1m1 0h2m1 0h1m2 0h1m3 0h2m2 0h1M3 17.5h3m1 0h3m4 0h1m2 0h5m1 0h3M9 18.5h2m4 0h1m1 0h1m3 0h1m1 0h3M1 19.5h7m1 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1M1 20.5h1m5 0h1m3 0h2m3 0h2m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h3m3 0h1m2 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h1m2 0h1M1 24.5h1m5 0h1m3 0h2m1 0h1m1 0h2m2 0h1m2 0h1m1 0h1M1 25.5h7m2 0h2m4 0h1m1 0h2m2 0h1m2 0h1"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Déploiement</p>
+          <p class="code">LC-FURN-003</p>
+          <p class="nom">Table pliante pro</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h2m4 0h7M1 2.5h1m5 0h1m5 0h2m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h2m2 0h2m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h4m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m1 0h1m5 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h2m1 0h2M3 9.5h2m2 0h3m1 0h2m2 0h1m1 0h3m1 0h1M1 10.5h1m1 0h4m2 0h3m1 0h2m1 0h1m2 0h1m4 0h2M2 11.5h1m1 0h2m1 0h1m1 0h1m1 0h2m3 0h2m1 0h1m1 0h1m2 0h2M1 12.5h1m1 0h1m2 0h1m1 0h2m6 0h1m2 0h2m1 0h1m2 0h1M1 13.5h3m1 0h3m7 0h1m2 0h1m2 0h2m1 0h1M4 14.5h1m3 0h1m1 0h5m2 0h2m3 0h2M2 15.5h1m2 0h3m1 0h3m1 0h1m2 0h2m2 0h1m3 0h2M1 16.5h1m1 0h1m7 0h2m2 0h1m1 0h3m2 0h3M4 17.5h1m1 0h2m1 0h1m1 0h3m2 0h7m1 0h2M9 18.5h1m4 0h4m3 0h1m2 0h2M1 19.5h7m1 0h1m5 0h3m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h5M1 21.5h1m1 0h3m1 0h1m2 0h2m5 0h8M1 22.5h1m1 0h3m1 0h1m1 0h1m4 0h1m4 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h1m5 0h4M1 24.5h1m5 0h1m2 0h5m2 0h3m3 0h1m1 0h1M1 25.5h7m4 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Déploiement</p>
+          <p class="code">LC-LIGHT-005</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h2m2 0h2m2 0h1m1 0h7M1 2.5h1m5 0h1m2 0h2m2 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m4 0h6m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h5m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m4 0h1m3 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h2M3 9.5h1m1 0h3m1 0h5m1 0h1m1 0h2m3 0h1m2 0h1M1 10.5h1m3 0h2m1 0h1m1 0h2m2 0h1m3 0h1m1 0h1m1 0h3M3 11.5h5m1 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h1M2 12.5h1m1 0h2m2 0h2m5 0h1m1 0h4m1 0h4M1 13.5h2m1 0h2m1 0h4m1 0h1m3 0h3m2 0h1m2 0h1M2 14.5h1m1 0h3m2 0h3m2 0h1m1 0h3m3 0h1M1 15.5h1m1 0h1m1 0h3m2 0h1m3 0h1m1 0h2m1 0h1m1 0h2m1 0h1M2 16.5h1m1 0h1m1 0h1m1 0h1m4 0h3m1 0h1m2 0h1m4 0h1M1 17.5h1m1 0h5m2 0h1m2 0h1m1 0h9M9 18.5h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1M1 19.5h7m2 0h3m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m1 0h5m2 0h2m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h9M1 22.5h1m1 0h3m1 0h1m3 0h1m6 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m4 0h2m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m4 0h3m1 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m2 0h1m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Transit</p>
+          <p class="code">LC-FENCE-002</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h2m2 0h2m3 0h7M1 2.5h1m5 0h1m1 0h4m4 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m3 0h3m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h6M3 9.5h1m2 0h4m1 0h2m1 0h1m1 0h3m1 0h5M2 10.5h1m7 0h1m1 0h1m2 0h1m1 0h1m5 0h1M1 11.5h1m2 0h7m1 0h1m1 0h2m1 0h1m2 0h5M2 12.5h1m1 0h2m2 0h2m1 0h1m1 0h1m3 0h1m1 0h1m3 0h1m1 0h1M4 13.5h1m2 0h1m1 0h4m2 0h1m1 0h1m2 0h3M3 14.5h1m7 0h1m5 0h1m3 0h1m2 0h1M1 15.5h3m2 0h3m1 0h1m1 0h1m1 0h1m2 0h5M3 16.5h2m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m3 0h1m1 0h2M1 17.5h2m1 0h8m2 0h2m1 0h5m1 0h2M9 18.5h4m1 0h1m1 0h2m3 0h1m2 0h2M1 19.5h7m1 0h1m3 0h2m1 0h2m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h1m4 0h2m1 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h6m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h2m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h4m1 0h1m1 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m5 0h1m1 0h1m2 0h3m4 0h1M1 25.5h7m3 0h1m3 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Transit</p>
+          <p class="code">LC-FENCE-004</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h4m1 0h3m2 0h7M1 2.5h1m5 0h1m8 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h3m1 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M17 8.5h1M3 9.5h1m1 0h3m1 0h1m1 0h2m1 0h5m3 0h1m2 0h1M1 10.5h1m1 0h3m6 0h3m3 0h1m1 0h1m1 0h3M1 11.5h1m1 0h6m1 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1M1 12.5h2m2 0h1m2 0h1m1 0h3m1 0h1m3 0h3m1 0h4M5 13.5h3m1 0h1m4 0h1m2 0h2m5 0h1M2 14.5h1m2 0h2m5 0h2m1 0h4m1 0h3M1 15.5h1m1 0h3m1 0h5m1 0h1m2 0h2m1 0h1m1 0h2m1 0h1M2 16.5h1m5 0h2m3 0h1m3 0h1m2 0h1m4 0h1M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h8M9 18.5h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1M1 19.5h7m2 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h2m2 0h3m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h9M1 22.5h1m1 0h3m1 0h1m2 0h1m2 0h1m4 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h2m3 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m2 0h2m1 0h2m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          <p class="note">Mode Transit</p>
+          <p class="code">LC-FENCE-005</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h2m1 0h3m2 0h7M1 2.5h1m5 0h1m1 0h1m3 0h2m1 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h3m1 0h4m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m2 0h1m1 0h1M3 9.5h1m2 0h5m2 0h2m1 0h1m1 0h1m1 0h5M1 10.5h3m1 0h1m5 0h1m5 0h1m5 0h1M1 11.5h1m4 0h3m3 0h4m1 0h1m2 0h5M1 12.5h3m2 0h1m2 0h1m3 0h1m1 0h3m1 0h1m3 0h1m1 0h1M1 13.5h1m2 0h1m1 0h2m2 0h4m1 0h1m1 0h1m2 0h1m1 0h1M2 14.5h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h1m6 0h1M1 15.5h3m2 0h4m2 0h1m4 0h5M3 16.5h2m1 0h1m4 0h1m4 0h3m3 0h1m1 0h2M1 17.5h2m2 0h9m1 0h1m1 0h5m1 0h2M9 18.5h2m1 0h1m2 0h3m3 0h1m2 0h2M1 19.5h7m1 0h3m3 0h3m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h6m2 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h1m1 0h6m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m6 0h3m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m6 0h2m2 0h3m4 0h1M1 25.5h7m3 0h2m1 0h1m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          <p class="note note--ko">DOIT ÊTRE REJETÉ</p>
+          <p class="code">LC-FENCE-001</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure></div>
+
+<h2>Parc du secteur — 51 équipements</h2>
+<p class="sous">Tous connus de l’application : ils seront reconnus au scan.</p>
+<div class="grille">
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h2m2 0h2m2 0h1m1 0h7M1 2.5h1m5 0h1m2 0h2m2 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m4 0h6m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h5m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m4 0h1m3 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h2M3 9.5h1m1 0h3m1 0h5m1 0h1m1 0h2m3 0h1m2 0h1M1 10.5h1m3 0h2m1 0h1m1 0h2m2 0h1m3 0h1m1 0h1m1 0h3M3 11.5h5m1 0h1m1 0h2m2 0h1m2 0h1m2 0h1m1 0h1M2 12.5h1m1 0h2m2 0h2m5 0h1m1 0h4m1 0h4M1 13.5h2m1 0h2m1 0h4m1 0h1m3 0h3m2 0h1m2 0h1M2 14.5h1m1 0h3m2 0h3m2 0h1m1 0h3m3 0h1M1 15.5h1m1 0h1m1 0h3m2 0h1m3 0h1m1 0h2m1 0h1m1 0h2m1 0h1M2 16.5h1m1 0h1m1 0h1m1 0h1m4 0h3m1 0h1m2 0h1m4 0h1M1 17.5h1m1 0h5m2 0h1m2 0h1m1 0h9M9 18.5h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1M1 19.5h7m2 0h3m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m1 0h5m2 0h2m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h9M1 22.5h1m1 0h3m1 0h1m3 0h1m6 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m4 0h2m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m4 0h3m1 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m2 0h1m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-002</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h2m2 0h2m3 0h7M1 2.5h1m5 0h1m1 0h4m4 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m3 0h3m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h6M3 9.5h1m2 0h4m1 0h2m1 0h1m1 0h3m1 0h5M2 10.5h1m7 0h1m1 0h1m2 0h1m1 0h1m5 0h1M1 11.5h1m2 0h7m1 0h1m1 0h2m1 0h1m2 0h5M2 12.5h1m1 0h2m2 0h2m1 0h1m1 0h1m3 0h1m1 0h1m3 0h1m1 0h1M4 13.5h1m2 0h1m1 0h4m2 0h1m1 0h1m2 0h3M3 14.5h1m7 0h1m5 0h1m3 0h1m2 0h1M1 15.5h3m2 0h3m1 0h1m1 0h1m1 0h1m2 0h5M3 16.5h2m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m3 0h1m1 0h2M1 17.5h2m1 0h8m2 0h2m1 0h5m1 0h2M9 18.5h4m1 0h1m1 0h2m3 0h1m2 0h2M1 19.5h7m1 0h1m3 0h2m1 0h2m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h1m4 0h2m1 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h6m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h2m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h4m1 0h1m1 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m5 0h1m1 0h1m2 0h3m4 0h1M1 25.5h7m3 0h1m3 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-004</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h4m1 0h3m2 0h7M1 2.5h1m5 0h1m8 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h3m1 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M17 8.5h1M3 9.5h1m1 0h3m1 0h1m1 0h2m1 0h5m3 0h1m2 0h1M1 10.5h1m1 0h3m6 0h3m3 0h1m1 0h1m1 0h3M1 11.5h1m1 0h6m1 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1M1 12.5h2m2 0h1m2 0h1m1 0h3m1 0h1m3 0h3m1 0h4M5 13.5h3m1 0h1m4 0h1m2 0h2m5 0h1M2 14.5h1m2 0h2m5 0h2m1 0h4m1 0h3M1 15.5h1m1 0h3m1 0h5m1 0h1m2 0h2m1 0h1m1 0h2m1 0h1M2 16.5h1m5 0h2m3 0h1m3 0h1m2 0h1m4 0h1M1 17.5h1m1 0h2m1 0h3m1 0h1m2 0h1m2 0h8M9 18.5h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1M1 19.5h7m2 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h2m2 0h3m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h9M1 22.5h1m1 0h3m1 0h1m2 0h1m2 0h1m4 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h2m3 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m2 0h2m1 0h2m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-005</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h3m1 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h5m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h4m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h1m1 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m2 0h4M4 9.5h1m2 0h1m4 0h1m7 0h3m1 0h2M3 10.5h1m2 0h1m1 0h1m3 0h1m1 0h2m2 0h1m1 0h1m1 0h3M2 11.5h2m1 0h4m1 0h1m1 0h4m1 0h2m1 0h2M1 12.5h2m8 0h2m2 0h3m1 0h5m1 0h1M2 13.5h1m1 0h5m1 0h1m1 0h2m2 0h3m5 0h1M2 14.5h1m5 0h1m1 0h3m1 0h3m1 0h1m1 0h4M1 15.5h1m3 0h1m1 0h1m4 0h1m2 0h5m2 0h1M2 16.5h1m1 0h1m1 0h1m5 0h2m1 0h1m1 0h1m2 0h1m4 0h1M1 17.5h3m2 0h3m1 0h3m2 0h8M9 18.5h1m2 0h4m1 0h1m3 0h2m1 0h2M1 19.5h7m4 0h3m2 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m3 0h1m2 0h4m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m2 0h3m1 0h1m2 0h7m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h2m3 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m3 0h1m2 0h6m1 0h1M1 24.5h1m5 0h1m7 0h2m1 0h2m1 0h2m2 0h1M1 25.5h7m3 0h2m2 0h2m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-007</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h4m1 0h1m2 0h7M1 2.5h1m5 0h1m2 0h2m1 0h1m1 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m4 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m5 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m4 0h1m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m3 0h2M4 9.5h2m1 0h2m2 0h4m2 0h1m4 0h2M1 10.5h2m2 0h2m1 0h2m1 0h3m1 0h2m2 0h1m1 0h1m3 0h1M2 11.5h1m1 0h2m1 0h2m1 0h2m1 0h3m5 0h2m1 0h1M1 12.5h4m1 0h1m2 0h1m2 0h1m1 0h2m2 0h1m5 0h1M2 13.5h2m1 0h1m1 0h4m2 0h1m1 0h3m2 0h1m1 0h1M1 14.5h1m2 0h1m1 0h1m3 0h2m5 0h1m1 0h3m2 0h2M1 15.5h4m1 0h3m1 0h1m1 0h1m4 0h1m1 0h1m4 0h1M1 16.5h1m3 0h1m3 0h1m2 0h1m1 0h1m1 0h1m1 0h2m1 0h4M1 17.5h1m2 0h1m1 0h4m3 0h2m2 0h5m2 0h1M9 18.5h1m5 0h3m3 0h1m1 0h1M1 19.5h7m1 0h2m1 0h1m1 0h4m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m3 0h4m2 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h1m3 0h6m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h4m2 0h3m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m4 0h4m1 0h1m2 0h1m2 0h2M1 25.5h7m2 0h3m2 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-009</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m4 0h1m3 0h7M1 2.5h1m5 0h1m1 0h1m3 0h1m1 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m3 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m2 0h1M3 9.5h1m2 0h6m2 0h2m2 0h1m1 0h5M1 10.5h1m2 0h1m3 0h2m1 0h1m1 0h5m5 0h1M2 11.5h4m1 0h5m2 0h4m2 0h5M3 12.5h4m4 0h1m2 0h1m1 0h1m2 0h1m3 0h1m1 0h1M3 13.5h3m1 0h1m2 0h1m2 0h1m2 0h2m2 0h1m1 0h1M4 14.5h3m1 0h4m1 0h3m1 0h1m3 0h1m2 0h1M1 15.5h3m1 0h3m3 0h2m4 0h3m1 0h1M3 16.5h4m1 0h4m2 0h5m1 0h1m1 0h1m1 0h2M1 17.5h3m3 0h3m1 0h2m1 0h1m2 0h5m1 0h2M9 18.5h1m2 0h2m2 0h2m3 0h1m2 0h2M1 19.5h7m1 0h1m1 0h3m2 0h2m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m5 0h1m2 0h6m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m3 0h1m2 0h3m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m3 0h4m1 0h3m2 0h2M1 24.5h1m5 0h1m4 0h3m3 0h3m4 0h1M1 25.5h7m4 0h2m1 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-010</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m9 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h2m1 0h3m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h3m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h3m2 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h1m2 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M14 8.5h2m1 0h1M3 9.5h1m2 0h5m1 0h1m2 0h1m2 0h1m1 0h5M1 10.5h1m1 0h1m1 0h1m3 0h1m2 0h2m2 0h1m3 0h2m1 0h1M1 11.5h1m2 0h1m1 0h2m4 0h1m1 0h7m2 0h2M2 12.5h1m2 0h1m5 0h4m1 0h1m1 0h1m1 0h3m2 0h1M6 13.5h2m1 0h2m2 0h1m4 0h4m1 0h1M2 14.5h2m5 0h3m3 0h1m2 0h1m4 0h2M1 15.5h2m1 0h1m2 0h1m4 0h1m3 0h1m3 0h4M3 16.5h4m2 0h1m2 0h1m1 0h2m3 0h2m1 0h1m1 0h2M1 17.5h2m2 0h1m1 0h1m2 0h2m1 0h2m1 0h7m1 0h1M9 18.5h2m1 0h2m1 0h1m1 0h1m3 0h1m2 0h2M1 19.5h7m1 0h1m3 0h2m1 0h2m1 0h1m1 0h1m1 0h2M1 20.5h1m5 0h1m1 0h4m2 0h3m3 0h1m1 0h2M1 21.5h1m1 0h3m1 0h1m2 0h2m2 0h1m2 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m2 0h2m2 0h2m1 0h3M1 23.5h1m1 0h3m1 0h1m1 0h2m3 0h2m2 0h8M1 24.5h1m5 0h1m5 0h4m8 0h1M1 25.5h7m5 0h5m1 0h7"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FURN-001</p>
+          <p class="nom">Table pliante pro</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h1m3 0h3m1 0h7M1 2.5h1m5 0h1m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h4m1 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m4 0h4m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h4m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m2 0h4m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h3M3 9.5h3m1 0h1m1 0h1m2 0h1m1 0h1m3 0h3m2 0h3M1 10.5h4m3 0h4m1 0h5m1 0h5m1 0h1M1 11.5h2m1 0h1m1 0h2m2 0h1m2 0h4m2 0h1m1 0h1M3 12.5h3m2 0h1m1 0h2m3 0h1m1 0h5M1 13.5h2m1 0h2m1 0h2m1 0h5m1 0h2m1 0h1m4 0h1M1 14.5h1m2 0h3m1 0h3m3 0h1m1 0h1m1 0h2m2 0h4M1 15.5h1m2 0h1m2 0h1m4 0h2m1 0h4m3 0h1m1 0h1M1 16.5h1m1 0h1m2 0h1m3 0h1m2 0h2m1 0h1m4 0h1m2 0h1M1 17.5h1m2 0h6m1 0h1m2 0h1m1 0h8M9 18.5h1m1 0h2m3 0h2m3 0h2m1 0h1M1 19.5h7m3 0h1m3 0h3m1 0h1m1 0h1M1 20.5h1m5 0h1m2 0h2m1 0h2m2 0h1m3 0h5M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h9M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h3m3 0h1m2 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m2 0h1M1 24.5h1m5 0h1m11 0h1m2 0h1M1 25.5h7m6 0h1m1 0h1m1 0h2m2 0h1m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FURN-002</p>
+          <p class="nom">Table pliante pro</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m2 0h1m2 0h2m1 0h7M1 2.5h1m5 0h1m3 0h1m2 0h2m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h1m5 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m4 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h2m3 0h2M3 9.5h2m2 0h3m2 0h4m1 0h3m1 0h1M11 10.5h3m5 0h5m1 0h1M2 11.5h2m2 0h2m3 0h3m3 0h2m3 0h1m1 0h2M1 12.5h2m1 0h3m4 0h1m1 0h3m2 0h1m2 0h3m1 0h1M2 13.5h1m3 0h3m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m4 0h1M3 14.5h1m1 0h2m2 0h2m3 0h2m5 0h1m1 0h1M2 15.5h8m1 0h1m1 0h1m4 0h3m2 0h3M1 16.5h1m2 0h2m2 0h1m1 0h2m1 0h1m2 0h1m3 0h2m2 0h1M3 17.5h3m1 0h3m4 0h1m2 0h5m1 0h3M9 18.5h2m4 0h1m1 0h1m3 0h1m1 0h3M1 19.5h7m1 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1M1 20.5h1m5 0h1m3 0h2m3 0h2m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h3m3 0h1m2 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m6 0h3m2 0h1m2 0h1M1 24.5h1m5 0h1m3 0h2m1 0h1m1 0h2m2 0h1m2 0h1m1 0h1M1 25.5h7m2 0h2m4 0h1m1 0h2m2 0h1m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FURN-003</p>
+          <p class="nom">Table pliante pro</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m2 0h1m1 0h3m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m5 0h1m1 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m6 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m1 0h3m1 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M15 8.5h1m1 0h1M3 9.5h1m1 0h3m1 0h2m2 0h1m2 0h3m3 0h1m2 0h1M2 10.5h3m3 0h2m2 0h1m1 0h1m1 0h3m2 0h4M1 11.5h1m2 0h1m1 0h5m2 0h1m1 0h1m1 0h1m1 0h1m2 0h2M1 12.5h2m2 0h1m2 0h1m1 0h5m2 0h1m3 0h1m2 0h2M1 13.5h3m3 0h1m3 0h1m2 0h3m2 0h1m1 0h4M2 14.5h1m1 0h2m2 0h2m3 0h1m2 0h1m3 0h1m1 0h2M1 15.5h1m4 0h2m2 0h1m1 0h1m5 0h1m2 0h1m1 0h2M2 16.5h1m1 0h2m2 0h1m4 0h1m2 0h1m1 0h3m4 0h1M1 17.5h1m1 0h1m2 0h2m1 0h1m1 0h2m1 0h2m1 0h5M9 18.5h1m3 0h1m1 0h3m3 0h2m2 0h1M1 19.5h7m2 0h3m2 0h1m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h1m2 0h3m2 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h6m2 0h2M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h2m1 0h1m2 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m2 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m2 0h6m1 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FURN-004</p>
+          <p class="nom">Table pliante pro</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m5 0h5m1 0h7M1 2.5h1m5 0h1m2 0h1m2 0h1m2 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h4m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m7 0h1m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m1 0h1m2 0h1M4 9.5h2m1 0h2m1 0h1m1 0h1m1 0h1m7 0h2M1 10.5h1m6 0h1m1 0h2m2 0h3m2 0h1m1 0h5M1 11.5h1m1 0h1m2 0h8m2 0h1m4 0h2m1 0h1M4 12.5h2m5 0h2m1 0h5m3 0h1m1 0h1M2 13.5h1m2 0h3m4 0h6m2 0h1m1 0h2M1 14.5h1m1 0h3m2 0h2m1 0h3m3 0h1m1 0h7M1 15.5h2m1 0h1m1 0h4m3 0h2m2 0h1m1 0h2m1 0h1m1 0h1M1 16.5h1m1 0h3m5 0h1m1 0h2m1 0h1m1 0h2m1 0h1m2 0h1M1 17.5h1m1 0h1m1 0h1m1 0h2m3 0h1m1 0h2m1 0h5m2 0h1M9 18.5h1m1 0h1m2 0h4m3 0h1M1 19.5h7m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m2 0h1m2 0h2m2 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m6 0h6m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h6m1 0h2m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h3m3 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m7 0h1m1 0h1m2 0h1m2 0h2M1 25.5h7m3 0h1m1 0h1m4 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-001</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h4m1 0h1m4 0h7M1 2.5h1m5 0h1m3 0h1m1 0h2m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h4m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m1 0h5m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h3m2 0h1m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M14 8.5h4M3 9.5h1m1 0h3m1 0h4m3 0h3m3 0h1m2 0h1M2 10.5h1m2 0h2m2 0h1m3 0h1m2 0h1m1 0h1m1 0h1M2 11.5h1m1 0h1m1 0h3m1 0h3m3 0h1m1 0h1m2 0h1m1 0h1M3 12.5h1m1 0h1m2 0h1m5 0h2m2 0h3m2 0h3M7 13.5h3m1 0h2m1 0h1m2 0h2m2 0h1m1 0h2M2 14.5h3m5 0h1m3 0h1m1 0h3m4 0h1M1 15.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h1m2 0h1M2 16.5h3m3 0h2m1 0h1m1 0h1m3 0h1m2 0h1m1 0h2m1 0h1M1 17.5h1m2 0h1m2 0h3m5 0h9M9 18.5h3m2 0h2m1 0h1m3 0h3m1 0h1M1 19.5h7m2 0h1m3 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h2m3 0h4m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h3m2 0h9M1 22.5h1m1 0h3m1 0h1m2 0h3m5 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m2 0h2m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h1m4 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h3m2 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-002</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h2m6 0h7M1 2.5h1m5 0h1m5 0h1m2 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h3m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1m4 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m4 0h1m2 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m1 0h2M3 9.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h2m3 0h1m2 0h1M1 10.5h3m4 0h2m2 0h1m2 0h1m1 0h2m1 0h1M3 11.5h1m3 0h1m1 0h1m1 0h3m3 0h2m2 0h1m1 0h1M1 12.5h3m1 0h2m2 0h1m3 0h8m2 0h3M2 13.5h1m2 0h1m1 0h1m1 0h1m2 0h1m1 0h5m4 0h2M2 14.5h1m2 0h1m2 0h1m2 0h1m1 0h1m1 0h4m4 0h1M1 15.5h1m1 0h2m2 0h2m2 0h1m3 0h3m1 0h1m1 0h1m2 0h1M2 16.5h1m1 0h1m5 0h1m6 0h1m2 0h1m1 0h2m1 0h1M1 17.5h1m1 0h1m1 0h3m2 0h4m2 0h8M9 18.5h6m2 0h1m3 0h3m1 0h1M1 19.5h7m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h1m2 0h4m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m3 0h1m3 0h9M1 22.5h1m1 0h3m1 0h1m2 0h1m3 0h2m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m2 0h1m2 0h4m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m3 0h2m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-003</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h4m2 0h7M1 2.5h1m5 0h1m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h2m1 0h2m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h4m1 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h4m2 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h3m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m2 0h1M5 9.5h4m1 0h1m2 0h4m2 0h2m3 0h1M2 10.5h2m7 0h2m3 0h2m1 0h4m1 0h2M4 11.5h1m1 0h4m2 0h2m1 0h3m1 0h1m2 0h4M3 12.5h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h4m4 0h2M1 13.5h2m1 0h1m1 0h2m1 0h3m2 0h2m2 0h1m1 0h2m2 0h1M1 14.5h3m1 0h2m1 0h1m4 0h3m1 0h1m1 0h2m1 0h4M4 15.5h1m2 0h1m2 0h1m1 0h1m1 0h1m2 0h2m3 0h1m2 0h1M5 16.5h2m1 0h4m3 0h1m6 0h1m2 0h1M1 17.5h3m1 0h3m2 0h1m1 0h11M9 18.5h1m1 0h2m1 0h4m3 0h1m1 0h2M1 19.5h7m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h4M1 20.5h1m5 0h1m1 0h2m2 0h1m2 0h2m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h4m1 0h6m1 0h2M1 22.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h1m2 0h4m2 0h1M1 23.5h1m1 0h3m1 0h1m4 0h2m1 0h3m6 0h1M1 24.5h1m5 0h1m2 0h1m3 0h4m1 0h2m1 0h4M1 25.5h7m2 0h1m2 0h5m3 0h3m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-004</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h2m4 0h7M1 2.5h1m5 0h1m5 0h2m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h2m2 0h2m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h4m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m1 0h1m5 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h2m1 0h2M3 9.5h2m2 0h3m1 0h2m2 0h1m1 0h3m1 0h1M1 10.5h1m1 0h4m2 0h3m1 0h2m1 0h1m2 0h1m4 0h2M2 11.5h1m1 0h2m1 0h1m1 0h1m1 0h2m3 0h2m1 0h1m1 0h1m2 0h2M1 12.5h1m1 0h1m2 0h1m1 0h2m6 0h1m2 0h2m1 0h1m2 0h1M1 13.5h3m1 0h3m7 0h1m2 0h1m2 0h2m1 0h1M4 14.5h1m3 0h1m1 0h5m2 0h2m3 0h2M2 15.5h1m2 0h3m1 0h3m1 0h1m2 0h2m2 0h1m3 0h2M1 16.5h1m1 0h1m7 0h2m2 0h1m1 0h3m2 0h3M4 17.5h1m1 0h2m1 0h1m1 0h3m2 0h7m1 0h2M9 18.5h1m4 0h4m3 0h1m2 0h2M1 19.5h7m1 0h1m5 0h3m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m3 0h5M1 21.5h1m1 0h3m1 0h1m2 0h2m5 0h8M1 22.5h1m1 0h3m1 0h1m1 0h1m4 0h1m4 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h1m5 0h4M1 24.5h1m5 0h1m2 0h5m2 0h3m3 0h1m1 0h1M1 25.5h7m4 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-005</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m4 0h1m2 0h7M1 2.5h1m5 0h1m2 0h3m1 0h1m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m2 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h2m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h1m1 0h3m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h2m1 0h3M3 9.5h1m1 0h3m1 0h2m1 0h4m2 0h1m3 0h1m2 0h1M2 10.5h1m2 0h1m2 0h4m5 0h2m1 0h1M3 11.5h3m1 0h1m2 0h3m4 0h2m2 0h1m1 0h1M2 12.5h1m1 0h1m3 0h2m1 0h1m1 0h2m2 0h4m2 0h3M1 13.5h2m2 0h3m4 0h7m2 0h1m1 0h2M4 14.5h3m1 0h2m2 0h3m1 0h3m2 0h1m1 0h1M1 15.5h1m1 0h2m2 0h5m2 0h4m1 0h1m1 0h1m2 0h1M2 16.5h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h2m1 0h1M1 17.5h1m1 0h5m2 0h2m2 0h1m1 0h8M9 18.5h2m1 0h2m1 0h1m1 0h1m3 0h3m1 0h1M1 19.5h7m3 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h2m1 0h3m1 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m2 0h9M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m2 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m2 0h1m4 0h2m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h2m1 0h1m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-006</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h1m2 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m2 0h1m1 0h1m6 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m2 0h1m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m4 0h2m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m2 0h1m1 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h3m2 0h1M3 9.5h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h1m3 0h1m2 0h1M1 10.5h3m2 0h1m2 0h5m1 0h2m1 0h1m1 0h1M2 11.5h1m2 0h5m1 0h3m2 0h1m1 0h1m2 0h1m1 0h1M1 12.5h1m2 0h1m1 0h1m4 0h1m2 0h1m1 0h1m1 0h3m2 0h3M1 13.5h1m4 0h3m2 0h4m2 0h2m4 0h2M3 14.5h1m2 0h1m2 0h4m2 0h4m2 0h1m1 0h1M1 15.5h1m1 0h3m1 0h1m5 0h5m1 0h1m1 0h1m2 0h1M2 16.5h3m4 0h1m1 0h4m2 0h1m2 0h1m1 0h2m1 0h1M1 17.5h1m5 0h3m2 0h12M9 18.5h2m6 0h1m3 0h3m1 0h1M1 19.5h7m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h4m1 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m5 0h9M1 22.5h1m1 0h3m1 0h1m2 0h1m1 0h3m3 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m1 0h4m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-007</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m6 0h1m1 0h2m1 0h7M1 2.5h1m5 0h1m3 0h1m7 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h3m4 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h4m2 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h2m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m2 0h1m2 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h2m2 0h2M4 9.5h2m1 0h2m2 0h2m1 0h4m4 0h2M5 10.5h2m3 0h1m1 0h1m1 0h2m3 0h1m1 0h5M3 11.5h2m2 0h1m1 0h1m1 0h1m1 0h2m1 0h1m4 0h2m1 0h1M1 12.5h1m4 0h1m5 0h1m2 0h1m1 0h2m3 0h1m1 0h1M1 13.5h1m1 0h2m2 0h3m1 0h1m1 0h3m1 0h1m2 0h1m1 0h2M1 14.5h1m1 0h3m3 0h2m6 0h1m1 0h7M1 15.5h3m3 0h4m1 0h4m1 0h1m1 0h1m2 0h1m1 0h1M1 16.5h1m1 0h1m1 0h2m4 0h2m2 0h2m1 0h2m1 0h1m2 0h1M1 17.5h1m1 0h3m1 0h1m2 0h1m3 0h1m2 0h5m2 0h1M9 18.5h2m2 0h5m3 0h1M1 19.5h7m1 0h3m4 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m7 0h1m1 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h8m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m5 0h2m1 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m3 0h1m3 0h1m1 0h1m2 0h1m2 0h2M1 25.5h7m2 0h2m1 0h3m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-009</p>
+          <p class="nom">Découpe asservie 300W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h4m1 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h2m8 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h5m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m2 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m1 0h2m1 0h2M3 9.5h1m2 0h6m1 0h2m1 0h1m1 0h1m1 0h5M2 10.5h1m1 0h1m5 0h1m4 0h1m1 0h1m4 0h1m1 0h1M4 11.5h1m2 0h1m3 0h1m2 0h1m2 0h1m2 0h5M2 12.5h1m2 0h2m2 0h1m1 0h1m4 0h2m1 0h1m2 0h2m1 0h1M1 13.5h3m3 0h1m3 0h1m1 0h2m2 0h1m2 0h1m1 0h2M3 14.5h2m3 0h1m1 0h1m2 0h3m1 0h1m3 0h4M1 15.5h5m1 0h1m1 0h1m1 0h5m1 0h3m1 0h2M4 16.5h2m2 0h1m1 0h1m5 0h3m1 0h1m2 0h3M1 17.5h2m2 0h3m2 0h5m2 0h5m1 0h2M9 18.5h2m1 0h1m1 0h1m1 0h2m3 0h1m1 0h3M1 19.5h7m1 0h1m3 0h5m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h1m2 0h1m4 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m2 0h9m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m2 0h3m1 0h3m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h4m1 0h3m2 0h2M1 24.5h1m5 0h1m3 0h1m6 0h3m4 0h1M1 25.5h7m6 0h2m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-010</p>
+          <p class="nom">Découpe asservie 300W</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m3 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m2 0h2m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h4m1 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h4m2 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m3 0h2m2 0h1M3 9.5h3m1 0h1m1 0h1m1 0h3m2 0h1m1 0h3m2 0h3M1 10.5h4m7 0h2m1 0h1m3 0h1m4 0h2M1 11.5h1m2 0h1m2 0h2m1 0h2m1 0h1m1 0h4m3 0h1M3 12.5h2m1 0h1m2 0h1m1 0h2m1 0h1m2 0h1m5 0h1M1 13.5h1m2 0h1m1 0h3m1 0h2m2 0h1m3 0h1m3 0h1m1 0h1M1 14.5h2m1 0h3m4 0h1m4 0h2m1 0h3m1 0h3M1 15.5h1m3 0h1m1 0h3m3 0h1m5 0h2m1 0h3M1 16.5h1m1 0h4m1 0h1m1 0h3m2 0h1m1 0h4m1 0h3M1 17.5h1m4 0h3m2 0h1m1 0h3m1 0h5M9 18.5h1m1 0h2m4 0h1m3 0h4M1 19.5h7m2 0h5m1 0h2m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m5 0h1m2 0h2m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h7m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m2 0h2m4 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h4m1 0h3m1 0h2m3 0h1m1 0h1M1 24.5h1m5 0h1m3 0h1m2 0h3m1 0h1m1 0h1m1 0h1M1 25.5h7m2 0h3m1 0h1m2 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-011</p>
+          <p class="nom">Découpe asservie 300W</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m4 0h1m6 0h7M1 2.5h1m5 0h1m2 0h1m1 0h1m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h2m3 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2M4 9.5h2m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m4 0h2M2 10.5h2m2 0h1m1 0h4m3 0h1m3 0h1m1 0h5M1 11.5h2m4 0h1m3 0h2m8 0h2m1 0h1M1 12.5h3m1 0h2m1 0h1m1 0h1m2 0h2m2 0h2m3 0h1m1 0h1M1 13.5h1m1 0h2m2 0h6m3 0h2m2 0h1m1 0h2M1 14.5h1m2 0h1m1 0h1m2 0h1m3 0h1m3 0h1m1 0h1m2 0h4M1 15.5h2m2 0h1m1 0h2m1 0h1m3 0h1m2 0h1m1 0h1m2 0h1m1 0h1M1 16.5h1m1 0h1m2 0h1m3 0h4m2 0h1m1 0h4m2 0h1M1 17.5h1m2 0h4m2 0h1m3 0h2m1 0h5m2 0h1M9 18.5h2m1 0h2m1 0h3m3 0h1M1 19.5h7m1 0h2m3 0h1m1 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m3 0h1m1 0h3m1 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h1m2 0h7m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h2m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h3m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m3 0h3m3 0h1m2 0h1m2 0h2M1 25.5h7m2 0h1m1 0h2m4 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-012</p>
+          <p class="nom">Découpe asservie 300W</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m2 0h1m1 0h2m1 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h2m2 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h4m2 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m5 0h1M3 9.5h2m2 0h3m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1M1 10.5h2m1 0h3m1 0h4m2 0h2m1 0h1m1 0h1m3 0h3M1 11.5h1m3 0h5m1 0h1m2 0h1m2 0h1m1 0h1m1 0h2m1 0h2M1 12.5h1m3 0h1m3 0h1m4 0h1m4 0h2m2 0h1m1 0h1M2 13.5h2m2 0h3m2 0h3m2 0h1m1 0h1m5 0h1M2 14.5h1m2 0h1m4 0h2m1 0h1m1 0h1m1 0h2m1 0h3M2 15.5h1m2 0h4m4 0h1m1 0h3m2 0h1m3 0h2M1 16.5h1m3 0h1m5 0h2m1 0h2m1 0h3m2 0h1m1 0h1M4 17.5h1m2 0h2m1 0h2m4 0h7m1 0h2M9 18.5h1m1 0h1m4 0h2m3 0h5M1 19.5h7m1 0h2m1 0h2m2 0h2m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m2 0h4m3 0h1m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h1m1 0h5m1 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m1 0h3m4 0h1m3 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m2 0h2m5 0h4M1 24.5h1m5 0h1m3 0h3m3 0h3m3 0h1m1 0h1M1 25.5h7m4 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-002</p>
+          <p class="nom">Groupe électrogène 100kVA</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m1 0h1m2 0h1m2 0h7M1 2.5h1m5 0h1m2 0h1m1 0h5m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h4m1 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m6 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h2m4 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m6 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m1 0h2M3 9.5h1m1 0h3m1 0h1m1 0h5m2 0h1m3 0h1m2 0h1M1 10.5h1m7 0h1m2 0h2m2 0h1m1 0h1m1 0h1m2 0h1M1 11.5h4m1 0h4m1 0h1m1 0h2m1 0h3m2 0h3M1 12.5h2m5 0h2m3 0h1m1 0h1m1 0h4m1 0h1m1 0h2M1 13.5h2m4 0h3m1 0h1m1 0h2m2 0h2m2 0h4M4 14.5h1m6 0h4m1 0h3m1 0h2M1 15.5h1m1 0h2m2 0h1m1 0h2m5 0h2m1 0h1m1 0h1m2 0h1M2 16.5h4m4 0h1m3 0h1m2 0h1m2 0h1m1 0h1m2 0h1M1 17.5h1m1 0h1m1 0h1m1 0h3m1 0h1m4 0h8M9 18.5h2m1 0h2m1 0h1m1 0h1m3 0h1m3 0h1M1 19.5h7m4 0h1m4 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m2 0h1m1 0h1m1 0h2m3 0h5M1 21.5h1m1 0h3m1 0h1m1 0h2m4 0h1m1 0h5m1 0h3M1 22.5h1m1 0h3m1 0h1m4 0h4m2 0h1m1 0h1m2 0h2M1 23.5h1m1 0h3m1 0h1m1 0h5m3 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m5 0h1m1 0h2m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m2 0h3m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-004</p>
+          <p class="nom">Coffret distribution 63A</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m2 0h3m1 0h1m1 0h7M1 2.5h1m5 0h1m3 0h4m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h3m6 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m3 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h4m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m4 0h1m1 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m2 0h2m1 0h1m1 0h1M3 9.5h2m2 0h5m2 0h3m1 0h2m1 0h1M1 10.5h3m1 0h1m3 0h1m2 0h4m1 0h1m1 0h1m3 0h3M5 11.5h3m2 0h1m1 0h3m2 0h1m1 0h1m1 0h2m1 0h2M4 12.5h2m4 0h3m2 0h1m1 0h1m1 0h2m2 0h1m1 0h1M1 13.5h1m1 0h2m2 0h1m2 0h2m1 0h2m3 0h1m2 0h1m2 0h1M2 14.5h1m1 0h2m3 0h1m2 0h1m1 0h1m2 0h2m3 0h1M2 15.5h1m1 0h2m1 0h1m1 0h1m1 0h1m2 0h4m2 0h1m3 0h2M1 16.5h1m2 0h3m2 0h1m1 0h2m4 0h3m2 0h1m1 0h1M4 17.5h2m1 0h1m2 0h2m3 0h8m1 0h2M9 18.5h1m1 0h2m3 0h2m3 0h5M1 19.5h7m1 0h6m1 0h2m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m3 0h2m2 0h1m1 0h1m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h2m3 0h5m1 0h2M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m4 0h1m3 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h4m2 0h1m5 0h4M1 24.5h1m5 0h1m4 0h1m1 0h1m2 0h3m3 0h1m1 0h1M1 25.5h7m2 0h1m1 0h4m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-005</p>
+          <p class="nom">Coffret distribution 63A</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m5 0h3m1 0h7M1 2.5h1m5 0h1m2 0h1m3 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m3 0h1m5 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m4 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h4m1 0h3m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m1 0h1m1 0h2M3 9.5h1m1 0h3m1 0h1m3 0h1m1 0h4m3 0h1m2 0h1M4 10.5h3m1 0h2m2 0h1m2 0h2m1 0h1m1 0h1m2 0h1M2 11.5h2m1 0h3m1 0h1m2 0h3m1 0h3m2 0h3M1 12.5h3m1 0h2m3 0h1m1 0h5m1 0h3m1 0h1m1 0h2M1 13.5h1m2 0h1m2 0h1m2 0h3m3 0h3m2 0h4M2 14.5h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h3m2 0h1M1 15.5h1m1 0h1m2 0h4m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1M2 16.5h2m1 0h2m1 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1m2 0h1M1 17.5h1m1 0h2m2 0h1m1 0h1m1 0h13M9 18.5h3m1 0h2m2 0h1m3 0h1m3 0h1M1 19.5h7m2 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h1m2 0h1m1 0h2m3 0h5M1 21.5h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h5m1 0h3M1 22.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m2 0h1m1 0h1m2 0h2M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m2 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h1m1 0h1m1 0h2m2 0h1m2 0h1m1 0h2M1 25.5h7m2 0h4m2 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-006</p>
+          <p class="nom">Coffret distribution 63A</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m5 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h4m1 0h1m1 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h1m3 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h3m1 0h1m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h1m1 0h1m1 0h2M3 9.5h3m1 0h1m1 0h5m1 0h1m2 0h3m2 0h3M1 10.5h2m1 0h2m2 0h1m1 0h3m2 0h2m2 0h1m2 0h1M5 11.5h4m1 0h1m2 0h1m1 0h1m1 0h2m3 0h2M2 12.5h2m1 0h2m2 0h1m2 0h1m2 0h1m1 0h1M3 13.5h1m1 0h4m3 0h1m1 0h3m1 0h1m2 0h1m1 0h2M1 14.5h1m4 0h1m2 0h2m4 0h3m1 0h1m4 0h2M1 15.5h1m2 0h1m2 0h1m1 0h1m3 0h1m1 0h1m3 0h1m2 0h3M1 16.5h1m4 0h1m1 0h1m1 0h1m1 0h2m3 0h3m4 0h1M1 17.5h1m1 0h1m1 0h1m1 0h1m1 0h5m3 0h5M9 18.5h2m1 0h1m2 0h1m1 0h1m3 0h4M1 19.5h7m3 0h1m4 0h2m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m2 0h1m2 0h1m2 0h2m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h6m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h3m3 0h1m3 0h1m3 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m1 0h2m3 0h1m1 0h1M1 24.5h1m5 0h1m2 0h1m1 0h1m1 0h3m1 0h1m1 0h1m1 0h1M1 25.5h7m2 0h4m3 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SANIT-001</p>
+          <p class="nom">Bloc sanitaire mobile</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h2m4 0h7M1 2.5h1m5 0h1m4 0h1m3 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m7 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m4 0h1m1 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h2m3 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m1 0h2m1 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h2m1 0h2M3 9.5h2m2 0h6m1 0h1m1 0h1m1 0h2m1 0h1M1 10.5h3m1 0h1m2 0h1m1 0h2m3 0h1m1 0h1m1 0h1m2 0h1M2 11.5h1m1 0h1m1 0h3m1 0h2m1 0h1m5 0h1m1 0h1m1 0h3M2 12.5h1m1 0h3m1 0h2m1 0h1m3 0h2m2 0h2m1 0h2m1 0h1M3 13.5h2m1 0h6m1 0h1m2 0h1m1 0h1m4 0h2M2 14.5h1m2 0h2m1 0h1m2 0h5m1 0h2m1 0h3M2 15.5h1m1 0h1m1 0h3m1 0h2m2 0h4m2 0h1m3 0h2M1 16.5h1m1 0h2m3 0h1m2 0h1m3 0h1m1 0h3m4 0h1M3 17.5h3m1 0h1m1 0h2m3 0h9m1 0h2M9 18.5h1m2 0h1m2 0h3m3 0h1m2 0h2M1 19.5h7m1 0h3m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m2 0h1m4 0h1m1 0h1m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m3 0h1m3 0h1m1 0h6m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m6 0h1m3 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m6 0h4M1 24.5h1m5 0h1m2 0h3m1 0h1m2 0h3m3 0h1m1 0h1M1 25.5h7m3 0h4m2 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SANIT-002</p>
+          <p class="nom">Bloc sanitaire mobile</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m1 0h4m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h1m2 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h8m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h5m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m4 0h2M3 9.5h1m2 0h8m2 0h1m1 0h1m1 0h5M1 10.5h2m1 0h1m1 0h1m4 0h2m12 0h1M1 11.5h5m1 0h4m2 0h2m5 0h3m1 0h1M1 12.5h2m1 0h1m3 0h1m4 0h3m3 0h1m2 0h1m2 0h1M4 13.5h1m2 0h2m1 0h5m2 0h1m2 0h1M2 14.5h1m1 0h1m4 0h2m4 0h1m1 0h1m2 0h1m1 0h1m1 0h1M1 15.5h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h6M9 16.5h1m5 0h4m3 0h1m1 0h2M1 17.5h2m1 0h4m2 0h1m1 0h1m4 0h5m1 0h2M9 18.5h1m1 0h1m1 0h2m1 0h2m3 0h1m1 0h3M1 19.5h7m1 0h2m1 0h3m1 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m1 0h1m1 0h2m4 0h1m3 0h1m3 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m3 0h1M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h4m5 0h2M1 23.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h3m1 0h3m2 0h2M1 24.5h1m5 0h1m3 0h5m2 0h3m4 0h1M1 25.5h7m4 0h1m5 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SANIT-003</p>
+          <p class="nom">Bloc sanitaire mobile</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h2m3 0h1m1 0h7M1 2.5h1m5 0h1m1 0h6m4 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h2m1 0h5m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h2m3 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m1 0h2m3 0h1M3 9.5h3m1 0h1m1 0h2m5 0h1m1 0h3m2 0h3M2 10.5h3m1 0h1m3 0h2m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1M1 11.5h3m1 0h4m1 0h1m1 0h2m1 0h1m1 0h2m4 0h1M6 12.5h1m4 0h1m3 0h3m4 0h1M3 13.5h2m1 0h5m2 0h3m2 0h1m5 0h1M1 14.5h2m1 0h1m1 0h1m1 0h2m2 0h1m2 0h3m1 0h2m3 0h2M1 15.5h1m3 0h1m1 0h1m1 0h7m3 0h1m4 0h1M1 16.5h1m3 0h2m2 0h2m2 0h1m1 0h1m1 0h3m2 0h3M1 17.5h1m1 0h1m1 0h4m1 0h1m1 0h1m4 0h7M9 18.5h2m6 0h1m3 0h2m1 0h1M1 19.5h7m4 0h6m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m2 0h1m5 0h2m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m1 0h2m2 0h1m2 0h7m1 0h2M1 22.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h1m1 0h2m3 0h1m1 0h1M1 24.5h1m5 0h1m4 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 25.5h7m2 0h2m2 0h2m1 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-002</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m4 0h1m2 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m4 0h2m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h3m1 0h1m3 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h4m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h3m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h4m1 0h1m1 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h3m1 0h1m1 0h1M4 9.5h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m2 0h3m1 0h2M3 10.5h1m1 0h1m2 0h1m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2M2 11.5h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m3 0h1m1 0h4M1 12.5h1m1 0h2m4 0h2m1 0h1m2 0h1m1 0h1m1 0h4m2 0h1M1 13.5h1m2 0h1m2 0h2m1 0h1m1 0h2m1 0h4m2 0h4M2 14.5h3m6 0h3m1 0h2m1 0h1m2 0h1m1 0h1M1 15.5h1m3 0h1m1 0h1m1 0h2m2 0h1m1 0h5m2 0h2M2 16.5h5m2 0h1m1 0h3m3 0h1m2 0h1m1 0h2m1 0h1M1 17.5h3m1 0h1m1 0h1m2 0h2m1 0h9m1 0h1M9 18.5h2m3 0h1m2 0h1m3 0h2m1 0h2M1 19.5h7m2 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m2 0h1m1 0h1m2 0h3m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h4m1 0h5m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h3m4 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h5m3 0h6m1 0h1M1 24.5h1m5 0h1m2 0h1m1 0h2m2 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m2 0h1m1 0h1m1 0h3m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-004</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h2m6 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h1m3 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h6m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h1m1 0h1m2 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h1m3 0h1M4 9.5h1m2 0h1m2 0h5m1 0h2m2 0h3m1 0h2M1 10.5h1m4 0h1m6 0h3m1 0h2m1 0h1m1 0h1m1 0h2M4 11.5h5m1 0h2m2 0h1m1 0h3m1 0h4M2 12.5h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h2m2 0h4m2 0h1M1 13.5h2m1 0h2m1 0h1m2 0h4m3 0h2m3 0h3M2 14.5h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1M1 15.5h1m5 0h2m2 0h1m3 0h5m2 0h2M2 16.5h1m1 0h3m1 0h1m1 0h1m1 0h1m4 0h1m2 0h1m1 0h2m1 0h1M1 17.5h2m1 0h1m1 0h4m2 0h1m1 0h1m1 0h6m1 0h1M9 18.5h2m1 0h4m1 0h1m3 0h2m1 0h2M1 19.5h7m2 0h1m1 0h2m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m3 0h2m2 0h3m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h1m1 0h5m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h3m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m2 0h3m2 0h6m1 0h1M1 24.5h1m5 0h1m3 0h2m1 0h3m1 0h2m1 0h2m2 0h1M1 25.5h7m2 0h1m2 0h2m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-005</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h7m2 0h7M1 2.5h1m5 0h1m1 0h2m2 0h1m3 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m4 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m1 0h5m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m3 0h2M3 9.5h1m2 0h4m3 0h4m1 0h1m1 0h5M2 10.5h1m2 0h2m3 0h1m1 0h1m3 0h2m7 0h1M1 11.5h1m2 0h2m1 0h1m3 0h1m2 0h1m5 0h2m2 0h1M3 12.5h1m1 0h1m2 0h1m1 0h1m2 0h1m2 0h2m1 0h1m5 0h1M1 13.5h2m1 0h4m1 0h4m4 0h1m2 0h1m2 0h1M4 14.5h1m3 0h1m1 0h2m1 0h2m2 0h1m2 0h3m1 0h1M1 15.5h3m2 0h4m3 0h2m2 0h5m1 0h1M4 16.5h3m1 0h2m2 0h1m1 0h5m4 0h3M1 17.5h2m1 0h1m2 0h1m1 0h5m1 0h1m1 0h6m1 0h1M9 18.5h1m1 0h1m1 0h5m3 0h1m2 0h2M1 19.5h7m1 0h2m3 0h4m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h4m2 0h1m1 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m4 0h9m1 0h1M1 22.5h1m1 0h3m1 0h1m4 0h5m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h3m1 0h3m2 0h2M1 24.5h1m5 0h1m2 0h1m1 0h1m5 0h3m4 0h1M1 25.5h7m2 0h1m3 0h2m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-007</p>
+          <p class="nom">Caisson de basse SB28</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h4m4 0h7M1 2.5h1m5 0h1m2 0h3m3 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h3m5 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m5 0h1m1 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h3m1 0h4M3 9.5h2m2 0h3m1 0h1m1 0h2m1 0h4m1 0h1M1 10.5h2m2 0h1m2 0h1m1 0h1m2 0h1m1 0h1m3 0h1m2 0h1M3 11.5h1m3 0h1m3 0h1m1 0h2m4 0h1m1 0h5M1 12.5h1m1 0h1m1 0h1m2 0h1m2 0h2m1 0h3m2 0h2m2 0h1m1 0h1M1 13.5h2m1 0h1m2 0h1m1 0h1m6 0h1m1 0h1m2 0h1m2 0h1M4 14.5h3m1 0h1m3 0h1m1 0h2m1 0h2m2 0h2M2 15.5h4m1 0h2m1 0h1m5 0h2m4 0h4M1 16.5h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m1 0h3m2 0h3M3 17.5h1m1 0h3m3 0h4m1 0h6m1 0h3M9 18.5h3m1 0h1m2 0h2m3 0h1m1 0h3M1 19.5h7m1 0h3m1 0h5m1 0h1m1 0h2m2 0h1M1 20.5h1m5 0h1m6 0h1m2 0h1m3 0h5M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h1m3 0h5m1 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h2m3 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m1 0h3m6 0h4M1 24.5h1m5 0h1m4 0h1m1 0h2m1 0h3m3 0h1m1 0h1M1 25.5h7m2 0h2m2 0h1m2 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-009</p>
+          <p class="nom">Caisson de basse SB28</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h3m1 0h1m1 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m3 0h2m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m2 0h3m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h4m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m2 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h5m3 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m3 0h3M3 9.5h1m2 0h4m1 0h5m2 0h1m1 0h5M1 10.5h1m1 0h1m1 0h2m1 0h2m1 0h4m1 0h1m8 0h1M1 11.5h1m2 0h1m2 0h1m1 0h3m1 0h2m2 0h1m2 0h2m2 0h1M1 12.5h1m1 0h1m2 0h1m2 0h1m2 0h2m5 0h1m5 0h1M1 13.5h3m1 0h3m1 0h1m1 0h2m1 0h1m1 0h2m2 0h1m2 0h1M2 14.5h1m1 0h1m3 0h2m4 0h1m2 0h1m3 0h2m1 0h1M1 15.5h4m2 0h1m2 0h2m1 0h1m3 0h3m1 0h1m1 0h1M3 16.5h1m4 0h1m2 0h8m1 0h1m2 0h3M1 17.5h2m2 0h1m1 0h1m2 0h1m2 0h2m2 0h6m1 0h1M9 18.5h3m1 0h5m3 0h1m2 0h2M1 19.5h7m1 0h1m1 0h2m1 0h4m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h4m2 0h8m1 0h1M1 22.5h1m1 0h3m1 0h1m2 0h2m4 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h7m1 0h3m2 0h2M1 24.5h1m5 0h1m5 0h1m4 0h3m4 0h1M1 25.5h7m3 0h3m1 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-010</p>
+          <p class="nom">Caisson de basse SB28</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h3m1 0h1m1 0h7M1 2.5h1m5 0h1m2 0h1m1 0h1m3 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h6m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h6m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h1m4 0h1M4 9.5h2m1 0h2m5 0h2m6 0h2M2 10.5h2m4 0h1m3 0h4m1 0h1m1 0h1m1 0h1m1 0h1M2 11.5h1m3 0h2m1 0h1m1 0h1m1 0h1m1 0h3m3 0h1m1 0h2M1 12.5h2m1 0h1m1 0h1m2 0h1m6 0h1m1 0h1m3 0h3M2 13.5h1m2 0h3m1 0h1m1 0h1m4 0h2m2 0h4M1 14.5h3m1 0h2m3 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h3M1 15.5h2m1 0h2m1 0h3m2 0h1m1 0h1m2 0h1m1 0h2m1 0h3M1 16.5h1m2 0h3m6 0h2m1 0h1m1 0h2m1 0h2m1 0h1M1 17.5h1m1 0h3m1 0h1m2 0h2m3 0h1m1 0h5m2 0h1M9 18.5h1m2 0h2m2 0h2m3 0h3M1 19.5h7m1 0h4m1 0h1m1 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m4 0h1m1 0h2m1 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h3m1 0h9m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h2m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m2 0h1m1 0h1m1 0h2m1 0h1m2 0h1m2 0h2M1 25.5h7m4 0h3m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-002</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h2m1 0h1m1 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m2 0h3m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h5m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m2 0h3m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m1 0h4m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h3m1 0h2M4 9.5h2m1 0h2m1 0h1m1 0h1m3 0h1m5 0h2M1 10.5h2m2 0h2m7 0h1m1 0h1m2 0h1m1 0h1m1 0h1M3 11.5h2m2 0h2m1 0h2m3 0h1m5 0h1m1 0h2M4 12.5h1m3 0h1m4 0h1m3 0h2m3 0h3M6 13.5h4m5 0h1m1 0h1m2 0h1m1 0h2M1 14.5h2m1 0h1m1 0h1m1 0h1m2 0h3m3 0h1m1 0h1m1 0h1m1 0h3M1 15.5h2m1 0h1m2 0h1m2 0h5m2 0h1m1 0h2m1 0h3M1 16.5h1m1 0h4m1 0h4m2 0h1m1 0h1m1 0h2m1 0h2m1 0h1M1 17.5h1m4 0h4m2 0h2m3 0h5m2 0h1M9 18.5h1m5 0h3m3 0h3M1 19.5h7m1 0h5m1 0h3m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m2 0h3m1 0h2m1 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h5m1 0h7m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h4m2 0h3m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m3 0h3m3 0h1m2 0h1m2 0h2M1 25.5h7m6 0h2m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-003</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m2 0h4m1 0h7M1 2.5h1m5 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h1m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h1m4 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m4 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h3m2 0h1m2 0h1M3 9.5h3m1 0h1m1 0h1m1 0h3m3 0h4m2 0h3M1 10.5h2m5 0h2m2 0h4m1 0h1m1 0h1m2 0h1M1 11.5h1m2 0h1m1 0h2m5 0h1m4 0h1m4 0h1M1 12.5h1m2 0h3m1 0h2m3 0h5M1 13.5h1m1 0h6m1 0h2m4 0h1m1 0h1m3 0h1m1 0h1M1 14.5h1m1 0h2m1 0h1m9 0h2m1 0h1m1 0h5M1 15.5h1m3 0h3m1 0h4m1 0h1m4 0h1m2 0h1m1 0h1M1 16.5h1m2 0h1m3 0h2m7 0h3m3 0h2M1 17.5h1m1 0h1m1 0h1m1 0h1m5 0h1m3 0h5M9 18.5h3m3 0h1m1 0h1m3 0h1m2 0h1M1 19.5h7m2 0h2m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m2 0h4m1 0h3m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h6m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h5m5 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m1 0h4m1 0h2m3 0h1m1 0h1M1 24.5h1m5 0h1m2 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 25.5h7m2 0h4m3 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-004</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m4 0h1m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m3 0h2m1 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h3m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m4 0h1m1 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M13 8.5h1M4 9.5h2m1 0h2m1 0h1m2 0h1m1 0h2m5 0h2M2 10.5h1m1 0h1m1 0h1m3 0h2m2 0h2m1 0h1m1 0h1m1 0h1m1 0h1M1 11.5h2m3 0h3m1 0h1m1 0h1m2 0h3m3 0h1m1 0h2M2 12.5h1m3 0h1m3 0h3m1 0h5m3 0h3M1 13.5h1m2 0h2m1 0h6m1 0h1m2 0h1m2 0h1m1 0h2M1 14.5h6m2 0h1m1 0h1m1 0h1m3 0h1m1 0h2m2 0h3M1 15.5h2m2 0h3m3 0h3m3 0h1m1 0h2m1 0h3M1 16.5h1m3 0h1m3 0h1m3 0h1m1 0h2m1 0h2m1 0h2m1 0h1M1 17.5h1m1 0h2m2 0h2m1 0h2m5 0h5m2 0h1M9 18.5h1m3 0h1m2 0h2m3 0h3M1 19.5h7m1 0h2m1 0h1m3 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m2 0h1m1 0h3m2 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h3m1 0h6m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m2 0h4m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m2 0h4m1 0h1m1 0h1m2 0h1m2 0h2M1 25.5h7m2 0h1m1 0h1m1 0h1m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-005</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h2m1 0h1m2 0h3m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h3m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m4 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h1m1 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m1 0h1M4 9.5h1m2 0h1m3 0h1m1 0h1m1 0h3m2 0h3m1 0h2M3 10.5h2m1 0h1m2 0h1m2 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h2M5 11.5h1m1 0h2m2 0h2m1 0h2m1 0h2m1 0h4M1 12.5h1m2 0h1m1 0h1m3 0h1m1 0h3m1 0h2m1 0h3m3 0h1M1 13.5h1m2 0h5m1 0h5m2 0h2m4 0h2M2 14.5h1m3 0h1m1 0h1m3 0h5m1 0h1m1 0h3M1 15.5h1m3 0h3m6 0h1m1 0h4m3 0h1M2 16.5h2m5 0h3m2 0h2m1 0h1m2 0h1m2 0h1m1 0h1M1 17.5h8m2 0h1m1 0h1m1 0h8M9 18.5h2m6 0h1m3 0h1m2 0h2M1 19.5h7m2 0h1m2 0h3m1 0h1m1 0h1m1 0h1m3 0h1M1 20.5h1m5 0h1m4 0h1m2 0h3m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m6 0h2m1 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h2m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m2 0h3m2 0h6m1 0h1M1 24.5h1m5 0h1m3 0h1m2 0h1m1 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m2 0h1m1 0h5m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-007</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h4m2 0h1m1 0h7M1 2.5h1m5 0h1m4 0h2m1 0h2m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h2m5 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m5 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h3m1 0h1m1 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m3 0h1m2 0h2M3 9.5h2m2 0h4m2 0h3m2 0h2m1 0h1M1 10.5h3m2 0h1m2 0h2m1 0h3m1 0h2m1 0h1m2 0h1M1 11.5h1m1 0h1m1 0h4m1 0h1m2 0h4m2 0h1m1 0h5M2 12.5h2m2 0h1m1 0h4m2 0h1m4 0h2m1 0h2m1 0h1M1 13.5h2m3 0h2m2 0h1m1 0h2m4 0h1m2 0h2m1 0h1M2 14.5h1m1 0h1m1 0h1m1 0h1m3 0h1m1 0h1m2 0h2m2 0h1m1 0h1M2 15.5h2m3 0h2m4 0h5m5 0h3M1 16.5h1m4 0h1m2 0h1m3 0h1m1 0h1m1 0h3m3 0h2M4 17.5h6m2 0h3m1 0h7m1 0h2M9 18.5h2m5 0h2m3 0h5M1 19.5h7m1 0h1m1 0h2m2 0h3m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m4 0h1m1 0h1m2 0h1m3 0h5M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h1m1 0h6m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h1m3 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m3 0h1m7 0h4M1 24.5h1m5 0h1m3 0h1m2 0h1m2 0h3m3 0h1m1 0h1M1 25.5h7m3 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-009</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h3m1 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h3m2 0h3m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h5m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h4m1 0h4m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m4 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m4 0h2M3 9.5h1m2 0h5m1 0h3m1 0h3m1 0h5M1 10.5h1m9 0h1m1 0h1m1 0h1m1 0h1m7 0h1M4 11.5h6m3 0h5m2 0h2m2 0h1M2 12.5h2m1 0h1m4 0h1m2 0h1m1 0h2m2 0h1m2 0h1m2 0h1M1 13.5h5m1 0h1m2 0h2m1 0h2m2 0h1m2 0h1m1 0h2M4 14.5h2m2 0h2m4 0h2m1 0h1m3 0h1m1 0h2M1 15.5h3m1 0h1m1 0h1m3 0h1m2 0h2m1 0h3m1 0h3M5 16.5h1m2 0h1m3 0h2m1 0h4m1 0h1m1 0h4M1 17.5h5m1 0h5m1 0h2m2 0h5m1 0h2M9 18.5h2m3 0h4m3 0h2m1 0h2M1 19.5h7m1 0h3m1 0h1m1 0h3m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m1 0h1m2 0h2m1 0h1m1 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h4m1 0h7m3 0h1M1 22.5h1m1 0h3m1 0h1m3 0h4m1 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h3m1 0h3m2 0h2M1 24.5h1m5 0h1m3 0h3m1 0h1m2 0h3m4 0h1M1 25.5h7m2 0h3m1 0h2m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-010</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m3 0h2m2 0h7M1 2.5h1m5 0h1m4 0h3m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1m4 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m5 0h1m3 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h4m1 0h1M3 9.5h1m1 0h3m1 0h1m1 0h3m3 0h2m3 0h1m2 0h1M1 10.5h3m1 0h1m4 0h7m1 0h1m2 0h1m2 0h2M1 11.5h1m1 0h3m1 0h1m2 0h1m5 0h1m2 0h1m3 0h1M1 12.5h2m1 0h1m3 0h2m2 0h2m1 0h2m4 0h5M4 13.5h4m1 0h3m2 0h1m4 0h1m1 0h1m2 0h1M4 14.5h2m2 0h2m1 0h1m1 0h4m3 0h1m1 0h1M1 15.5h1m4 0h2m1 0h3m1 0h1m1 0h1m2 0h1m2 0h2m1 0h1M2 16.5h1m1 0h3m2 0h5m2 0h1m1 0h2m5 0h1M1 17.5h1m1 0h1m2 0h4m1 0h1m1 0h1m3 0h5M9 18.5h1m4 0h4m3 0h3m1 0h1M1 19.5h7m4 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h2m1 0h2m1 0h1m1 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h14M1 22.5h1m1 0h3m1 0h1m2 0h1m2 0h1m1 0h3m1 0h2m1 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h2m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m5 0h3m2 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m6 0h1m2 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-001</p>
+          <p class="nom">Chapiteau 10x15m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h4m1 0h2m1 0h1m1 0h7M1 2.5h1m5 0h1m3 0h1m1 0h1m5 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m5 0h4m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m1 0h5m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m1 0h3m2 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h1m2 0h1m1 0h1M3 9.5h1m1 0h3m1 0h2m2 0h1m4 0h1m3 0h1m2 0h1M3 10.5h1m4 0h1m1 0h1m6 0h2m2 0h1m2 0h2M1 11.5h1m2 0h1m1 0h4m1 0h1m1 0h4m2 0h1m3 0h1M3 12.5h2m4 0h1m3 0h2m1 0h2m3 0h5M1 13.5h1m1 0h1m1 0h3m1 0h3m2 0h3m2 0h1m1 0h1m2 0h1M2 14.5h3m1 0h1m2 0h2m5 0h1m3 0h1m1 0h1M1 15.5h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m2 0h1m2 0h2m1 0h1M2 16.5h1m1 0h1m1 0h1m3 0h2m1 0h1m1 0h2m1 0h4m3 0h1M1 17.5h1m2 0h7m1 0h1m1 0h2m1 0h5M9 18.5h1m1 0h1m2 0h1m1 0h2m3 0h3m1 0h1M1 19.5h7m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m3 0h2m2 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h14M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h2m1 0h2m1 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m2 0h1m2 0h1m4 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m3 0h3m3 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-002</p>
+          <p class="nom">Chapiteau 10x15m</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h8m2 0h7M1 2.5h1m5 0h1m1 0h1m5 0h3m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h3m2 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m2 0h1m3 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h4m3 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m7 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m4 0h1M3 9.5h3m1 0h1m1 0h2m2 0h2m2 0h4m2 0h3M4 10.5h1m1 0h1m1 0h2m3 0h1m1 0h2m2 0h3M1 11.5h1m1 0h1m1 0h1m1 0h5m7 0h1m1 0h2M1 12.5h2m2 0h1m2 0h2m1 0h2m4 0h7M5 13.5h1m1 0h1m3 0h1m1 0h2m1 0h2m1 0h1m2 0h3M1 14.5h1m1 0h2m1 0h1m7 0h1m1 0h1m1 0h2m2 0h1m1 0h2M1 15.5h1m1 0h1m2 0h3m1 0h2m1 0h1m1 0h4m4 0h2M1 16.5h1m1 0h1m1 0h2m3 0h1m1 0h1m2 0h2m3 0h2m2 0h1M1 17.5h1m1 0h2m1 0h5m2 0h11M9 18.5h1m1 0h1m2 0h4m3 0h4M1 19.5h7m2 0h2m2 0h4m1 0h1m1 0h3M1 20.5h1m5 0h1m4 0h1m1 0h2m1 0h1m3 0h2m1 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h4m1 0h5m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h3m3 0h1m2 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1M1 24.5h1m5 0h1m5 0h2m4 0h1m2 0h1M1 25.5h7m3 0h6m1 0h2m2 0h1m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-003</p>
+          <p class="nom">Tente accueil 3x3m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m2 0h1m2 0h1m2 0h7M1 2.5h1m5 0h1m1 0h4m1 0h3m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h4m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h1m1 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m4 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h3m2 0h1M3 9.5h1m2 0h4m1 0h1m3 0h2m1 0h1m1 0h5M3 10.5h2m3 0h1m1 0h3m2 0h3m2 0h3m2 0h1M1 11.5h1m1 0h3m1 0h3m2 0h3m3 0h3m1 0h3M2 12.5h1m1 0h1m4 0h2m1 0h2m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1M1 13.5h5m1 0h1m5 0h1m1 0h2m1 0h5M3 14.5h1m5 0h2m3 0h1m3 0h1m5 0h1M1 15.5h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h2m3 0h2M3 16.5h3m2 0h1m1 0h2m2 0h2m3 0h1m2 0h1m1 0h2M1 17.5h2m2 0h1m1 0h2m1 0h3m2 0h8m1 0h1M9 18.5h2m1 0h1m1 0h2m1 0h1m3 0h1m1 0h3M1 19.5h7m1 0h3m1 0h2m1 0h2m1 0h1m1 0h2m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h2m1 0h1m1 0h2m3 0h1m2 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m3 0h1m1 0h5m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m2 0h1m3 0h1m2 0h4M1 23.5h1m1 0h3m1 0h1m1 0h1m3 0h2m3 0h8M1 24.5h1m5 0h1m2 0h1m1 0h1m1 0h3m8 0h1M1 25.5h7m2 0h3m1 0h1m1 0h2m1 0h7"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-004</p>
+          <p class="nom">Tente accueil 3x3m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m3 0h3m1 0h7M1 2.5h1m5 0h1m3 0h1m4 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h8m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h3m2 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h2m2 0h2m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m2 0h1m2 0h1M3 9.5h1m1 0h3m1 0h3m4 0h3m3 0h1m2 0h1M2 10.5h1m1 0h3m2 0h2m2 0h3m1 0h2m2 0h1m2 0h2M1 11.5h2m3 0h4m3 0h1m1 0h3m1 0h1m3 0h1M1 12.5h2m1 0h2m3 0h1m1 0h3m7 0h5M1 13.5h1m5 0h2m1 0h3m1 0h1m4 0h1m1 0h1m2 0h1M4 14.5h3m1 0h1m2 0h1m2 0h3m3 0h1m1 0h1M1 15.5h1m2 0h4m1 0h1m2 0h3m3 0h1m2 0h2m1 0h1M2 16.5h1m1 0h2m2 0h2m4 0h1m1 0h1m1 0h4m3 0h1M1 17.5h1m1 0h2m1 0h2m1 0h1m1 0h1m3 0h1m1 0h5M9 18.5h1m1 0h7m3 0h3m1 0h1M1 19.5h7m3 0h1m1 0h3m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h2m4 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m1 0h10M1 22.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h3m1 0h1m2 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h4m2 0h2m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m4 0h3m3 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m2 0h4m3 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-006</p>
+          <p class="nom">Tente accueil 3x3m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m2 0h1m1 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h6m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h2m5 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h4m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h2m1 0h4M3 9.5h1m2 0h5m1 0h1m2 0h2m1 0h1m1 0h5M1 10.5h5m3 0h2m1 0h3m2 0h1m5 0h1m1 0h1M3 11.5h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h1m2 0h5M1 12.5h1m4 0h1m2 0h1m1 0h1m2 0h2m3 0h1m2 0h2m1 0h1M1 13.5h1m4 0h3m1 0h1m6 0h1m2 0h1m1 0h2M3 14.5h3m4 0h1m3 0h2m1 0h1m4 0h3M1 15.5h2m4 0h3m1 0h1m1 0h1m1 0h1m1 0h5m1 0h1M3 16.5h2m3 0h3m5 0h3m3 0h4M1 17.5h5m1 0h2m2 0h1m5 0h5m1 0h2M9 18.5h1m1 0h3m2 0h2m3 0h2m1 0h2M1 19.5h7m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m3 0h2m1 0h1m1 0h6m3 0h1M1 22.5h1m1 0h3m1 0h1m2 0h1m5 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m1 0h1m2 0h3m1 0h3m2 0h2M1 24.5h1m5 0h1m4 0h3m3 0h3m4 0h1M1 25.5h7m10 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-VIDEO-001</p>
+          <p class="nom">Régie vidéo mobile</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h2m1 0h4m3 0h7M1 2.5h1m5 0h1m1 0h3m2 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h5m1 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m3 0h1m4 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m1 0h3M4 9.5h1m2 0h1m2 0h3m1 0h2m1 0h1m2 0h3m1 0h2M1 10.5h1m2 0h3m1 0h2m2 0h2m4 0h1m1 0h1m1 0h4M1 11.5h2m1 0h2m1 0h2m3 0h2m1 0h1m1 0h2m1 0h2M4 12.5h3m1 0h1m2 0h4m1 0h1m2 0h3m1 0h1m1 0h1M1 13.5h2m2 0h1m1 0h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h2M2 14.5h1m1 0h2m2 0h1m3 0h1m3 0h1m1 0h1m1 0h1M1 15.5h1m1 0h1m1 0h3m1 0h3m1 0h2m1 0h4m2 0h2M2 16.5h1m1 0h1m4 0h3m1 0h3m1 0h1m2 0h1m2 0h1m1 0h1M1 17.5h2m4 0h3m1 0h2m1 0h1m1 0h7M9 18.5h2m1 0h1m2 0h1m1 0h1m3 0h1m2 0h2M1 19.5h7m3 0h1m2 0h1m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m5 0h1m1 0h3m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m3 0h1m1 0h1m3 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h3m2 0h2m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m3 0h1m3 0h6m1 0h1M1 24.5h1m5 0h1m4 0h1m1 0h1m1 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m4 0h1m3 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-VIDEO-002</p>
+          <p class="nom">Régie vidéo mobile</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h2m1 0h1m3 0h7M1 2.5h1m5 0h1m1 0h2m4 0h3m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h2m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m2 0h1m1 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m3 0h1m1 0h2M4 9.5h1m2 0h1m3 0h1m4 0h2m2 0h3m1 0h2M3 10.5h2m4 0h1m5 0h4m1 0h1m1 0h4M1 11.5h1m1 0h1m1 0h3m1 0h2m1 0h1m2 0h2m1 0h1m1 0h2M1 12.5h2m1 0h2m3 0h1m1 0h2m1 0h1m2 0h1m1 0h3m1 0h1m1 0h1M1 13.5h1m5 0h4m2 0h1m3 0h2m4 0h2M2 14.5h2m6 0h7m1 0h1m1 0h1M1 15.5h1m1 0h1m2 0h3m5 0h1m1 0h4m2 0h2M2 16.5h3m3 0h1m5 0h2m1 0h1m2 0h1m2 0h1m1 0h1M1 17.5h7m2 0h1m2 0h10M9 18.5h2m2 0h1m3 0h1m3 0h1m2 0h2M1 19.5h7m3 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m2 0h2m1 0h1m1 0h3m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m3 0h4m2 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h2m1 0h1m5 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h3m1 0h2m2 0h6m1 0h1M1 24.5h1m5 0h1m2 0h4m1 0h2m1 0h2m1 0h2m2 0h1M1 25.5h7m5 0h1m1 0h2m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-VIDEO-003</p>
+          <p class="nom">Régie vidéo mobile</p>
+          <p class="statut">En transit</p>
+          <p class="modes"><span class="ok">Déploiement</span><span class="ko">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m6 0h1m1 0h1m2 0h7M1 2.5h1m5 0h1m1 0h2m1 0h2m1 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m3 0h1m1 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h1m1 0h4m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m3 0h4m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h2m1 0h3m1 0h1M5 9.5h4m1 0h1m1 0h2m1 0h1m3 0h2m3 0h1M1 10.5h1m1 0h2m3 0h1m2 0h1m5 0h1m1 0h3m1 0h1M1 11.5h2m1 0h1m2 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h1m2 0h4M3 12.5h1m2 0h1m1 0h5m1 0h1m2 0h3m4 0h2M4 13.5h6m1 0h3m2 0h1m1 0h1m1 0h2m2 0h1M1 14.5h1m3 0h2m1 0h1m1 0h6m1 0h1m1 0h2m1 0h4M3 15.5h1m3 0h1m1 0h3m5 0h2m4 0h1m1 0h1M3 16.5h1m1 0h2m2 0h1m1 0h1m2 0h1m10 0h1M1 17.5h4m1 0h3m1 0h1m2 0h2m1 0h7M9 18.5h1m2 0h1m3 0h2m3 0h2m1 0h1M1 19.5h7m1 0h2m1 0h1m1 0h1m1 0h2m1 0h1m1 0h4M1 20.5h1m5 0h1m1 0h1m1 0h1m4 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h5m3 0h9M1 22.5h1m1 0h3m1 0h1m2 0h2m3 0h2m2 0h4m2 0h1M1 23.5h1m1 0h3m1 0h1m4 0h3m1 0h2m6 0h1M1 24.5h1m5 0h1m2 0h2m4 0h2m1 0h2m1 0h4M1 25.5h7m2 0h2m2 0h4m3 0h3m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-VIDEO-004</p>
+          <p class="nom">Écran LED 3x2m</p>
+          <p class="statut">Alloué</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h3m2 0h1m1 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m6 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m5 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m7 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m2 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h3m1 0h4m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h3m1 0h2m1 0h1M4 9.5h1m2 0h1m3 0h3m1 0h3m2 0h3m1 0h2M1 10.5h1m1 0h1m1 0h1m3 0h3m6 0h1m1 0h1m1 0h4M2 11.5h1m1 0h2m1 0h1m1 0h3m3 0h1m1 0h2m1 0h2M1 12.5h1m3 0h2m1 0h3m2 0h1m1 0h3m1 0h3m1 0h1m1 0h1M4 13.5h6m1 0h5m1 0h2m4 0h2M2 14.5h1m2 0h1m2 0h4m1 0h4m1 0h1m2 0h1M1 15.5h1m1 0h3m1 0h2m1 0h1m5 0h4m2 0h2M2 16.5h1m3 0h1m3 0h2m1 0h1m3 0h1m2 0h1m2 0h1m1 0h1M1 17.5h2m2 0h1m1 0h1m1 0h1m1 0h2m1 0h9M9 18.5h2m4 0h1m1 0h1m3 0h1m2 0h2M1 19.5h7m9 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m2 0h1m5 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h2m1 0h1m1 0h6m2 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h3m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m1 0h1m5 0h6m1 0h1M1 24.5h1m5 0h1m3 0h3m2 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m2 0h1m1 0h2m2 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-VIDEO-005</p>
+          <p class="nom">Écran LED 3x2m</p>
+          <p class="statut">Déployé</p>
+          <p class="modes"><span class="ko">Déploiement</span><span class="ok">Transit</span><span class="ok">Pointage</span></p>
+        </figcaption>
+      </figure></div>
+
+<h2>Hors secteur — 15 équipements</h2>
+<p class="sous">
+  Ils existent dans l’API mais ne sont pas synchronisés dans l’application :
+  les scanner affiche « QR inconnu ». Utile pour démontrer que la résolution
+  est locale.
+</p>
+<div class="grille">
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h2m1 0h3m2 0h7M1 2.5h1m5 0h1m1 0h1m3 0h2m1 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h3m1 0h4m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m3 0h1m1 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m1 0h2m2 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m2 0h1m1 0h1M3 9.5h1m2 0h5m2 0h2m1 0h1m1 0h1m1 0h5M1 10.5h3m1 0h1m5 0h1m5 0h1m5 0h1M1 11.5h1m4 0h3m3 0h4m1 0h1m2 0h5M1 12.5h3m2 0h1m2 0h1m3 0h1m1 0h3m1 0h1m3 0h1m1 0h1M1 13.5h1m2 0h1m1 0h2m2 0h4m1 0h1m1 0h1m2 0h1m1 0h1M2 14.5h3m1 0h1m2 0h1m2 0h1m1 0h2m1 0h1m6 0h1M1 15.5h3m2 0h4m2 0h1m4 0h5M3 16.5h2m1 0h1m4 0h1m4 0h3m3 0h1m1 0h2M1 17.5h2m2 0h9m1 0h1m1 0h5m1 0h2M9 18.5h2m1 0h1m2 0h3m3 0h1m2 0h2M1 19.5h7m1 0h3m3 0h3m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m1 0h6m2 0h1m3 0h2m2 0h1M1 21.5h1m1 0h3m1 0h1m2 0h1m1 0h1m1 0h1m1 0h6m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m6 0h3m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m6 0h2m2 0h3m4 0h1M1 25.5h7m3 0h2m1 0h1m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-001</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h1m1 0h2m4 0h7M1 2.5h1m5 0h1m1 0h1m2 0h2m3 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m5 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m3 0h2m2 0h1m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h2m1 0h2m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m2 0h1m1 0h3M5 9.5h4m4 0h1m2 0h1m2 0h2m3 0h1M1 10.5h1m2 0h1m1 0h1m2 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1m1 0h1M1 11.5h9m1 0h1m5 0h1m1 0h1m2 0h4M1 12.5h2m1 0h1m1 0h1m1 0h1m2 0h1m1 0h7m2 0h1m1 0h2M1 13.5h2m1 0h2m1 0h4m1 0h1m1 0h2m2 0h1m1 0h1m2 0h2M1 14.5h2m1 0h1m3 0h1m1 0h1m1 0h1m4 0h1m1 0h1m1 0h1m2 0h2M4 15.5h1m2 0h2m1 0h3m1 0h2m1 0h2m6 0h1M3 16.5h4m1 0h3m4 0h1m7 0h1m1 0h1M1 17.5h2m2 0h1m1 0h1m1 0h1m2 0h1m1 0h1m1 0h7M9 18.5h3m1 0h1m1 0h3m3 0h1m2 0h1M1 19.5h7m1 0h1m1 0h1m2 0h4m1 0h1m1 0h1m1 0h2M1 20.5h1m5 0h1m1 0h1m1 0h4m1 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h1m1 0h6m1 0h2M1 22.5h1m1 0h3m1 0h1m2 0h1m2 0h2m1 0h1m2 0h4m2 0h1M1 23.5h1m1 0h3m1 0h1m2 0h2m1 0h5m6 0h1M1 24.5h1m5 0h1m2 0h1m1 0h1m1 0h4m1 0h2m1 0h4M1 25.5h7m4 0h2m1 0h3m3 0h3m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-003</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Maintenance</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h2m1 0h2m2 0h2m1 0h7M1 2.5h1m5 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h5m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M13 8.5h2M4 9.5h1m2 0h1m2 0h1m3 0h3m3 0h3m1 0h2M1 10.5h1m3 0h1m7 0h2m1 0h3m1 0h1m1 0h3M4 11.5h2m1 0h1m1 0h1m2 0h1m1 0h3m1 0h1m1 0h2M6 12.5h1m1 0h2m1 0h3m1 0h1m3 0h5m1 0h1M4 13.5h1m1 0h2m2 0h4m1 0h1m1 0h2m2 0h1m2 0h1M2 14.5h4m6 0h2m2 0h1m1 0h1m1 0h4M1 15.5h1m5 0h7m1 0h5m2 0h1M2 16.5h3m1 0h1m1 0h5m2 0h1m1 0h1m2 0h1m4 0h1M1 17.5h2m1 0h2m1 0h1m1 0h1m3 0h1m2 0h7M9 18.5h1m4 0h1m2 0h1m3 0h2m1 0h2M1 19.5h7m4 0h1m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 20.5h1m5 0h1m2 0h1m3 0h4m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m2 0h2m5 0h7m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h1m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m1 0h1m5 0h6m1 0h1M1 24.5h1m5 0h1m2 0h2m1 0h2m1 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m3 0h1m1 0h1m2 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-006</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h4m2 0h1m2 0h7M1 2.5h1m5 0h1m2 0h1m2 0h3m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m3 0h4m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h5m1 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h1m4 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m2 0h1m1 0h2m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m1 0h2m1 0h2M4 9.5h2m1 0h2m1 0h2m1 0h1m1 0h3m4 0h2M2 10.5h2m5 0h1m1 0h1m5 0h1m1 0h1m1 0h1m3 0h1M3 11.5h1m1 0h3m1 0h1m1 0h1m2 0h4m3 0h2m1 0h1M3 12.5h2m3 0h1m3 0h7m5 0h1M3 13.5h1m3 0h1m1 0h3m1 0h1m3 0h1m2 0h3M1 14.5h1m1 0h1m1 0h2m1 0h1m4 0h3m1 0h1m1 0h3m2 0h2M1 15.5h7m1 0h1m1 0h3m3 0h1m1 0h1m4 0h1M1 16.5h1m1 0h1m1 0h1m2 0h1m1 0h5m1 0h1m1 0h2m1 0h4M1 17.5h1m1 0h1m1 0h1m1 0h1m2 0h3m1 0h2m1 0h5m2 0h1M9 18.5h1m2 0h2m2 0h2m3 0h1m1 0h1M1 19.5h7m1 0h2m1 0h2m2 0h2m1 0h1m1 0h1m1 0h3M1 20.5h1m5 0h1m2 0h1m1 0h3m2 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h6m1 0h3M1 22.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h1m1 0h5m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m2 0h3m4 0h1m2 0h1m2 0h2M1 25.5h7m2 0h2m1 0h1m4 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-FENCE-008</p>
+          <p class="nom">Barrière Vauban 2m</p>
+          <p class="statut">Perdu</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h1m1 0h1m2 0h1m1 0h7M1 2.5h1m5 0h1m2 0h1m1 0h5m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m3 0h1m3 0h3m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h4m2 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m2 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m3 0h1m1 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m1 0h1m2 0h1M3 9.5h1m1 0h3m1 0h1m1 0h1m2 0h5m3 0h1m2 0h1M2 10.5h1m1 0h3m2 0h1m1 0h2m2 0h1m2 0h1m1 0h1M2 11.5h1m1 0h2m1 0h2m3 0h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1M1 12.5h1m2 0h2m3 0h4m1 0h2m1 0h4m2 0h3M1 13.5h1m1 0h1m1 0h6m1 0h2m3 0h2m2 0h1m1 0h2M3 14.5h2m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m2 0h1M1 15.5h1m2 0h2m1 0h6m3 0h2m1 0h3m2 0h1M2 16.5h3m6 0h1m2 0h1m2 0h1m2 0h1m1 0h2m1 0h1M1 17.5h1m2 0h2m1 0h4m2 0h11M9 18.5h1m1 0h3m3 0h1m3 0h3m1 0h1M1 19.5h7m3 0h3m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m1 0h3m2 0h2m3 0h1m1 0h3M1 21.5h1m1 0h3m1 0h1m1 0h2m3 0h1m2 0h9M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m2 0h3m1 0h3m1 0h2m2 0h1M1 24.5h1m5 0h1m3 0h1m4 0h1m2 0h1m2 0h1m1 0h2M1 25.5h7m3 0h1m4 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-LIGHT-008</p>
+          <p class="nom">Projecteur LED 200W</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m1 0h3m5 0h7M1 2.5h1m5 0h1m1 0h1m4 0h2m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m4 0h3m1 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h4m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h2m4 0h1m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m2 0h1m2 0h2M4 9.5h1m2 0h1m2 0h1m1 0h1m1 0h1m2 0h1m2 0h3m1 0h2M3 10.5h1m1 0h1m3 0h3m1 0h1m1 0h2m1 0h1m1 0h1m2 0h1M1 11.5h1m1 0h1m2 0h2m2 0h1m5 0h1m1 0h1m1 0h3M2 12.5h1m1 0h2m5 0h3m1 0h3m1 0h4m2 0h1M2 13.5h1m3 0h3m2 0h1m2 0h1m2 0h2m3 0h3M5 14.5h2m1 0h2m1 0h1m1 0h4m1 0h1m4 0h1M1 15.5h1m2 0h1m1 0h2m1 0h1m2 0h1m1 0h6M2 16.5h4m2 0h1m1 0h1m1 0h1m4 0h1m2 0h1m1 0h1m2 0h1M1 17.5h4m2 0h1m1 0h1m2 0h2m2 0h7M9 18.5h3m1 0h3m1 0h1m3 0h1m2 0h2M1 19.5h7m2 0h6m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m2 0h1m2 0h1m1 0h3m3 0h2m1 0h2M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h2m2 0h5m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h1m2 0h1m1 0h1m2 0h2M1 23.5h1m1 0h3m1 0h1m4 0h3m3 0h6m1 0h1M1 24.5h1m5 0h1m4 0h1m1 0h1m1 0h1m1 0h2m1 0h2m2 0h1M1 25.5h7m3 0h2m3 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-001</p>
+          <p class="nom">Groupe électrogène 100kVA</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m6 0h4m1 0h7M1 2.5h1m5 0h1m2 0h2m3 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h3m1 0h1m3 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m1 0h3m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m5 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h2m1 0h1m1 0h2M4 9.5h2m1 0h2m2 0h2m1 0h1m7 0h2M2 10.5h1m2 0h1m6 0h4m1 0h1m1 0h1m1 0h2m1 0h2M2 11.5h2m1 0h1m1 0h1m3 0h1m2 0h1m6 0h1m2 0h1M1 12.5h1m3 0h1m6 0h1m3 0h3m4 0h2M2 13.5h1m4 0h3m1 0h1m1 0h2m2 0h1m2 0h1m2 0h1M1 14.5h1m1 0h2m1 0h1m5 0h2m3 0h1m1 0h1m1 0h2m1 0h2M1 15.5h2m1 0h1m1 0h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1M1 16.5h1m2 0h1m3 0h1m2 0h4m1 0h1m1 0h2m1 0h1m1 0h2M1 17.5h1m1 0h5m1 0h2m1 0h1m2 0h1m1 0h5m2 0h1M9 18.5h1m1 0h1m2 0h4m3 0h3M1 19.5h7m1 0h3m4 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m6 0h1m2 0h1m3 0h1m1 0h1M1 21.5h1m1 0h3m1 0h1m1 0h4m1 0h12M1 22.5h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h2m1 0h1m1 0h2m2 0h1M1 23.5h1m1 0h3m1 0h1m4 0h3m1 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m2 0h1m2 0h1m1 0h1m1 0h1m2 0h1m2 0h2M1 25.5h7m3 0h3m1 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-POWER-003</p>
+          <p class="nom">Coffret distribution 63A</p>
+          <p class="statut">Perdu</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m9 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m3 0h1m1 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h1m2 0h1m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h1m3 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h3m2 0h1m1 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1M3 9.5h1m2 0h4m2 0h1m1 0h1m1 0h1m1 0h1m1 0h5M1 10.5h2m1 0h1m1 0h1m4 0h2m2 0h1m9 0h1M2 11.5h2m1 0h3m4 0h1m1 0h1m1 0h2m2 0h2m2 0h1M2 12.5h5m4 0h2m1 0h2m1 0h1m1 0h1m5 0h1M2 13.5h1m4 0h1m1 0h1m4 0h2m1 0h1m2 0h1m2 0h1M3 14.5h3m3 0h6m2 0h1m4 0h1m1 0h1M1 15.5h5m1 0h4m2 0h1m3 0h5m1 0h1M3 16.5h1m1 0h1m3 0h5m2 0h3m4 0h3M1 17.5h3m2 0h2m7 0h1m1 0h6m1 0h1M9 18.5h1m1 0h1m2 0h1m1 0h2m3 0h1m2 0h2M1 19.5h7m1 0h3m1 0h2m1 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h2m1 0h2m3 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h8m1 0h1M1 22.5h1m1 0h3m1 0h1m2 0h1m5 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m2 0h2m1 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m4 0h1m2 0h1m2 0h3m4 0h1M1 25.5h7m4 0h1m1 0h1m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-001</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h2m1 0h1m1 0h1m3 0h7M1 2.5h1m5 0h1m1 0h1m2 0h1m3 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h1m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h1m4 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h2m2 0h1m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m1 0h1m2 0h3M3 9.5h1m2 0h4m1 0h1m5 0h2m1 0h5M2 10.5h1m2 0h1m2 0h1m2 0h3m11 0h1M1 11.5h4m1 0h3m2 0h1m2 0h1m1 0h2m2 0h2m2 0h1M2 12.5h1m1 0h1m3 0h4m3 0h2m2 0h1m5 0h1M4 13.5h1m2 0h2m1 0h1m1 0h2m1 0h3m2 0h1m2 0h1M2 14.5h5m2 0h1m1 0h2m1 0h1m2 0h1m2 0h1m1 0h1m1 0h1M1 15.5h3m1 0h3m1 0h1m1 0h1m5 0h5m1 0h1M3 16.5h4m1 0h1m1 0h2m1 0h1m1 0h4m4 0h3M1 17.5h8m3 0h3m2 0h6m1 0h1M9 18.5h1m2 0h1m2 0h3m3 0h1m2 0h2M1 19.5h7m1 0h1m1 0h1m2 0h4m1 0h1m1 0h5M1 20.5h1m5 0h1m1 0h3m1 0h1m3 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h1m1 0h9m1 0h1M1 22.5h1m1 0h3m1 0h1m6 0h1m1 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h2m1 0h3m2 0h2M1 24.5h1m5 0h1m3 0h2m2 0h1m2 0h3m4 0h1M1 25.5h7m2 0h1m2 0h1m1 0h1m2 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-003</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">Maintenance</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h3m1 0h2m2 0h7M1 2.5h1m5 0h1m2 0h2m3 0h1m1 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m2 0h5m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m5 0h2m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h2m3 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h3m1 0h2m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h1m3 0h2m1 0h1M4 9.5h2m1 0h2m1 0h1m2 0h1m1 0h1m6 0h2M2 10.5h1m2 0h1m2 0h4m5 0h1m1 0h1m1 0h1m1 0h1M1 11.5h1m1 0h1m2 0h2m1 0h2m2 0h1m2 0h1m4 0h1m1 0h2M2 12.5h2m5 0h5m3 0h2m4 0h2M1 13.5h1m2 0h1m1 0h5m1 0h1m2 0h3m2 0h2m1 0h1M1 14.5h2m2 0h1m2 0h2m3 0h2m2 0h1m1 0h1m2 0h1m1 0h2M1 15.5h2m2 0h1m1 0h1m1 0h4m1 0h2m1 0h1m1 0h2m2 0h2M1 16.5h1m2 0h1m1 0h1m2 0h2m1 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1M1 17.5h1m1 0h1m2 0h2m3 0h1m2 0h1m2 0h8M9 18.5h1m3 0h2m1 0h2m3 0h1m1 0h1M1 19.5h7m1 0h2m2 0h1m2 0h2m1 0h1m1 0h5M1 20.5h1m5 0h1m4 0h3m2 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h2m3 0h1m1 0h10M1 22.5h1m1 0h3m1 0h1m1 0h1m5 0h3m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m2 0h5m1 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m6 0h2m1 0h1m2 0h1m2 0h2M1 25.5h7m2 0h1m1 0h3m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-006</p>
+          <p class="nom">Enceinte line-array</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h1m2 0h2m1 0h3m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h2m1 0h2m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h3m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h1m1 0h3m2 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m3 0h1m5 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1m2 0h3M4 9.5h1m2 0h1m2 0h2m2 0h2m1 0h1m2 0h3m1 0h2M1 10.5h1m1 0h1m4 0h1m1 0h1m2 0h2m1 0h3m1 0h1m1 0h1m1 0h2M1 11.5h1m2 0h1m2 0h1m1 0h5m2 0h3m1 0h4M2 12.5h1m1 0h1m1 0h1m3 0h1m1 0h3m1 0h1m2 0h4m2 0h1M1 13.5h1m1 0h1m3 0h2m1 0h1m5 0h3m2 0h4M4 14.5h3m2 0h1m2 0h2m1 0h2m1 0h1m4 0h1M1 15.5h1m1 0h2m1 0h4m1 0h2m1 0h1m1 0h5m1 0h2M2 16.5h1m2 0h1m4 0h1m1 0h2m1 0h1m1 0h1m2 0h1m1 0h2m1 0h1M1 17.5h2m1 0h1m1 0h2m1 0h2m1 0h2m1 0h7m1 0h1M9 18.5h1m2 0h1m4 0h1m3 0h2m1 0h2M1 19.5h7m7 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m6 0h4m3 0h1m2 0h2M1 21.5h1m1 0h3m1 0h1m2 0h2m5 0h5m1 0h1m1 0h1M1 22.5h1m1 0h3m1 0h1m1 0h6m3 0h1m1 0h1m3 0h1M1 23.5h1m1 0h3m1 0h1m2 0h3m2 0h1m2 0h6m1 0h1M1 24.5h1m5 0h1m4 0h2m1 0h2m1 0h2m1 0h2m2 0h1M1 25.5h7m4 0h3m1 0h1m3 0h3m2 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-SOUND-008</p>
+          <p class="nom">Caisson de basse SB28</p>
+          <p class="statut">Perdu</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m11 0h7M1 2.5h1m5 0h1m2 0h2m1 0h3m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h2m5 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m3 0h3m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m4 0h1m1 0h1m2 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h1m3 0h1m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h3m3 0h1M4 9.5h2m1 0h2m1 0h2m2 0h1m2 0h1m4 0h2M2 10.5h1m1 0h1m3 0h1m4 0h4m2 0h1m1 0h1m1 0h1M1 11.5h1m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m5 0h1m1 0h2M3 12.5h4m2 0h2m1 0h3m1 0h1m1 0h1m3 0h3M2 13.5h1m1 0h1m1 0h2m2 0h1m1 0h6m2 0h1m1 0h2M1 14.5h1m2 0h1m3 0h1m1 0h3m4 0h1m1 0h3m1 0h3M1 15.5h2m3 0h3m3 0h1m1 0h1m2 0h1m1 0h2m1 0h3M1 16.5h1m1 0h1m1 0h1m4 0h3m1 0h3m1 0h2m1 0h2m1 0h1M1 17.5h1m2 0h4m1 0h1m4 0h2m1 0h5m2 0h1M9 18.5h1m1 0h2m1 0h1m1 0h2m3 0h3M1 19.5h7m1 0h1m1 0h2m3 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m2 0h1m3 0h2m1 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h1m1 0h6m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h4m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m3 0h4m1 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m4 0h2m3 0h1m2 0h1m2 0h2M1 25.5h7m2 0h1m1 0h2m4 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-001</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m3 0h3m1 0h3m1 0h7M1 2.5h1m5 0h1m5 0h1m5 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m3 0h2m2 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m2 0h2m2 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m3 0h1m3 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m5 0h1m2 0h2m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h1M4 9.5h2m1 0h2m2 0h1m1 0h1m2 0h2m4 0h2M2 10.5h2m2 0h1m3 0h3m1 0h3m2 0h1m1 0h1m1 0h1M3 11.5h1m1 0h1m1 0h3m1 0h1m1 0h1m1 0h1m5 0h1m1 0h2M1 12.5h1m1 0h1m1 0h2m4 0h1m1 0h1m1 0h4m3 0h3M1 13.5h1m5 0h2m4 0h1m1 0h1m1 0h1m2 0h4M1 14.5h1m6 0h2m3 0h3m1 0h1m1 0h1m3 0h3M1 15.5h2m1 0h1m2 0h1m1 0h1m1 0h3m3 0h1m1 0h2m1 0h3M1 16.5h1m1 0h4m2 0h4m3 0h1m1 0h2m1 0h2m1 0h1M1 17.5h1m2 0h1m1 0h4m4 0h1m2 0h5m2 0h1M9 18.5h1m1 0h1m2 0h1m1 0h2m3 0h3M1 19.5h7m1 0h1m2 0h1m1 0h1m1 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m5 0h2m2 0h1m3 0h3M1 21.5h1m1 0h3m1 0h1m1 0h2m3 0h8m2 0h2M1 22.5h1m1 0h3m1 0h1m1 0h2m1 0h6m1 0h1m1 0h3m1 0h1M1 23.5h1m1 0h3m1 0h1m3 0h1m1 0h1m2 0h1m2 0h1m1 0h1m1 0h3M1 24.5h1m5 0h1m3 0h2m1 0h1m2 0h1m2 0h1m2 0h2M1 25.5h7m4 0h1m5 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-006</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m2 0h1m2 0h3m3 0h7M1 2.5h1m5 0h1m1 0h1m1 0h1m1 0h2m1 0h1m2 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h4m4 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h2m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h3m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m1 0h2m6 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M11 8.5h2M3 9.5h1m2 0h5m4 0h1m2 0h1m1 0h5M1 10.5h2m1 0h2m2 0h2m3 0h4m8 0h1M7 11.5h5m1 0h1m1 0h2m3 0h2m2 0h1M1 12.5h3m1 0h1m2 0h1m1 0h1m2 0h1m2 0h1m2 0h1m2 0h1m2 0h1M1 13.5h3m3 0h1m1 0h2m2 0h2m1 0h2m2 0h4M2 14.5h1m2 0h1m3 0h3m1 0h1m3 0h1m5 0h2M1 15.5h2m1 0h4m3 0h4m2 0h3m1 0h3M3 16.5h2m1 0h1m1 0h1m2 0h1m1 0h1m1 0h4m3 0h4M1 17.5h5m1 0h2m4 0h1m1 0h1m1 0h5m1 0h2M9 18.5h9m3 0h2m1 0h2M1 19.5h7m1 0h1m3 0h1m1 0h3m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m1 0h3m2 0h2m1 0h1m3 0h3m1 0h1M1 21.5h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h6m3 0h1M1 22.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h1m5 0h1M1 23.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h4m1 0h3m2 0h2M1 24.5h1m5 0h1m2 0h2m1 0h3m2 0h3m4 0h1M1 25.5h7m6 0h1m3 0h1m2 0h1m2 0h2"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-STAGE-008</p>
+          <p class="nom">Praticable 2x1m</p>
+          <p class="statut">Maintenance</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure>
+      <figure class="carte carte--inconnu">
+        <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" width="130" height="130" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#0f172a" d="M1 1.5h7m1 0h4m1 0h2m3 0h7M1 2.5h1m5 0h1m4 0h1m1 0h1m1 0h2m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h2m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h3m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m1 0h3m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m3 0h2m2 0h1m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m2 0h2m1 0h1M3 9.5h1m1 0h3m1 0h1m2 0h1m3 0h1m1 0h1m3 0h1m2 0h1M1 10.5h1m2 0h1m1 0h1m1 0h5m3 0h1m1 0h1m2 0h1m2 0h2M1 11.5h3m1 0h1m1 0h1m2 0h2m2 0h1m1 0h2m1 0h1m3 0h1M3 12.5h3m2 0h2m1 0h1m1 0h3m1 0h1m3 0h5M3 13.5h2m2 0h2m1 0h3m1 0h3m2 0h1m1 0h1m2 0h1M2 14.5h3m5 0h1m2 0h1m2 0h1m3 0h1m1 0h1M1 15.5h1m1 0h2m2 0h2m2 0h1m6 0h1m2 0h2m1 0h1M2 16.5h1m1 0h1m3 0h1m3 0h1m1 0h3m1 0h2m5 0h1M1 17.5h1m3 0h3m1 0h2m1 0h3m2 0h5M9 18.5h1m2 0h3m1 0h2m3 0h3m1 0h1M1 19.5h7m3 0h2m1 0h2m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h3m2 0h2m1 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h2m1 0h1m1 0h1m1 0h10M1 22.5h1m1 0h3m1 0h1m2 0h3m1 0h1m1 0h2m1 0h1m2 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m1 0h1m2 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m2 0h1m1 0h2m1 0h1m2 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m2 0h1m3 0h1m2 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+</div>
+        <figcaption>
+          
+          <p class="code">LC-TENT-005</p>
+          <p class="nom">Tente accueil 3x3m</p>
+          <p class="statut">En stock</p>
+          <p class="modes"><span class="ko">QR inconnu de l’application</span></p>
+        </figcaption>
+      </figure></div>
+</body>
+</html>

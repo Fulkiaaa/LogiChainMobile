@@ -3,7 +3,7 @@ import {ActivityIndicator, ScrollView, StyleSheet, Text, View} from 'react-nativ
 import {useScrollToTop} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 
-import type {Palette} from '@/config/theme';
+import {categoryLabel, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
 import {dashboardApi} from '@/services/api/dashboard.api';
@@ -56,7 +56,7 @@ export function KpiScreen() {
           <Text style={styles.section}>Par catégorie</Text>
           {Object.entries(data.byCategory).map(([cat, kg]) => (
             <View key={cat} style={styles.catRow}>
-              <Text style={styles.catName}>{cat}</Text>
+              <Text style={styles.catName}>{categoryLabel(cat)}</Text>
               <Text style={styles.catVal}>{Math.round(kg)} kg</Text>
             </View>
           ))}

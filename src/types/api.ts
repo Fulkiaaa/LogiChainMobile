@@ -4,6 +4,8 @@ export const ITEM_STATUSES: ItemStatus[] =
   ['in_stock','allocated','in_transit','deployed','in_maintenance','lost'];
 export type ItemCategory = 'staging'|'sound'|'lighting'|'video'|'power'
                          |'tent'|'furniture'|'sanitary'|'fencing'|'other';
+export const ITEM_CATEGORIES: ItemCategory[] =
+  ['staging','sound','lighting','video','power','tent','furniture','sanitary','fencing','other'];
 export type UserRole = 'admin'|'logistics_manager'|'field_agent'|'transporter';
 
 export interface GeoPoint { type: 'Point'; coordinates: [number, number]; }

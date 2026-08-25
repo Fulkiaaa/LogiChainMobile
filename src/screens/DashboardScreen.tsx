@@ -3,7 +3,7 @@ import {FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View} 
 import {useNavigation, useScrollToTop} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, X} from 'lucide-react-native';
+import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X} from 'lucide-react-native';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import type {Palette} from '@/config/theme';
@@ -14,7 +14,9 @@ import {ALL_STATUSES, useItems} from '@/hooks/useItems';
 import {useNotificationsSSE} from '@/hooks/useNotificationsSSE';
 import {useSync} from '@/hooks/useSync';
 import {StatusBadge} from '@/components/StatusBadge';
-import {filterItems} from '@/domain/itemFilter';
+import {StatusTile} from '@/components/StatusTile';
+import {FilterSheet, type FilterState} from '@/components/FilterSheet';
+import {DEFAULT_SORT, activeFilterCount, filterItems, sortItems} from '@/domain/itemFilter';
 import type {ItemStatus} from '@/types/api';
 import {runInitialSync} from '@/services/sync/initialSync';
 import type {RootStackParamList} from '@/navigation/types';
@@ -31,12 +33,19 @@ export function DashboardScreen() {
   const [syncState, setSyncState] = useState<'idle' | 'syncing' | 'error'>('idle');
   const [statusFilter, setStatusFilter] = useState<ItemStatus | null>(null);
   const [query, setQuery] = useState('');
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [advanced, setAdvanced] = useState<FilterState>({category: null, sort: DEFAULT_SORT});
 
   const visible = useMemo(
-    () => filterItems(items, {status: statusFilter, query}),
-    [items, statusFilter, query],
+    () =>
+      sortItems(
+        filterItems(items, {status: statusFilter, query, category: advanced.category}),
+        advanced.sort,
+      ),
+    [items, statusFilter, query, advanced],
   );
-  const filtering = statusFilter !== null || query.trim() !== '';
+  const advancedCount = activeFilterCount(advanced);
+  const filtering = statusFilter !== null || query.trim() !== '' || advancedCount > 0;
 
   const bootstrap = useCallback(async () => {
     if (eventId || !online) {
@@ -92,20 +101,19 @@ export function DashboardScreen() {
           ) : null}
 
           <Text style={styles.section}>Stocks par état</Text>
-          <View style={styles.statusGrid}>
-            {ALL_STATUSES.map(s => {
-              const active = statusFilter === s;
-              return (
-                <Pressable
+          {[ALL_STATUSES.slice(0, 3), ALL_STATUSES.slice(3, 6)].map((rangee, i) => (
+            <View key={i} style={styles.statusRow}>
+              {rangee.map(s => (
+                <StatusTile
                   key={s}
-                  onPress={() => setStatusFilter(active ? null : s)}
-                  style={[styles.statusCell, active && styles.statusCellActive]}>
-                  <Text style={styles.statusCount}>{byStatus[s] ?? 0}</Text>
-                  <StatusBadge status={s} />
-                </Pressable>
-              );
-            })}
-          </View>
+                  status={s}
+                  count={byStatus[s] ?? 0}
+                  active={statusFilter === s}
+                  onPress={() => setStatusFilter(statusFilter === s ? null : s)}
+                />
+              ))}
+            </View>
+          ))}
 
           {alerts.length > 0 ? (
             <>
@@ -135,7 +143,8 @@ export function DashboardScreen() {
             {filtering ? ` sur ${items.length}` : ''})
           </Text>
 
-          <View style={styles.searchRow}>
+          <View style={styles.searchBar}>
+            <View style={styles.searchRow}>
             <Search color={c.textMuted} size={16} strokeWidth={2} />
             <TextInput
               style={styles.searchInput}
@@ -146,16 +155,38 @@ export function DashboardScreen() {
               value={query}
               onChangeText={setQuery}
             />
-            {filtering ? (
+            {query.trim() !== '' ? (
               <Pressable
-                onPress={() => {
-                  setQuery('');
-                  setStatusFilter(null);
-                }}
+                accessibilityRole="button"
+                accessibilityLabel="Effacer la recherche"
+                onPress={() => setQuery('')}
                 hitSlop={8}>
                 <X color={c.textMuted} size={16} strokeWidth={2.5} />
               </Pressable>
             ) : null}
+            </View>
+
+            <Pressable
+              testID="filter-button"
+              accessibilityRole="button"
+              accessibilityLabel={
+                advancedCount > 0
+                  ? `Filtrer et trier, ${advancedCount} filtre(s) actif(s)`
+                  : 'Filtrer et trier'
+              }
+              onPress={() => setSheetOpen(true)}
+              style={[styles.filterButton, advancedCount > 0 && styles.filterButtonActive]}>
+              <SlidersHorizontal
+                color={advancedCount > 0 ? c.onPrimary : c.primary}
+                size={18}
+                strokeWidth={2.5}
+              />
+              {advancedCount > 0 ? (
+                <View style={styles.filterCount}>
+                  <Text style={styles.filterCountText}>{advancedCount}</Text>
+                </View>
+              ) : null}
+            </Pressable>
           </View>
         </View>
       }
@@ -168,6 +199,15 @@ export function DashboardScreen() {
           <StatusBadge status={item.status} />
         </Pressable>
       )}
+      ListFooterComponent={
+        <FilterSheet
+          visible={sheetOpen}
+          category={advanced.category}
+          sort={advanced.sort}
+          onChange={setAdvanced}
+          onClose={() => setSheetOpen(false)}
+        />
+      }
       ListEmptyComponent={
         <Text style={styles.empty}>
           {filtering
@@ -193,18 +233,46 @@ const makeStyles = (c: Palette) =>
   bannerText: {color: c.text},
   error: {color: c.danger, marginTop: 8},
   section: {color: c.textMuted, marginTop: 20, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  statusGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 12},
-  statusCell: {
-    backgroundColor: c.surface,
-    borderRadius: 10,
-    padding: 12,
-    minWidth: 100,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'transparent',
+  // Deux rangées de trois : les tuiles sont en `flex: 1`, donc à largeur égale
+  // quelle que soit la longueur du libellé.
+  statusRow: {flexDirection: 'row', gap: 10, marginBottom: 10},
+  searchBar: {
+    flexDirection: 'row',
+    // `stretch` plutôt que `center` : le bouton adopte la hauteur exacte de la
+    // barre de recherche, quelle que soit la taille de police du système.
+    alignItems: 'stretch',
+    gap: 10,
+    marginBottom: 10,
   },
-  statusCellActive: {borderColor: c.primary, backgroundColor: c.surfaceAlt},
+  filterButton: {
+    width: 44,
+    // Pas de hauteur fixe : `alignItems: 'stretch'` du parent l'aligne sur
+    // l'input. Le rayon reprend celui de la barre pour que les deux blocs se
+    // lisent comme une seule rangée.
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: c.surface,
+    borderWidth: 1,
+    borderColor: c.border,
+  },
+  filterButtonActive: {backgroundColor: c.primary, borderColor: c.primary},
+  filterCount: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    minWidth: 18,
+    height: 18,
+    paddingHorizontal: 4,
+    borderRadius: 9,
+    backgroundColor: c.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterCountText: {color: '#fff', fontSize: 11, fontWeight: '800'},
   searchRow: {
+    // Occupe toute la largeur restante à gauche du bouton de filtre (44 px).
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -213,10 +281,8 @@ const makeStyles = (c: Palette) =>
     borderWidth: 1,
     borderColor: c.border,
     paddingHorizontal: 12,
-    marginBottom: 10,
   },
   searchInput: {flex: 1, color: c.text, paddingVertical: 10},
-  statusCount: {color: c.text, fontSize: 24, fontWeight: '800'},
   alert: {
     flexDirection: 'row',
     alignItems: 'flex-start',

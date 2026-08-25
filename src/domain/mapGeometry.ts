@@ -1,3 +1,5 @@
+import type {GeoPoint} from '@/types/api';
+
 export interface LatLng {
   latitude: number;
   longitude: number;
@@ -17,6 +19,9 @@ interface PolygonGeometry {
 const PADDING = 1.35;
 /** Ouverture minimale : évite un zoom absurde sur un point unique. */
 const MIN_DELTA = 0.004;
+
+/** Longueur d'un degré de latitude, en mètres (constante quelle que soit la latitude). */
+const METERS_PER_DEGREE = 111_320;
 
 /**
  * Convertit un anneau extérieur de Polygon GeoJSON en points de carte.
@@ -72,3 +77,48 @@ export const ZONE_COLORS: Record<string, string> = {
   entrance: '#ca8a04',
   default: '#64748b',
 };
+
+/**
+ * Cadre serré autour d'un équipement, pour répondre à « où est-il exactement ».
+ *
+ * Un degré de latitude vaut toujours ~111 km, mais un degré de longitude
+ * rétrécit en s'éloignant de l'équateur : il faut diviser par le cosinus de la
+ * latitude, sinon le cadre s'aplatit et l'échelle horizontale ment.
+ *
+ * `spanMeters` est la largeur approximative du cadre. 120 m montre l'équipement
+ * et son voisinage immédiat — assez pour reconnaître l'endroit, assez près pour
+ * ne pas hésiter entre deux marqueurs.
+ */
+export function focusRegion(point: LatLng, spanMeters = 120): MapRegion {
+  const latitudeDelta = spanMeters / METERS_PER_DEGREE;
+  const cos = Math.cos((point.latitude * Math.PI) / 180);
+  // Plancher sur le cosinus : il tend vers 0 aux pôles, et la division
+  // renverrait alors l'infini — la carte n'afficherait plus rien.
+  const longitudeDelta = latitudeDelta / Math.max(Math.abs(cos), 0.01);
+
+  return {
+    latitude: point.latitude,
+    longitude: point.longitude,
+    latitudeDelta,
+    longitudeDelta,
+  };
+}
+
+/**
+ * Point GeoJSON → point de carte. Même inversion [lng, lat] → {lat, lng} que
+ * `polygonToLatLng`, isolée ici pour la même raison : c'est l'erreur classique.
+ *
+ * Défensif sur la forme : la position vient d'une API native, un couple
+ * incomplet ou un NaN enverrait la carte n'importe où plutôt que d'échouer.
+ */
+export function pointToLatLng(point: GeoPoint | null | undefined): LatLng | null {
+  const lng = point?.coordinates?.[0];
+  const lat = point?.coordinates?.[1];
+  if (typeof lat !== 'number' || typeof lng !== 'number') {
+    return null;
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+  return {latitude: lat, longitude: lng};
+}

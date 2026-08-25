@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture LogiChain</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --surface:#ffffff; --surface-2:#eef1f5; --border:#d8dee7;
+    --text:#12161c; --muted:#5b6675;
+    --api:#2563eb; --api-soft:#dbeafe;
+    --db:#0d9488; --db-soft:#ccfbf1;
+    --app:#c026d3; --app-soft:#fae8ff;
+    --edge:#7c8698; --accent:#ea580c; --ok:#15803d; --warn:#b45309;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --surface:#161b22; --surface-2:#1c232d; --border:#2b3441;
+      --text:#e8edf4; --muted:#9aa7b8;
+      --api:#7aa5ff; --api-soft:#17233d;
+      --db:#4fd1c5; --db-soft:#0f2a28;
+      --app:#e879f9; --app-soft:#2d1030;
+      --edge:#7f8b9e; --accent:#fb923c; --ok:#4ade80; --warn:#fbbf24;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --surface:#161b22; --surface-2:#1c232d; --border:#2b3441;
+    --text:#e8edf4; --muted:#9aa7b8;
+    --api:#7aa5ff; --api-soft:#17233d;
+    --db:#4fd1c5; --db-soft:#0f2a28;
+    --app:#e879f9; --app-soft:#2d1030;
+    --edge:#7f8b9e; --accent:#fb923c; --ok:#4ade80; --warn:#fbbf24;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:48px 24px 96px}
+
+  header.head{border-bottom:1px solid var(--border); padding-bottom:28px; margin-bottom:44px}
+  .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:700}
+  h1{font-size:clamp(28px,5vw,42px); line-height:1.15; margin:10px 0 12px; letter-spacing:-.02em}
+  .lede{font-size:17px; color:var(--muted); max-width:62ch; margin:0}
+
+  h2{font-size:clamp(20px,3vw,26px); letter-spacing:-.01em; margin:0 0 6px}
+  .sec{margin:56px 0 0}
+  .sec > .sub{color:var(--muted); margin:0 0 22px; max-width:68ch}
+
+  .figure{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px; overflow-x:auto;
+  }
+  .figure svg{display:block; width:100%; min-width:660px; height:auto}
+  figcaption{color:var(--muted); font-size:13.5px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border)}
+
+  .cards{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); margin-top:22px}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px}
+  .card h3{margin:0 0 6px; font-size:15px; letter-spacing:.01em}
+  .card p{margin:0; font-size:14px; color:var(--muted)}
+  .card code{font-family:var(--mono); font-size:12.5px; background:var(--surface-2); padding:1px 5px; border-radius:4px; color:var(--text)}
+
+  .tablewrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-top:20px}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--border)}
+  thead th{background:var(--surface-2); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+  tbody tr:last-child td{border-bottom:none}
+  td code{font-family:var(--mono); font-size:12.5px}
+  .yes{color:var(--ok); font-weight:700}
+  .no{color:var(--muted)}
+
+  .note{
+    border-left:3px solid var(--accent); background:var(--surface);
+    padding:14px 18px; border-radius:0 10px 10px 0; margin-top:22px;
+  }
+  .note strong{color:var(--accent)}
+  .note p{margin:0; font-size:14.5px}
+
+  .stats{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-top:24px}
+  .stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px}
+  .stat b{display:block; font-size:26px; letter-spacing:-.02em; line-height:1.1}
+  .stat span{font-size:12.5px; color:var(--muted)}
+
+  /* Couleurs de texte SVG pilotées par le thème */
+  .s-label{font-family:var(--sans); font-size:13px; fill:var(--text)}
+  .s-small{font-family:var(--sans); font-size:11.5px; fill:var(--muted)}
+  .s-mono{font-family:var(--mono); font-size:11.5px; fill:var(--muted)}
+  .s-title{font-family:var(--sans); font-size:12px; font-weight:700; fill:var(--muted); letter-spacing:.08em}
+  .s-edge{stroke:var(--edge); stroke-width:1.6; fill:none}
+  .s-arrow{fill:var(--edge)}
+  .s-edge-dash{stroke:var(--edge); stroke-width:1.4; fill:none; stroke-dasharray:5 4}
+  .s-box{fill:var(--surface); stroke:var(--border); stroke-width:1.4}
+  .s-zone{fill:none; stroke:var(--border); stroke-width:1.4; stroke-dasharray:6 5}
+  .b-api{fill:var(--api-soft); stroke:var(--api); stroke-width:1.6}
+  .b-db{fill:var(--db-soft); stroke:var(--db); stroke-width:1.6}
+  .b-app{fill:var(--app-soft); stroke:var(--app); stroke-width:1.6}
+
+  footer{margin-top:64px; padding-top:22px; border-top:1px solid var(--border); color:var(--muted); font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <div class="eyebrow">LogiChain · Soutenance MP3</div>
+  <h1>Architecture de la plateforme</h1>
+  <p class="lede">Une API REST Node/TypeScript adossée à MongoDB, et une application terrain React Native conçue pour fonctionner en zone blanche. Trois schémas : le déploiement, le cheminement d'une requête, et le cycle d'un scan hors ligne.</p>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>4</b><span>rôles, aux droits distincts</span></div>
+  <div class="stat"><b>6</b><span>modules métier</span></div>
+  <div class="stat"><b>59</b><span>tests API</span></div>
+  <div class="stat"><b>126</b><span>tests mobile</span></div>
+</div>
+
+<!-- ───────────────────────── 1. DÉPLOIEMENT ───────────────────────── -->
+<section class="sec">
+  <h2>1 — Le déploiement en production</h2>
+  <p class="sub">Deux conteneurs sur une seule machine. Ils communiquent par un réseau Docker privé : la base n'est jamais exposée, ni à Internet, ni au réseau de l'hôte.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 900 400" role="img" aria-label="Schéma de déploiement : iPhone et Mac face à un VPS contenant Traefik, l'API et MongoDB">
+      <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="s-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <!-- VPS -->
+      <rect class="s-zone" x="290" y="26" width="580" height="348" rx="14"/>
+      <text class="s-title" x="308" y="50">VPS — DOCKER</text>
+
+      <!-- réseau traefik -->
+      <rect class="s-zone" x="310" y="66" width="240" height="128" rx="10"/>
+      <text class="s-mono" x="324" y="86">traefik_network (externe)</text>
+
+      <!-- réseau interne -->
+      <rect class="s-zone" x="310" y="214" width="540" height="142" rx="10"/>
+      <text class="s-mono" x="324" y="234">logichain-internal (bridge)</text>
+
+      <!-- Traefik -->
+      <rect class="s-box" x="330" y="98" width="196" height="72" rx="10"/>
+      <text class="s-label" x="348" y="126" font-weight="600">Traefik</text>
+      <text class="s-small" x="348" y="146">HTTPS · Let’s Encrypt</text>
+      <text class="s-mono" x="348" y="162">api-logichain.fulkia.fr</text>
+
+      <!-- API -->
+      <rect class="b-api" x="330" y="252" width="216" height="82" rx="10"/>
+      <text class="s-label" x="348" y="280" font-weight="600">logichain-api</text>
+      <text class="s-small" x="348" y="300">Node 20 · Express · TypeScript</text>
+      <text class="s-mono" x="348" y="318">port 3000</text>
+
+      <!-- Mongo -->
+      <rect class="b-db" x="614" y="252" width="216" height="82" rx="10"/>
+      <text class="s-label" x="632" y="280" font-weight="600">logichain-mongo</text>
+      <text class="s-small" x="632" y="300">MongoDB 7.0 · replica set rs0</text>
+      <text class="s-mono" x="632" y="318">127.0.0.1:27017</text>
+
+      <!-- iPhone -->
+      <rect class="b-app" x="30" y="98" width="196" height="86" rx="10"/>
+      <text class="s-label" x="48" y="126" font-weight="600">iPhone — terrain</text>
+      <text class="s-small" x="48" y="146">React Native</text>
+      <text class="s-small" x="48" y="164">SQLite embarquée</text>
+
+      <!-- Mac -->
+      <rect class="s-box" x="30" y="268" width="196" height="66" rx="10"/>
+      <text class="s-label" x="48" y="296" font-weight="600">Mac — administration</text>
+      <text class="s-small" x="48" y="316">mongosh · Compass</text>
+
+      <!-- flèches -->
+      <path class="s-edge" d="M226,141 L330,138" marker-end="url(#ar1)"/>
+      <text class="s-mono" x="238" y="128">HTTPS</text>
+
+      <path class="s-edge" d="M428,170 L428,252" marker-end="url(#ar1)"/>
+      <text class="s-mono" x="436" y="216">3000</text>
+
+      <path class="s-edge" d="M546,293 L614,293" marker-end="url(#ar1)"/>
+      <text class="s-mono" x="548" y="283">mongo:27017</text>
+
+      <path class="s-edge-dash" d="M226,301 C 420,392 560,392 718,336" marker-end="url(#ar1)"/>
+      <text class="s-mono" x="404" y="386">tunnel SSH uniquement</text>
+    </svg>
+    <figcaption><strong>Le point clé :</strong> l'API atteint MongoDB par le nom de service <code>mongo</code>, résolu par le DNS interne de Docker. La publication du port <code>127.0.0.1:27017</code> ne sert pas à cette liaison — on pourrait la supprimer sans rien casser. Elle n'existe que pour l'administration via tunnel SSH.</figcaption>
+  </figure>
+</section>
+
+<!-- ───────────────────────── 2. N-TIER ───────────────────────── -->
+<section class="sec">
+  <h2>2 — Le cheminement d'une requête dans l'API</h2>
+  <p class="sub">Découpage N-Tier strict. Chaque couche a une responsabilité unique et ne déborde jamais : un service ne voit jamais un document Mongoose, un contrôleur ne voit jamais le modèle.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 900 300" role="img" aria-label="Flux N-Tier : route, middlewares, contrôleur, service, repository, modèle Mongoose">
+      <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="s-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <text class="s-title" x="20" y="26">REQUÊTE HTTP</text>
+
+      <rect class="s-box" x="20" y="44" width="126" height="66" rx="9"/>
+      <text class="s-label" x="34" y="72" font-weight="600">Route</text>
+      <text class="s-small" x="34" y="92">déclare, compose</text>
+
+      <rect class="s-box" x="166" y="44" width="150" height="66" rx="9"/>
+      <text class="s-label" x="180" y="72" font-weight="600">Middlewares</text>
+      <text class="s-small" x="180" y="92">auth · rôle · Zod</text>
+
+      <rect class="s-box" x="336" y="44" width="132" height="66" rx="9"/>
+      <text class="s-label" x="350" y="72" font-weight="600">Controller</text>
+      <text class="s-small" x="350" y="92">HTTP ⇄ service</text>
+
+      <rect class="b-api" x="488" y="44" width="132" height="66" rx="9"/>
+      <text class="s-label" x="502" y="72" font-weight="600">Service</text>
+      <text class="s-small" x="502" y="92">logique métier</text>
+
+      <rect class="b-api" x="640" y="44" width="132" height="66" rx="9"/>
+      <text class="s-label" x="654" y="72" font-weight="600">Repository</text>
+      <text class="s-small" x="654" y="92">seul accès ODM</text>
+
+      <rect class="b-db" x="640" y="182" width="132" height="66" rx="9"/>
+      <text class="s-label" x="654" y="210" font-weight="600">Model</text>
+      <text class="s-small" x="654" y="230">Mongoose</text>
+
+      <rect class="b-api" x="488" y="182" width="132" height="66" rx="9"/>
+      <text class="s-label" x="502" y="210" font-weight="600">Entity</text>
+      <text class="s-small" x="502" y="230">règles, transitions</text>
+
+      <path class="s-edge" d="M146,77 L166,77" marker-end="url(#ar2)"/>
+      <path class="s-edge" d="M316,77 L336,77" marker-end="url(#ar2)"/>
+      <path class="s-edge" d="M468,77 L488,77" marker-end="url(#ar2)"/>
+      <path class="s-edge" d="M620,77 L640,77" marker-end="url(#ar2)"/>
+      <path class="s-edge" d="M706,110 L706,182" marker-end="url(#ar2)"/>
+      <path class="s-edge-dash" d="M640,215 L620,215" marker-end="url(#ar2)"/>
+      <path class="s-edge-dash" d="M554,182 L554,110" marker-end="url(#ar2)"/>
+
+      <text class="s-mono" x="792" y="215">MongoDB</text>
+      <text class="s-small" x="336" y="215">Le repository mappe</text>
+      <text class="s-small" x="336" y="232">document → entité,</text>
+      <text class="s-small" x="336" y="249">jamais l’inverse.</text>
+
+      <text class="s-title" x="20" y="215">POO</text>
+      <text class="s-small" x="20" y="235">héritage,</text>
+      <text class="s-small" x="20" y="252">encapsulation,</text>
+      <text class="s-small" x="20" y="269">polymorphisme</text>
+    </svg>
+    <figcaption>Modules : <code>auth</code>, <code>events</code>, <code>items</code>, <code>routes</code>, <code>notifications</code>, <code>dashboard</code>. Pas de conteneur d'injection de dépendances : chaque fichier de routes instancie <code>repository → service → controller</code> et ré-exporte les singletons, que les autres modules importent.</figcaption>
+  </figure>
+
+  <div class="cards">
+    <div class="card">
+      <h3>CarbonFootprintService</h3>
+      <p>Méthodologie ADEME Base Carbone® : fabrication amortie sur la durée de vie, plus <code>tonnes × km × facteur</code> pour le transport.</p>
+    </div>
+    <div class="card">
+      <h3>AdemeFactorService</h3>
+      <p>Facteurs d'émission en <em>stale-while-revalidate</em> : cache 24 h et repli codé en dur. L'API reste fonctionnelle si l'ADEME est indisponible.</p>
+    </div>
+    <div class="card">
+      <h3>ResourceAllocationService</h3>
+      <p>Algorithme du banquier appliqué à l'allocation d'équipements : détection d'état non sûr, refus en <code>422</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── 3. SCAN HORS LIGNE ───────────────────────── -->
+<section class="sec">
+  <h2>3 — Le cycle d'un scan hors ligne</h2>
+  <p class="sub">C'est le cœur du sujet : l'agent scanne en zone blanche, l'interface répond immédiatement, et la synchronisation arrive plus tard sans perte de données.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 900 400" role="img" aria-label="Cycle d'un scan hors ligne, du QR code à la synchronisation">
+      <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="s-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <!-- Phase terrain -->
+      <rect class="s-zone" x="20" y="30" width="530" height="200" rx="12"/>
+      <text class="s-title" x="38" y="54">SUR LE TERRAIN — SANS RÉSEAU</text>
+
+      <rect class="b-app" x="40" y="72" width="112" height="60" rx="9"/>
+      <text class="s-label" x="54" y="98" font-weight="600">Caméra</text>
+      <text class="s-mono" x="54" y="118">LC-FENCE-007</text>
+
+      <rect class="s-box" x="176" y="72" width="112" height="60" rx="9"/>
+      <text class="s-label" x="190" y="98" font-weight="600">Anti-doublon</text>
+      <text class="s-small" x="190" y="118">fenêtre 1,5 s</text>
+
+      <rect class="b-db" x="312" y="72" width="112" height="60" rx="9"/>
+      <text class="s-label" x="326" y="98" font-weight="600">SQLite</text>
+      <text class="s-small" x="326" y="118">index qrCode</text>
+
+      <rect class="s-box" x="448" y="72" width="86" height="60" rx="9"/>
+      <text class="s-label" x="462" y="98" font-weight="600">États</text>
+      <text class="s-small" x="462" y="118">transition ?</text>
+
+      <rect class="s-box" x="176" y="156" width="112" height="56" rx="9"/>
+      <text class="s-label" x="190" y="182" font-weight="600">GPS</text>
+      <text class="s-small" x="190" y="200">position du scan</text>
+
+      <rect class="b-app" x="312" y="156" width="112" height="56" rx="9"/>
+      <text class="s-label" x="326" y="182" font-weight="600">UI optimiste</text>
+      <text class="s-small" x="326" y="200">statut appliqué</text>
+
+      <rect class="b-app" x="448" y="156" width="86" height="56" rx="9"/>
+      <text class="s-label" x="462" y="182" font-weight="600">Outbox</text>
+      <text class="s-small" x="462" y="200">en attente</text>
+
+      <path class="s-edge" d="M152,102 L176,102" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M288,102 L312,102" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M424,102 L448,102" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M491,132 L491,156" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M448,184 L424,184" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M312,184 L288,184" marker-end="url(#ar3)"/>
+
+      <!-- Phase synchro -->
+      <rect class="s-zone" x="20" y="258" width="850" height="118" rx="12"/>
+      <text class="s-title" x="38" y="282">AU RETOUR DU RÉSEAU</text>
+
+      <rect class="b-app" x="40" y="298" width="126" height="58" rx="9"/>
+      <text class="s-label" x="54" y="324" font-weight="600">SyncEngine</text>
+      <text class="s-small" x="54" y="342">rejoue la file</text>
+
+      <rect class="b-api" x="222" y="298" width="150" height="58" rx="9"/>
+      <text class="s-label" x="236" y="324" font-weight="600">API</text>
+      <text class="s-mono" x="236" y="342">POST /items/:id/scan</text>
+
+      <rect class="s-box" x="428" y="298" width="140" height="58" rx="9"/>
+      <text class="s-label" x="442" y="324" font-weight="600">Verrou optimiste</text>
+      <text class="s-mono" x="442" y="342">baseVersion</text>
+
+      <rect class="s-box" x="624" y="292" width="110" height="32" rx="7"/>
+      <text class="s-mono" x="638" y="313">200 → validé</text>
+
+      <rect class="s-box" x="624" y="332" width="110" height="32" rx="7"/>
+      <text class="s-mono" x="638" y="353">409 → conflit</text>
+
+      <rect class="s-box" x="762" y="332" width="94" height="32" rx="7"/>
+      <text class="s-mono" x="774" y="353">arbitrage</text>
+
+      <path class="s-edge" d="M166,327 L222,327" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M372,327 L428,327" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M568,318 L624,308" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M568,336 L624,346" marker-end="url(#ar3)"/>
+      <path class="s-edge" d="M734,348 L762,348" marker-end="url(#ar3)"/>
+
+      <path class="s-edge-dash" d="M491,212 C 491,240 200,240 103,298" marker-end="url(#ar3)"/>
+      <text class="s-mono" x="250" y="252">plus tard…</text>
+    </svg>
+    <figcaption>Aucun appel réseau pendant le scan. La résolution du QR code se fait contre le cache SQLite téléchargé à la synchronisation initiale — c'est précisément ce qui rend le geste possible sans couverture.</figcaption>
+  </figure>
+
+  <div class="note">
+    <p><strong>Le détail qui compte.</strong> La fenêtre anti-doublon court depuis la <em>dernière vue</em> du code, pas depuis le dernier scan accepté. Sans ce rafraîchissement, viser un QR en continu le réenregistrerait toutes les 1,5 seconde, la caméra produisant des dizaines d'images par seconde. Il faut que le code quitte le champ pour être réaccepté.</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── 4. RBAC ───────────────────────── -->
+<section class="sec">
+  <h2>4 — Les quatre rôles</h2>
+  <p class="sub">Chaque rôle correspond à une position réelle dans la chaîne logistique. La matrice est verrouillée par un test qui relit les gardes effectivement branchées sur les routeurs Express.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Action</th><th>Admin</th><th>Responsable</th><th>Agent</th><th>Transporteur</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Créer un compte</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Créer / modifier un équipement</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Supprimer un équipement</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Événements, zones, itinéraires</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Allouer à un événement</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        <tr><td>Déployer sur site</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td></tr>
+        <tr><td>Clôturer un arrêt, saisir la distance</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td></tr>
+        <tr><td>Scanner, signaler une anomalie ou une perte</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Provisionnement administré</h3>
+      <p>Aucune inscription publique : <code>POST /auth/register</code> est réservé à l'admin. Le rôle vient d'une autorité, jamais du demandeur — sans quoi n'importe qui se déclarerait administrateur.</p>
+    </div>
+    <div class="card">
+      <h3>Mot de passe temporaire</h3>
+      <p>Tout compte créé par un tiers est marqué. Toutes les routes métier répondent <code>403</code> tant que son titulaire ne l'a pas remplacé.</p>
+    </div>
+    <div class="card">
+      <h3>Matrice testée</h3>
+      <p><code>requireRole</code> expose les rôles qu'il autorise ; un test relit la matrice réelle. La documentation des permissions <em>est</em> le code.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── 5. POINTS TECHNIQUES ───────────────────────── -->
+<section class="sec">
+  <h2>5 — Points techniques défendables</h2>
+  <p class="sub">Ce qu'on peut montrer en direct plutôt que raconter.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Verrouillage optimiste</h3>
+      <p>Chaque entité porte une <code>version</code> mappée sur <code>__v</code>. Une écriture concurrente obtient <code>409</code> au lieu d'écraser — la brique qui rend le mode hors ligne sûr.</p>
+    </div>
+    <div class="card">
+      <h3>Transactions ACID</h3>
+      <p>L'allocation d'un lot d'équipements est atomique : à la première erreur, tout le lot est annulé.</p>
+    </div>
+    <div class="card">
+      <h3>Change Streams → SSE</h3>
+      <p>MongoDB pousse ses changements ; l'API les relaie en Server-Sent Events vers les terminaux du secteur.</p>
+    </div>
+    <div class="card">
+      <h3>Indexation chirurgicale</h3>
+      <p>Composés, géospatiaux <code>2dsphere</code>, et un index <em>partiel</em> qui n'indexe que les équipements perdus.</p>
+    </div>
+    <div class="card">
+      <h3>Séries temporelles</h3>
+      <p>Les métriques de monitoring vivent dans une collection <em>time series</em> dédiée.</p>
+    </div>
+    <div class="card">
+      <h3>UI optimiste et rollback</h3>
+      <p>Le statut cible est appliqué immédiatement en local ; <code>previousStatus</code> permet d'annuler l'affichage si la synchro échoue définitivement.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  LogiChain — API REST Node/TypeScript &amp; application terrain React Native. Schéma établi à partir du code déployé.
+</footer>
+
+</div>
+</body>
+</html>

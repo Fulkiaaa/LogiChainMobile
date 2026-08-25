@@ -12,6 +12,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ModeSelector} from '@/components/ModeSelector';
 import type {Palette} from '@/config/theme';
+import {useAuth} from '@/hooks/useAuth';
 import {useTheme} from '@/hooks/useTheme';
 import {useScanMode} from '@/hooks/useScanMode';
 import {useScanner} from '@/hooks/useScanner';
@@ -20,6 +21,7 @@ import {outboxRepo} from '@/services/db/database';
 export function ScanScreen() {
   const {c} = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const {user} = useAuth();
   const {mode, setMode} = useScanMode();
   const {onCode, sessionCount, lastResults} = useScanner(mode);
   const {hasPermission, requestPermission} = useCameraPermission();
@@ -70,7 +72,7 @@ export function ScanScreen() {
       )}
 
       <View style={[styles.top, {paddingTop: insets.top + 8}]}>
-        <ModeSelector mode={mode} onChange={setMode} />
+        <ModeSelector mode={mode} role={user?.role} onChange={setMode} />
         <View style={styles.counters}>
           <Text style={styles.count}>{sessionCount} scannés</Text>
           <Text style={styles.pending}>{pending} en attente</Text>
