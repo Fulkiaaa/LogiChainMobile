@@ -494,7 +494,7 @@ body.plan-on .plan{display:block}
   <div class="notes">
     <h4>Conduite</h4>
     <p>Fais le parallèle explicite avec le MP3 : là-bas c'était Entity / Repository / Service / Controller. Ici c'est UI / Hooks / Services. <b>Même principe, appliqué à un contexte différent</b> — ce n'est pas une recette recopiée, c'est le même raisonnement.</p>
-    <p>Le dossier <span class="mono">domain/</span> mérite une phrase : j'y ai isolé toutes les règles pures — machine à états, matrice de permissions, décision de réconciliation, filtrage. Aucune dépendance à React ni à React Native. C'est <b>pour ça</b> que je peux avoir 271 tests qui tournent en 1,3 seconde sans simulateur.</p>
+    <p>Le dossier <span class="mono">domain/</span> mérite une phrase : j'y ai isolé toutes les règles pures — machine à états, matrice de permissions, décision de réconciliation, filtrage. Aucune dépendance à React ni à React Native. C'est <b>pour ça</b> que je peux avoir 298 tests qui tournent en une seconde sans simulateur.</p>
     <p class="q">Si on demande la preuve que la règle tient : <span class="mono">grep -r "services/" src/screens</span> — l'écran de scan ne connaît que <span class="mono">useScanner</span>.</p>
   </div>
 </section>
@@ -801,9 +801,50 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
+
+<!-- MISES EN SITUATION ────────────────────────────────────────────────── -->
+<section class="slide" data-title="Mises en situation" data-net="offline">
+  <div class="eyebrow"><span class="num">19</span> Démonstration</div>
+  <h1>Deux filtres,<br>isolés l'un de l'autre</h1>
+  <p class="lede">Un geste peut être refusé pour deux raisons très différentes : <b>l'état de l'équipement</b>, ou <b>le rôle de qui le tient</b>. J'ai construit deux mises en situation qui les séparent proprement.</p>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3 style="color:var(--app)">① Responsable logistique</h3>
+      <p style="margin-bottom:12px"><b>Un seul QR : le groupe électrogène</b>, en transit.</p>
+      <ul class="clean">
+        <li><b>Pointage</b> — accepté, ne change rien</li>
+        <li><b>Déploiement</b> — accepté, <code>in_transit → deployed</code></li>
+        <li><b>Transit</b> — refusé : <span class="mono">in_transit → in_transit interdit</span></li>
+      </ul>
+      <p style="color:var(--muted);font-size:15px;margin-top:14px">Une fois déployé, le même QR inverse ses réponses — et un scan en Transit le ramène à son point de départ. <b>La démonstration boucle</b>, elle se rejoue sans reseed.</p>
+      <p style="margin-top:12px"><b>Ce qu'elle prouve :</b> aucun refus ne vient du rôle. Ce compte a six gestes sur sept — tout sauf créer des comptes. <b>Tous les refus viennent du statut.</b></p>
+    </div>
+    <div class="card hi">
+      <h3 style="color:var(--signal)">② Transporteur, en mode avion</h3>
+      <p style="margin-bottom:12px"><b>Deux QR : un chapiteau en transit, un bloc sanitaire déployé.</b></p>
+      <ul class="clean">
+        <li><b>Pointage</b> et <b>Transit</b> — acceptés, hors réseau</li>
+        <li><b>Déploiement</b> — mode <b>verrouillé</b>, cadenas visible avant même de scanner</li>
+        <li><b>Maintenance</b> — bouton <b>absent</b> de la fiche, avec sa raison</li>
+      </ul>
+      <p style="color:var(--muted);font-size:15px;margin-top:14px">Or <code>in_transit → deployed</code> et <code>deployed → in_maintenance</code> sont deux transitions parfaitement légales : un agent de terrain réussirait sur ces mêmes QR.</p>
+      <p style="margin-top:12px"><b>Ce qu'elle prouve :</b> ici, <b>seul le rôle bloque</b> — et il bloque sans réseau, instantanément.</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>C'est la slide qui annonce ta démonstration. Insiste sur la <b>construction</b> des deux cas : j'ai choisi les équipements pour que les deux règles soient séparables. Sur un équipement pris au hasard, un refus est ambigu — le jury ne saurait pas si c'est le statut ou le rôle qui a parlé.</p>
+    <p>Le cas ② est le plus fort : les transitions refusées sont légales pour un autre rôle. C'est la preuve que le RBAC fonctionne, et qu'il fonctionne <b>hors réseau</b>, sur une matrice embarquée.</p>
+    <p>Rappelle la règle d'or de la démo hors ligne : <b>connexion et téléchargement du secteur avant de couper</b>. Le login est le seul geste qui exige le réseau.</p>
+    <p class="q">Si on demande pourquoi le transporteur garde l'anomalie et la perte : il est le mieux placé pour constater une casse survenue pendant l'acheminement. Lui fermer ce geste ferait perdre l'information.</p>
+  </div>
+</section>
+
 <!-- 20 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Sécurité client" data-net="online">
-  <div class="eyebrow"><span class="num">19</span> Sécurité</div>
+  <div class="eyebrow"><span class="num">20</span> Sécurité</div>
   <h1>Ce qu'un téléphone<br>perdu ne doit pas livrer</h1>
 
   <ul class="clean">
@@ -824,7 +865,7 @@ body.plan-on .plan{display:block}
 
 <!-- 21 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Temps réel & GPS" data-net="online">
-  <div class="eyebrow"><span class="num">20</span> Matériel & temps réel</div>
+  <div class="eyebrow"><span class="num">21</span> Matériel & temps réel</div>
   <h1>Écouter, localiser,<br>sans vider la batterie</h1>
 
   <div class="cols c2">
@@ -855,7 +896,7 @@ body.plan-on .plan{display:block}
 
 <!-- 22 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="KPI" data-net="online">
-  <div class="eyebrow"><span class="num">21</span> Pilotage</div>
+  <div class="eyebrow"><span class="num">22</span> Pilotage</div>
   <h1>Les KPI, en lecture<br>seule et en ligne</h1>
 
   <div class="cols c2">
@@ -885,9 +926,43 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
+
+<!-- KPI VIVANTS ──────────────────────────────────────────────────────── -->
+<section class="slide" data-title="KPI vivants" data-net="online">
+  <div class="eyebrow"><span class="num">23</span> Pilotage</div>
+  <h1>Qu'est-ce qui fait<br>bouger un indicateur ?</h1>
+  <p class="lede">Question posée en répétition, et elle mérite une réponse précise : si les agents scannent toute la journée, pourquoi l'empreinte carbone ne bouge-t-elle pas ?</p>
+
+  <div class="cols c2" style="margin-bottom:22px">
+    <div class="card">
+      <h3 style="color:var(--ok)">Ce qu'un scan change</h3>
+      <p>La <b>répartition par statut</b>. Les six tuiles du tableau de bord se recalculent — et <b>hors réseau</b>, car elles sont dérivées du cache SQLite, pas d'un appel serveur. C'est le seul indicateur qui vit en zone blanche.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--muted)">Ce qu'un scan ne change pas</h3>
+      <p>L'<b>empreinte carbone</b>. Le pipeline d'agrégation fait <code>$match: { eventId }</code> et rien d'autre : il ne filtre jamais sur le statut. Déplacer un équipement d'un état à l'autre ne change ni sa fabrication, ni son transport.</p>
+    </div>
+  </div>
+
+  <h2 style="color:var(--signal)">Ce qui la fait bouger : l'allocation</h2>
+  <div class="row ok"><span class="tag">avant</span><span class="body"><b>80,94 kg</b> <span>— 51 équipements dans le périmètre</span></span><span class="state">état initial</span></div>
+  <div class="row app"><span class="tag">POST</span><span class="body"><b>/events/:id/allocate</b> <span>— 3 équipements, transaction ACID tout-ou-rien</span></span><span class="state">le MP3 rejoué</span></div>
+  <div class="row ok"><span class="tag">après</span><span class="body"><b>88,34 kg</b> <span>— dont +5,84 kg pour le seul groupe électrogène : 8 000 kg de CO₂ amortis sur 15 ans, au prorata de 4 jours</span></span><span class="state">+7,40 kg</span></div>
+
+  <div class="callout">Le carbone répond aux décisions de <b>planification</b> — allouer, organiser une tournée — pas aux gestes du terrain. Le pont existe pourtant côté API : <code>actualDistanceKm</code>. Le scan capture déjà une position GPS horodatée ; en déduire la distance réellement parcourue ferait enfin vivre le carbone au rythme du terrain. <b>Je ne l'ai pas fait</b> : deux points GPS donnent une distance à vol d'oiseau, pas des kilomètres routiers — et un chiffre faux est pire qu'un chiffre absent.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Slide de démonstration en direct : lance <span class="mono">./demo-kpi.sh alloc</span>, puis rafraîchis l'onglet KPI sur le téléphone. Le chiffre bouge sous les yeux du jury. <b>Pense à lancer <span class="mono">reset</span> après</b> — deux des équipements alloués font partie des QR hors secteur.</p>
+    <p>Double bénéfice à annoncer : l'endpoint d'allocation, c'est la <b>transaction ACID du MP3</b>. Un seul geste prouve que l'indicateur est vivant et que la transaction fonctionne.</p>
+    <p>Le dernier paragraphe est ta meilleure réponse à « et ensuite ? ». Tu montres que tu as identifié le chaînon manquant <b>et</b> pourquoi le combler naïvement dégraderait la mesure. C'est plus solide que de prétendre que tout est branché.</p>
+    <p class="q">Si on objecte « alors les KPI ne servent à rien dans l'app » : dans l'app mobile, oui, l'onglet KPI est le seul écran qui ne réagit à aucun geste de son utilisateur — parce que les gestes qui le font bouger sont ceux du responsable, que j'ai exclus du périmètre. C'est une conséquence du périmètre, pas de l'indicateur.</p>
+  </div>
+</section>
+
 <!-- 23 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Refonte UI" data-net="online">
-  <div class="eyebrow"><span class="num">22</span> Itération produit</div>
+  <div class="eyebrow"><span class="num">24</span> Itération produit</div>
   <h1>Ce que l'usage réel<br>a changé</h1>
   <p class="lede">L'app tourne sur iPhone physique. Trois défauts ne se sont vus qu'à ce moment-là — aucun n'était visible dans le simulateur.</p>
 
@@ -906,15 +981,57 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
+
+<!-- QUATRE BUGS DE PLUS ──────────────────────────────────────────────── -->
+<section class="slide" data-title="Bugs de la répétition" data-net="offline">
+  <div class="eyebrow"><span class="num">25</span> Quatre bugs de plus</div>
+  <h1>Ce que la répétition<br>a fait tomber</h1>
+  <p class="lede">Quatre défauts trouvés en préparant cette démonstration, téléphone en main. Aucun n'a été attrapé par les 298 tests.</p>
+
+  <table>
+    <tr><th>Symptôme</th><th>Cause réelle</th><th>Correctif</th></tr>
+    <tr>
+      <td><b>La file ne partait jamais</b><br><span style="color:var(--muted);font-size:14px">alors que j'étais en ligne</span></td>
+      <td>Le <b>seul déclencheur</b> était le retour du réseau. Une action empilée sans coupure n'était jamais envoyée.</td>
+      <td>Déclencheur sur l'arrivée d'une action, temporisé pour absorber les rafales — et qui ignore les actions en échec, sinon la synchro boucle.</td>
+    </tr>
+    <tr>
+      <td><b>Le statut restait figé</b><br><span style="color:var(--muted);font-size:14px">sur la fiche équipement</span></td>
+      <td>Le serveur <b>écrasait toujours</b> l'état local. Mon geste était bien écrit, mais la fiche affichait la version d'un serveur qui l'ignorait.</td>
+      <td>Tant qu'une action attend d'être envoyée, l'état local prime — et la fiche le dit.</td>
+    </tr>
+    <tr>
+      <td><b>« Équipement inconnu du serveur »</b><br><span style="color:var(--muted);font-size:14px">même après avoir retéléchargé</span></td>
+      <td>Deux bases cohabitaient dans le cache, et la résolution d'un QR <b>ne filtrait ni n'ordonnait</b> : le scan visait le résidu.</td>
+      <td>Purge totale au retéléchargement, et résolution <b>restreinte au secteur assigné</b>.</td>
+    </tr>
+    <tr>
+      <td><b>Déconnexion au démarrage</b><br><span style="color:var(--muted);font-size:14px">en mode avion</span></td>
+      <td>Un <code>catch</code> unique confondait « le serveur refuse » et « il n'y a pas de réseau ». Jetons effacés — <b>et le login exige le réseau</b>.</td>
+      <td>Refus serveur ⇒ déconnexion. Serveur injoignable ⇒ la session survit sur un profil mis en cache.</td>
+    </tr>
+  </table>
+
+  <div class="callout"><b>Le dernier contredisait frontalement la thèse du projet.</b> Une application qui se dit offline-first et qui éjecte son utilisateur en zone blanche, sans retour possible puisque se reconnecter demande du réseau — c'est le contraire de ce que je viens de vous présenter.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Ne survole pas cette slide en t'excusant : c'est une slide de <b>méthode</b>. Six bugs au total sur ce projet, et pas un seul n'a été trouvé par la suite de tests. Tous par l'usage réel, sur un téléphone.</p>
+    <p>La leçon à énoncer : <b>mes tests vérifient les règles que j'ai écrites</b> — machine à états, permissions, réconciliation — et ils les vérifient bien. Ils ne peuvent pas vérifier les hypothèses que je n'avais pas vues : qu'un onglet reste vivant, qu'une caméra produit soixante images par seconde, qu'un cache survit à un changement de base, qu'une panne réseau ressemble à un refus d'authentification.</p>
+    <p>Le quatrième mérite qu'on s'y arrête. Formule-le simplement : « deux échecs se ressemblent dans le code, et n'ont rien à voir dans la vie réelle ». Distinguer les deux, c'est toute la différence entre une app qui prétend fonctionner hors ligne et une app qui le fait.</p>
+    <p class="q">Si on demande ce que tu changerais dans ta méthode : j'aurais mis l'application sur un vrai téléphone plus tôt. Le simulateur n'a ni caméra, ni mode avion crédible, ni les conditions qui font apparaître ces quatre-là.</p>
+  </div>
+</section>
+
 <!-- 24 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Tests" data-net="online">
-  <div class="eyebrow"><span class="num">23</span> Qualité</div>
-  <h1>271 tests,<br>1,3 seconde</h1>
+  <div class="eyebrow"><span class="num">26</span> Qualité</div>
+  <h1>298 tests,<br>une seconde</h1>
 
   <div class="cols c4" style="margin-bottom:26px">
-    <div class="stat"><span class="n ok">271</span><span class="l">tests, tous verts</span></div>
-    <div class="stat"><span class="n ok">33</span><span class="l">suites</span></div>
-    <div class="stat"><span class="n app">1,3&nbsp;s</span><span class="l">temps d'exécution</span></div>
+    <div class="stat"><span class="n ok">298</span><span class="l">tests, tous verts</span></div>
+    <div class="stat"><span class="n ok">36</span><span class="l">suites</span></div>
+    <div class="stat"><span class="n app">&lt;&nbsp;1&nbsp;s</span><span class="l">temps d'exécution</span></div>
     <div class="stat"><span class="n">2</span><span class="l">sondes contre l'API réelle</span></div>
   </div>
 
@@ -932,7 +1049,7 @@ body.plan-on .plan{display:block}
 
   <div class="notes">
     <h4>Conduite</h4>
-    <p>Compare au MP3 : 40 tests côté API, 271 ici. Ce n'est pas que le front est mieux testé — c'est que <b>l'architecture le permet</b>. En sortant les règles des composants, elles deviennent testables sans device. C'est la récompense concrète de la séparation en couches, et c'est ce qu'il faut dire.</p>
+    <p>Compare au MP3 : 40 tests côté API, 298 ici. Ce n'est pas que le front est mieux testé — c'est que <b>l'architecture le permet</b>. En sortant les règles des composants, elles deviennent testables sans device. C'est la récompense concrète de la séparation en couches, et c'est ce qu'il faut dire.</p>
     <p>Les sondes sont ton argument le plus fort sur le risque de duplication soulevé slide 17 : la divergence entre l'app et l'API n'est pas surveillée à l'œil, elle est vérifiée par un test contre l'API réelle, en local ou en production.</p>
     <p>Mentionne la précaution des identifiants inexistants — c'est le détail qui montre qu'une sonde a été conçue pour tourner sans casser la démo.</p>
   </div>
@@ -940,7 +1057,7 @@ body.plan-on .plan{display:block}
 
 <!-- 25 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Limites" data-net="online">
-  <div class="eyebrow"><span class="num">24</span> Honnêteté</div>
+  <div class="eyebrow"><span class="num">27</span> Honnêteté</div>
   <h1>Ce que je n'ai pas fait,<br>et pourquoi</h1>
 
   <ul class="clean">
@@ -962,7 +1079,7 @@ body.plan-on .plan{display:block}
 
 <!-- 26 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Récapitulatif" data-net="online">
-  <div class="eyebrow"><span class="num">25</span> Récapitulatif</div>
+  <div class="eyebrow"><span class="num">28</span> Récapitulatif</div>
   <h1>La chaîne est complète</h1>
 
   <div class="cols c2">
@@ -978,8 +1095,8 @@ body.plan-on .plan{display:block}
       <ul class="clean">
         <li><b>Verrouillage optimiste bout-en-bout</b> — le <code>__v</code> du MP3 traverse le téléphone et revient.</li>
         <li><b>Rôles miroir de l'API</b> — vérifiés par une sonde contre le serveur réel.</li>
-        <li><b>271 tests</b> en 1,3 seconde, sans simulateur.</li>
-        <li><b>Deux bugs trouvés en usage réel</b>, expliqués et corrigés.</li>
+        <li><b>298 tests</b> en moins d'une seconde, sans simulateur.</li>
+        <li><b>Six bugs trouvés en usage réel</b>, expliqués et corrigés.</li>
       </ul>
     </div>
   </div>
