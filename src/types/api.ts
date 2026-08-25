@@ -46,7 +46,7 @@ export interface EventJSON {
 
 export interface UserJSON { id: string; email: string; fullName: string; role: UserRole; mustChangePassword?: boolean; }
 /** Réponse de GET /auth/me : identité minimale issue du JWT. */
-export interface MeUser { id: string; email: string; role: UserRole; mustChangePassword?: boolean; }
+export interface MeUser { id: string; email: string; fullName: string; role: UserRole; mustChangePassword?: boolean; }
 export interface LoginResult { token: string; refreshToken: string; user: UserJSON; }
 
 /** Enveloppe de pagination exacte de l'API LogiChain. */

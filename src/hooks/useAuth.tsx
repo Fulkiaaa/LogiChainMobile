@@ -8,6 +8,7 @@ import type {MeUser, UserRole} from '@/types/api';
 interface AuthUser {
   id: string;
   email: string;
+  fullName: string;
   role: UserRole;
   mustChangePassword: boolean;
 }
@@ -54,6 +55,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     const next = {
       id: res.user.id,
       email: res.user.email,
+      fullName: res.user.fullName,
       role: res.user.role,
       mustChangePassword: res.user.mustChangePassword ?? false,
     };
@@ -70,6 +72,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
     const next = {
       id: res.user.id,
       email: res.user.email,
+      fullName: res.user.fullName,
       role: res.user.role,
       mustChangePassword: res.user.mustChangePassword ?? false,
     };

@@ -83,7 +83,7 @@ export function DashboardScreen() {
       ListHeaderComponent={
         <View>
           <View style={styles.headerRow}>
-            <Text style={styles.hello}>Bonjour, {user?.email ?? 'agent'}</Text>
+            <Text style={styles.hello}>Bonjour, {user?.fullName ?? 'agent'}</Text>
             <Pressable style={styles.mapLink} onPress={() => nav.navigate('Map')}>
               <MapIcon color={c.primary} size={16} strokeWidth={2.5} />
               <Text style={styles.mapLinkText}>Carte</Text>
