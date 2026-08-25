@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le parcours d'un scan — LogiChain</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --surface:#ffffff; --surface-2:#eef1f5; --border:#d8dee7;
+    --text:#12161c; --muted:#5b6675;
+    --api:#2563eb; --api-soft:#dbeafe;
+    --db:#0d9488; --db-soft:#ccfbf1;
+    --app:#c026d3; --app-soft:#fae8ff;
+    --edge:#7c8698; --accent:#ea580c; --ok:#15803d; --warn:#b45309;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1116; --surface:#161b22; --surface-2:#1c232d; --border:#2b3441;
+      --text:#e8edf4; --muted:#9aa7b8;
+      --api:#7aa5ff; --api-soft:#17233d;
+      --db:#4fd1c5; --db-soft:#0f2a28;
+      --app:#e879f9; --app-soft:#2d1030;
+      --edge:#7f8b9e; --accent:#fb923c; --ok:#4ade80; --warn:#fbbf24;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1116; --surface:#161b22; --surface-2:#1c232d; --border:#2b3441;
+    --text:#e8edf4; --muted:#9aa7b8;
+    --api:#7aa5ff; --api-soft:#17233d;
+    --db:#4fd1c5; --db-soft:#0f2a28;
+    --app:#e879f9; --app-soft:#2d1030;
+    --edge:#7f8b9e; --accent:#fb923c; --ok:#4ade80; --warn:#fbbf24;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px; margin:0 auto; padding:48px 24px 96px}
+
+  header.head{border-bottom:1px solid var(--border); padding-bottom:28px; margin-bottom:44px}
+  .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:700}
+  h1{font-size:clamp(28px,5vw,42px); line-height:1.15; margin:10px 0 12px; letter-spacing:-.02em}
+  .lede{font-size:17px; color:var(--muted); max-width:62ch; margin:0}
+
+  h2{font-size:clamp(20px,3vw,26px); letter-spacing:-.01em; margin:0 0 6px}
+  .sec{margin:56px 0 0}
+  .sec > .sub{color:var(--muted); margin:0 0 22px; max-width:68ch}
+
+  .figure{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:18px; overflow-x:auto;
+  }
+  .figure svg{display:block; width:100%; min-width:660px; height:auto}
+  figcaption{color:var(--muted); font-size:13.5px; margin-top:12px; padding-top:12px; border-top:1px dashed var(--border)}
+
+  .cards{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); margin-top:22px}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px 18px}
+  .card h3{margin:0 0 6px; font-size:15px; letter-spacing:.01em}
+  .card p{margin:0; font-size:14px; color:var(--muted)}
+  .card code{font-family:var(--mono); font-size:12.5px; background:var(--surface-2); padding:1px 5px; border-radius:4px; color:var(--text)}
+
+  .tablewrap{overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); margin-top:20px}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--border)}
+  thead th{background:var(--surface-2); font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+  tbody tr:last-child td{border-bottom:none}
+  td code{font-family:var(--mono); font-size:12.5px}
+  .yes{color:var(--ok); font-weight:700}
+  .no{color:var(--muted)}
+
+  .note{
+    border-left:3px solid var(--accent); background:var(--surface);
+    padding:14px 18px; border-radius:0 10px 10px 0; margin-top:22px;
+  }
+  .note strong{color:var(--accent)}
+  .note p{margin:0; font-size:14.5px}
+
+  .stats{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-top:24px}
+  .stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px}
+  .stat b{display:block; font-size:26px; letter-spacing:-.02em; line-height:1.1}
+  .stat span{font-size:12.5px; color:var(--muted)}
+
+  /* Couleurs de texte SVG pilotées par le thème */
+  .s-label{font-family:var(--sans); font-size:13px; fill:var(--text)}
+  .s-small{font-family:var(--sans); font-size:11.5px; fill:var(--muted)}
+  .s-mono{font-family:var(--mono); font-size:11.5px; fill:var(--muted)}
+  .s-title{font-family:var(--sans); font-size:12px; font-weight:700; fill:var(--muted); letter-spacing:.08em}
+  .s-edge{stroke:var(--edge); stroke-width:1.6; fill:none}
+  .s-arrow{fill:var(--edge)}
+  .s-edge-dash{stroke:var(--edge); stroke-width:1.4; fill:none; stroke-dasharray:5 4}
+  .s-box{fill:var(--surface); stroke:var(--border); stroke-width:1.4}
+  .s-zone{fill:none; stroke:var(--border); stroke-width:1.4; stroke-dasharray:6 5}
+  .b-api{fill:var(--api-soft); stroke:var(--api); stroke-width:1.6}
+  .b-db{fill:var(--db-soft); stroke:var(--db); stroke-width:1.6}
+  .b-app{fill:var(--app-soft); stroke:var(--app); stroke-width:1.6}
+
+  footer{margin-top:64px; padding-top:22px; border-top:1px solid var(--border); color:var(--muted); font-size:13px}
+</style>
+<style>
+  .steps{counter-reset:s; margin-top:22px; display:grid; gap:12px}
+  .step{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 18px 14px 52px; position:relative}
+  .step::before{
+    counter-increment:s; content:counter(s);
+    position:absolute; left:16px; top:14px; width:22px; height:22px; border-radius:50%;
+    background:var(--surface-2); color:var(--muted); font-size:12px; font-weight:700;
+    display:grid; place-items:center; font-family:var(--mono);
+  }
+  .step h3{margin:0 0 4px; font-size:15px}
+  .step p{margin:0; font-size:14px; color:var(--muted)}
+  .step em{color:var(--accent); font-style:normal; font-weight:600}
+  .kill{color:var(--warn); font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="head">
+  <div class="eyebrow">LogiChain · Soutenance MP3</div>
+  <h1>Le parcours d'un scan</h1>
+  <p class="lede">D'un QR code visé par la caméra jusqu'au document imbriqué en base, en passant par une file d'attente locale. Le seul geste qui alimente la plateforme depuis le terrain — et les trois filtres qui décident s'il est accepté.</p>
+</header>
+
+<div class="stats">
+  <div class="stat"><b>66</b><span>équipements en base</span></div>
+  <div class="stat"><b>51</b><span>dans le secteur de l'agent</span></div>
+  <div class="stat"><b>41</b><span>scannables en Transit</span></div>
+  <div class="stat"><b>10</b><span>scannables en Déploiement</span></div>
+</div>
+
+<!-- ───────────────────────── 1. LE PARCOURS ───────────────────────── -->
+<section class="sec">
+  <h2>1 — Le parcours complet</h2>
+  <p class="sub">Trois temps, séparés par du temps réel : le geste sur le terrain ne dépend d'aucun réseau, la synchronisation arrive plus tard, et la base rediffuse elle-même ce qui mérite une alerte.</p>
+
+  <figure class="figure">
+    <svg viewBox="0 0 900 560" role="img" aria-label="Parcours d'un scan : caméra, anti-doublon, SQLite, GPS, machine à états, outbox, puis API et Change Stream">
+      <defs><marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="s-arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+
+      <!-- ① TERRAIN -->
+      <rect class="s-zone" x="20" y="30" width="850" height="196" rx="12"/>
+      <text class="s-title" x="38" y="54">① SUR LE TERRAIN — SANS RÉSEAU</text>
+
+      <rect class="b-app" x="40" y="70" width="140" height="58" rx="9"/>
+      <text class="s-label" x="56" y="96" font-weight="600">Caméra</text>
+      <text class="s-mono" x="56" y="116">LC-FENCE-007</text>
+
+      <rect class="s-box" x="196" y="70" width="140" height="58" rx="9"/>
+      <text class="s-label" x="212" y="96" font-weight="600">Anti-doublon</text>
+      <text class="s-small" x="212" y="116">fenêtre glissante 1,5 s</text>
+
+      <rect class="b-db" x="352" y="70" width="140" height="58" rx="9"/>
+      <text class="s-label" x="368" y="96" font-weight="600">SQLite</text>
+      <text class="s-small" x="368" y="116">findByQrCode — local</text>
+
+      <rect class="s-box" x="508" y="70" width="140" height="58" rx="9"/>
+      <text class="s-label" x="524" y="96" font-weight="600">GPS</text>
+      <text class="s-small" x="524" y="116">position obligatoire</text>
+
+      <rect class="s-box" x="664" y="70" width="150" height="58" rx="9"/>
+      <text class="s-label" x="680" y="96" font-weight="600">Machine à états</text>
+      <text class="s-small" x="680" y="116">transition permise ?</text>
+
+      <rect class="b-app" x="430" y="152" width="190" height="56" rx="9"/>
+      <text class="s-label" x="446" y="178" font-weight="600">UI optimiste</text>
+      <text class="s-small" x="446" y="198">statut appliqué · bip · vibration</text>
+
+      <rect class="b-app" x="664" y="152" width="150" height="56" rx="9"/>
+      <text class="s-label" x="680" y="178" font-weight="600">Outbox</text>
+      <text class="s-small" x="680" y="198">SQLite · pending</text>
+
+      <path class="s-edge" d="M180,99 L196,99" marker-end="url(#as)"/>
+      <path class="s-edge" d="M336,99 L352,99" marker-end="url(#as)"/>
+      <path class="s-edge" d="M492,99 L508,99" marker-end="url(#as)"/>
+      <path class="s-edge" d="M648,99 L664,99" marker-end="url(#as)"/>
+      <path class="s-edge" d="M739,128 L739,152" marker-end="url(#as)"/>
+      <path class="s-edge" d="M664,180 L620,180" marker-end="url(#as)"/>
+
+      <!-- ② API -->
+      <rect class="s-zone" x="20" y="254" width="850" height="140" rx="12"/>
+      <text class="s-title" x="38" y="278">② AU RETOUR DU RÉSEAU — L'API, EN N-TIER</text>
+
+      <rect class="b-app" x="40" y="296" width="132" height="66" rx="9"/>
+      <text class="s-label" x="56" y="322" font-weight="600">SyncEngine</text>
+      <text class="s-small" x="56" y="342">rejoue la file</text>
+
+      <rect class="s-box" x="192" y="296" width="156" height="66" rx="9"/>
+      <text class="s-label" x="208" y="322" font-weight="600">Gardes</text>
+      <text class="s-small" x="208" y="342">auth · rôle · Zod</text>
+
+      <rect class="b-api" x="368" y="296" width="156" height="66" rx="9"/>
+      <text class="s-label" x="384" y="322" font-weight="600">Controller · Service</text>
+      <text class="s-small" x="384" y="342">orchestration</text>
+
+      <rect class="b-api" x="544" y="296" width="156" height="66" rx="9"/>
+      <text class="s-label" x="560" y="322" font-weight="600">ItemEntity</text>
+      <text class="s-small" x="560" y="342">assertTransition()</text>
+
+      <rect class="b-api" x="718" y="296" width="140" height="66" rx="9"/>
+      <text class="s-label" x="734" y="322" font-weight="600">Repository</text>
+      <text class="s-mono" x="734" y="342">__v — verrou</text>
+
+      <path class="s-edge" d="M172,329 L192,329" marker-end="url(#as)"/>
+      <path class="s-edge" d="M348,329 L368,329" marker-end="url(#as)"/>
+      <path class="s-edge" d="M524,329 L544,329" marker-end="url(#as)"/>
+      <path class="s-edge" d="M700,329 L718,329" marker-end="url(#as)"/>
+
+      <path class="s-edge-dash" d="M739,208 C 739,244 320,238 106,296" marker-end="url(#as)"/>
+      <text class="s-mono" x="404" y="242">plus tard, quand le réseau revient…</text>
+
+      <!-- ③ MONGO -->
+      <rect class="s-zone" x="20" y="422" width="850" height="118" rx="12"/>
+      <text class="s-title" x="38" y="446">③ DANS MONGODB, ET APRÈS</text>
+
+      <rect class="b-db" x="40" y="462" width="200" height="58" rx="9"/>
+      <text class="s-label" x="56" y="488" font-weight="600">history[] — imbriqué</text>
+      <text class="s-mono" x="56" y="508">at · from→to · geo · operator</text>
+
+      <rect class="b-db" x="280" y="462" width="160" height="58" rx="9"/>
+      <text class="s-label" x="296" y="488" font-weight="600">Change Stream</text>
+      <text class="s-small" x="296" y="508">updatedFields</text>
+
+      <rect class="b-api" x="480" y="462" width="200" height="58" rx="9"/>
+      <text class="s-label" x="496" y="488" font-weight="600">Notification → SSE</text>
+      <text class="s-small" x="496" y="508">anomalie et perte seulement</text>
+
+      <rect class="s-box" x="720" y="462" width="138" height="58" rx="9"/>
+      <text class="s-label" x="736" y="488" font-weight="600">Audience</text>
+      <text class="s-small" x="736" y="508">filtrée par rôle</text>
+
+      <path class="s-edge" d="M240,491 L280,491" marker-end="url(#as)"/>
+      <path class="s-edge" d="M440,491 L480,491" marker-end="url(#as)"/>
+      <path class="s-edge" d="M680,491 L720,491" marker-end="url(#as)"/>
+
+      <path class="s-edge" d="M788,362 C 788,410 320,404 140,462" marker-end="url(#as)"/>
+    </svg>
+    <figcaption><strong>Aucun appel réseau pendant le scan.</strong> La résolution du QR se fait contre le cache SQLite téléchargé à la synchronisation initiale — c'est précisément ce qui rend le geste possible en zone blanche. Le passage de chaque requête est par ailleurs chronométré dans une collection <em>time series</em>, lue par <code>GET /dashboard/metrics</code>.</figcaption>
+  </figure>
+
+  <div class="steps">
+    <div class="step">
+      <h3>Anti-doublon — <em>silencieux</em></h3>
+      <p>La fenêtre court depuis la <em>dernière vue</em> du code, pas depuis le dernier scan accepté. Tant que le QR reste dans le champ, chaque image repousse l'échéance. Sans ça, la caméra produisant des dizaines d'images par seconde, viser un QR en continu l'enregistrerait toutes les 1,5 s.</p>
+    </div>
+    <div class="step">
+      <h3>Résolution locale — <em>« QR inconnu »</em></h3>
+      <p>Le code est cherché dans SQLite, jamais sur le réseau. Un équipement hors secteur est rejeté en rouge : c'est la preuve que la résolution est bien locale.</p>
+    </div>
+    <div class="step">
+      <h3>GPS — <em>obligatoire</em></h3>
+      <p>Pas de position, pas de mouvement. Une trace sans coordonnées ne vaut rien : c'est le <code>location</code> GeoJSON qui rend l'historique cartographiable.</p>
+    </div>
+    <div class="step">
+      <h3>Machine à états — <em>refus motivé</em></h3>
+      <p>Le message dit <em>pourquoi</em>, pas seulement <em>que</em> ça a échoué : <code>in_stock → deployed interdit</code>. La même règle est rejouée côté serveur par l'entité.</p>
+    </div>
+    <div class="step">
+      <h3>Outbox — <em>optimiste, avec retour arrière</em></h3>
+      <p>Le statut cible est appliqué immédiatement à l'écran ; <code>previousStatus</code> est mémorisé pour remettre l'affichage d'aplomb si la synchronisation échoue définitivement après cinq tentatives.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── 2. LES TROIS MODES ───────────────────────── -->
+<section class="sec">
+  <h2>2 — Un geste, trois significations</h2>
+  <p class="sub">Le mode sélectionné décide de l'action envoyée. Le même QR visé deux fois de suite ne produit pas le même effet selon le chip actif.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Mode</th><th>Endpoint</th><th>Effet sur le statut</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Pointage</strong></td><td><code>POST /items/:id/scan</code></td><td class="no">aucun — enregistre un passage et met à jour la position</td></tr>
+        <tr><td><strong>Transit</strong></td><td><code>POST /items/:id/transit</code></td><td>→ <code>in_transit</code></td></tr>
+        <tr><td><strong>Déploiement</strong></td><td><code>POST /items/:id/deploy</code></td><td>→ <code>deployed</code></td></tr>
+        <tr><td>Anomalie</td><td><code>POST /items/:id/anomaly</code></td><td class="no">aucun — note obligatoire, enrichit l'historique</td></tr>
+        <tr><td>Perte</td><td><code>POST /items/:id/lost</code></td><td>→ <code>lost</code> (état terminal)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ───────────────────────── 3. QUI PEUT SCANNER QUOI ───────────────────────── -->
+<section class="sec">
+  <h2>3 — Qui peut scanner quoi</h2>
+  <p class="sub">Trois filtres indépendants se superposent, et un seul dépend du rôle. C'est là que les explications se perdent d'ordinaire.</p>
+
+  <h3 style="margin-top:26px">Filtre 1 — le rôle, porté par l'API</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Endpoint</th><th>Admin</th><th>Responsable</th><th>Agent</th><th>Transporteur</th></tr></thead>
+      <tbody>
+        <tr><td><code>/items/:id/scan</code> — pointage</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td><code>/items/:id/transit</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td><strong><code>/items/:id/deploy</code></strong></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="kill">403</td></tr>
+        <tr><td><code>/items/:id/anomaly</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td><code>/items/:id/lost</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td><code>/items/:id/return</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="kill">403</td></tr>
+        <tr><td><code>/items/:id/allocate</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="kill">403</td><td class="kill">403</td></tr>
+        <tr><td><code>POST /items</code> · <code>PATCH /items/:id</code></td><td class="yes">✓</td><td class="yes">✓</td><td class="kill">403</td><td class="kill">403</td></tr>
+        <tr><td><code>DELETE /items/:id</code></td><td class="yes">✓</td><td class="kill">403</td><td class="kill">403</td><td class="kill">403</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <p><strong>Une seule règle de rôle touche le scan de terrain :</strong> le transporteur achemine, il n'installe pas. Le mode Déploiement reste <em>affiché</em> pour lui, mais cadenassé, en pointillés, et sous le sélecteur apparaît la phrase qui nomme les deux moitiés de l'information : « Réservé à : Administrateur, Responsable logistique, Agent de terrain. Vous êtes Transporteur. » On ne masque jamais, on explique.</p>
+  </div>
+
+  <h3 style="margin-top:34px">Filtre 2 — le statut de l'équipement</h3>
+  <p class="sub"><code>ALLOWED_TRANSITIONS</code> ne connaît pas les rôles : un admin n'a pas plus de droits qu'un agent sur cette table.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Statut</th><th>Pointage</th><th>Transit</th><th>Déploiement</th><th>Dans l'app</th></tr></thead>
+      <tbody>
+        <tr><td>Alloué</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td>10</td></tr>
+        <tr><td>En transit</td><td class="yes">✓</td><td class="no">—</td><td class="yes">✓</td><td>10</td></tr>
+        <tr><td>Déployé</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td>31</td></tr>
+        <tr><td>En stock · maintenance · perdu</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td><td class="no">0 — hors secteur</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="cards">
+    <div class="card"><h3>Le Pointage marche toujours</h3><p>Il ne change aucun statut : c'est le mode le plus sûr pour une démonstration, et il reste accepté sur un équipement perdu qu'on vient de retrouver.</p></div>
+    <div class="card"><h3>Le Déploiement est le plus strict</h3><p>Il n'accepte qu'un <code>in_transit</code> : <strong>10 équipements sur 51</strong>. Scanner au hasard dans ce mode a quatre chances sur cinq d'échouer.</p></div>
+    <div class="card"><h3>On ne redéploie pas</h3><p><code>deployed → deployed</code> n'existe pas dans la machine à états : rescanner un équipement déjà posé est un geste sans effet, donc refusé.</p></div>
+  </div>
+
+  <h3 style="margin-top:34px">Filtre 3 — le secteur assigné</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Relevé sur l'API locale, 25/08/2026</th><th>Nombre</th></tr></thead>
+      <tbody>
+        <tr><td>Équipements en base</td><td><strong>66</strong></td></tr>
+        <tr><td>Rattachés au Festival Vert 2026 — synchronisés dans l'app</td><td><strong>51</strong></td></tr>
+        <tr><td>Sans événement — « QR inconnu » dans l'app</td><td><strong>15</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <p><strong>66 en base, 51 dans l'app : les deux sont vrais.</strong> <code>initialSync</code> ne télécharge que les items de l'événement assigné. Les 15 autres affichent « QR inconnu » — ce n'est pas un bug, c'est la « mise en cache du secteur assigné » du sujet. Scanner volontairement l'un d'eux pendant la démonstration prouve que la résolution se fait en local, sans appel réseau.</p>
+  </div>
+</section>
+
+<!-- ───────────────────────── 4. EN AVAL ───────────────────────── -->
+<section class="sec">
+  <h2>4 — Ce que le scan déclenche en aval</h2>
+  <p class="sub">Le scan n'est pas une fin en soi. Mais tout ce qu'il alimente n'est pas ce qu'on croit.</p>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Notification temps réel</h3>
+      <p>Change Stream sur <code>items</code> → <code>NotificationService</code> → SSE. <strong>Anomalie et perte uniquement.</strong> Un pointage ordinaire ne notifie personne — sinon les alertes réelles seraient noyées.</p>
+    </div>
+    <div class="card">
+      <h3>Position cartographiable</h3>
+      <p>Chaque scan géolocalisé met à jour <code>location</code>, un <code>Point</code> GeoJSON indexé <code>2dsphere</code> et requêtable en <code>$near</code>.</p>
+    </div>
+    <div class="card">
+      <h3>Chaîne de responsabilité</h3>
+      <p><code>operatorId</code> vient du JWT, jamais d'une saisie. L'agent ne déclare pas qui il est : le serveur le sait. Un scan est une preuve, pas une déclaration.</p>
+    </div>
+    <div class="card">
+      <h3>Empreinte carbone — <span style="color:var(--warn)">non</span></h3>
+      <p>Elle vient des items <em>alloués</em> (fabrication amortie) et des <em>routes</em> (tonnes × km × facteur ADEME), saisies par le transporteur. Ne pas mélanger les deux.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── 5. LES DEUX NUANCES ───────────────────────── -->
+<section class="sec">
+  <h2>5 — Deux points à connaître avant qu'on les demande</h2>
+  <p class="sub">Mieux vaut les avoir en tête que les découvrir devant le jury.</p>
+
+  <div class="note">
+    <p><strong>Le client n'envoie pas sa version.</strong> <code>outbox.baseVersion</code> est stocké en SQLite et affiché dans le Centre de synchro, mais aucun endpoint ne le reçoit. Le <code>409</code> naît donc d'une concurrence <em>serveur</em> — deux requêtes qui se croisent — et non d'un cache périmé. Ce qui rattrape réellement le cas hors ligne, c'est le <code>422 item.invalid_transition</code>, que <code>decideReconcile</code> traite comme un conflit. Si on demande « comment détectez-vous qu'un autre agent a bougé l'item pendant que vous étiez hors réseau ? », la réponse exacte est <em>par le refus de transition</em>, pas <em>par la version</em>.</p>
+  </div>
+
+  <div class="note">
+    <p><strong>Le <code>403</code> n'est pas traité comme un conflit.</strong> Il tombe dans la branche « réessayer » : cinq tentatives avec backoff, puis abandon et rollback silencieux. C'est précisément pour ça que l'application duplique la matrice de rôles — pour n'émettre aucune requête dont elle connaît déjà le refus. Le grisage est du confort d'usage, pas une mesure de sécurité : un client modifié se prend le 403 comme les autres.</p>
+  </div>
+</section>
+
+<footer>
+  <p><strong>À dire en trois phrases.</strong> Le scan est le seul point d'entrée des données terrain — il écrit un mouvement imbriqué, géolocalisé en GeoJSON, signé par l'opérateur du JWT. Il fonctionne sans réseau et ne ment jamais à l'utilisateur : résolution locale, file d'attente, affichage optimiste avec retour arrière. Et l'autorisation est portée par l'API : l'application ne fait que l'anticiper, ce que prouve <code>npm run parcours</code> en comparant les deux matrices contre une API réelle.</p>
+  <p style="margin-top:14px">Voir aussi <code>le-scan.md</code>, <code>scan-qr.md</code>, <code>roles-et-permissions.md</code>, <code>architecture.html</code>.</p>
+</footer>
+
+</div>
+</body>
+</html>
