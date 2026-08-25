@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogiChain Mobile — MP4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Palette claire — dérivée de PALETTES.light de l'app, assombrie là où il
+     faut : un ton lisible sur ardoise devient illisible sur blanc. */
+  --ink:#f7f9fc;
+  --panel:#ffffff;
+  --panel-2:#eef2f7;
+  --line:#d5dee9;
+  --line-soft:rgba(15,23,42,.10);
+  --text:#0f172a;
+  --muted:#5a6c82;
+  /* accent structurel : orange haute-visibilité, celui des gilets et du gaffer */
+  --signal:#c2410c;
+  --signal-soft:rgba(194,65,12,.07);
+  --signal-on:#ffffff;
+  /* primaire de l'app, repris pour que les captures s'y fondent */
+  --app:#0369a1;
+  --ok:#15803d;
+  --alert:#b91c1c;
+  --warn:#b45309;
+  --glow-ok:rgba(21,128,61,.15);
+  --glow-warn:rgba(180,83,9,.15);
+  --chrome-a:rgba(247,249,252,.97);
+  --chrome-b:rgba(247,249,252,.80);
+  --notes-text:#243349;
+  --display:"Barlow Condensed",Impact,sans-serif;
+  --body:"IBM Plex Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+:root[data-theme="dark"]{
+  --ink:#0b1220;
+  --panel:#131d2f;
+  --panel-2:#1a2740;
+  --line:#26344c;
+  --line-soft:rgba(234,241,250,.09);
+  --text:#eaf1fa;
+  --muted:#8ea3bd;
+  --signal:#ff8a3d;
+  --signal-soft:rgba(255,138,61,.09);
+  --signal-on:#0b1220;
+  --app:#38bdf8;
+  --ok:#4ade80;
+  --alert:#f87171;
+  --warn:#fbbf24;
+  --glow-ok:rgba(74,222,128,.16);
+  --glow-warn:rgba(251,191,36,.16);
+  --chrome-a:rgba(11,18,32,.96);
+  --chrome-b:rgba(11,18,32,.72);
+  --notes-text:#cddaea;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--body);line-height:1.55;
+  -webkit-font-smoothing:antialiased;overflow:hidden;
+}
+
+/* ── chrome : la barre d'état du deck, calquée sur celle de l'app ────────── */
+.chrome{
+  position:fixed;top:0;left:0;right:0;height:44px;z-index:50;
+  display:flex;align-items:center;gap:18px;padding:0 24px;
+  background:linear-gradient(180deg,var(--chrome-a),var(--chrome-b));
+  border-bottom:1px solid var(--line);
+  font-family:var(--display);font-size:15px;letter-spacing:.12em;text-transform:uppercase;
+}
+.chrome .brand{font-weight:700;color:var(--text)}
+.chrome .brand em{font-style:normal;color:var(--signal)}
+.net{display:flex;align-items:center;gap:7px;color:var(--ok);font-weight:600;font-size:13px}
+.net .dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--glow-ok)}
+body[data-net="offline"] .net{color:var(--warn)}
+body[data-net="offline"] .net .dot{background:var(--warn);box-shadow:0 0 0 3px var(--glow-warn);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.queue{color:var(--muted);font-size:13px;font-weight:600}
+.queue b{color:var(--signal);font-family:var(--mono);font-weight:500;letter-spacing:0}
+.chrome .spacer{flex:1}
+.chrome .hint{color:var(--muted);font-size:12px;letter-spacing:.08em}
+.chrome .hint kbd{
+  font-family:var(--mono);font-size:11px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--text);
+}
+
+.bar{position:fixed;top:44px;left:0;height:2px;background:var(--signal);z-index:51;transition:width .28s ease}
+
+/* ── slides ─────────────────────────────────────────────────────────────── */
+.deck{position:relative;height:100vh;padding-top:44px}
+.slide{
+  position:absolute;inset:44px 0 0 0;display:none;
+  padding:44px clamp(32px,6vw,90px) 64px;
+  overflow-y:auto;
+}
+.slide.on{display:block;animation:in .34s cubic-bezier(.2,.7,.3,1) both}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.eyebrow{
+  font-family:var(--display);font-size:15px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--signal);
+  display:flex;align-items:center;gap:12px;margin-bottom:10px;
+}
+.eyebrow .num{
+  font-family:var(--mono);font-size:12px;letter-spacing:0;color:var(--signal-on);
+  background:var(--signal);border-radius:3px;padding:2px 7px;font-weight:500;
+}
+h1{
+  font-family:var(--display);font-weight:700;letter-spacing:-.01em;
+  font-size:clamp(34px,5.2vw,62px);line-height:1.02;margin:0 0 14px;
+  text-transform:uppercase;
+}
+.lede{font-size:clamp(16px,1.5vw,20px);color:var(--muted);max-width:74ch;margin:0 0 34px}
+h2{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;font-size:22px;margin:0 0 12px}
+
+/* grilles */
+.cols{display:grid;gap:20px}
+.c2{grid-template-columns:repeat(2,1fr)}
+.c3{grid-template-columns:repeat(3,1fr)}
+.c4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.c2,.c3,.c4{grid-template-columns:1fr}}
+
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+:root[data-theme="dark"] .card{box-shadow:none}
+.card h3{
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;
+  font-size:17px;margin:0 0 8px;color:var(--text);
+}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.card.hi{border-color:var(--signal);background:linear-gradient(180deg,var(--signal-soft),transparent)}
+
+/* le device signature : une ligne de file d'attente */
+.row{
+  display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;
+  background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line);
+  border-radius:10px;padding:14px 18px;margin-bottom:10px;
+  box-shadow:0 1px 2px rgba(15,23,42,.04);
+}
+:root[data-theme="dark"] .row{box-shadow:none}
+.row .tag{
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+  background:var(--panel-2);border-radius:4px;padding:3px 8px;white-space:nowrap;
+}
+.row .body{font-size:15px}
+.row .body b{font-weight:600}
+.row .body span{color:var(--muted)}
+.row .state{font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;font-size:13px;font-weight:600}
+.row.ok{border-left-color:var(--ok)} .row.ok .state{color:var(--ok)}
+.row.warn{border-left-color:var(--warn)} .row.warn .state{color:var(--warn)}
+.row.bad{border-left-color:var(--alert)} .row.bad .state{color:var(--alert)}
+.row.app{border-left-color:var(--app)} .row.app .state{color:var(--app)}
+
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{
+  text-align:left;font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;
+  font-size:13px;color:var(--signal);padding:0 14px 10px 0;border-bottom:1px solid var(--line);font-weight:600;
+}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line-soft);vertical-align:top}
+td:first-child{color:var(--muted);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+code,.mono{font-family:var(--mono);font-size:.92em;color:var(--app)}
+pre{
+  font-family:var(--mono);font-size:13.5px;line-height:1.65;color:var(--text);
+  background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--app);
+  border-radius:10px;padding:16px 18px;overflow-x:auto;margin:0;
+}
+pre .k{color:var(--signal)} pre .c{color:var(--muted)} pre .s{color:var(--ok)}
+
+ul.clean{list-style:none;padding:0;margin:0}
+ul.clean li{padding:9px 0 9px 26px;position:relative;color:var(--muted);font-size:15.5px;border-bottom:1px solid var(--line-soft)}
+ul.clean li:last-child{border-bottom:0}
+ul.clean li::before{content:"▸";position:absolute;left:0;color:var(--signal);font-size:14px}
+ul.clean li b{color:var(--text);font-weight:600}
+
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .n{font-family:var(--display);font-size:clamp(40px,6vw,74px);line-height:.9;font-weight:700;color:var(--signal)}
+.stat .n.app{color:var(--app)} .stat .n.ok{color:var(--ok)}
+.stat .l{font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:14px;color:var(--muted)}
+
+.flow{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:52px 1fr;gap:18px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.step:last-child{border-bottom:0}
+.step .i{
+  font-family:var(--mono);font-size:13px;color:var(--signal);border:1px solid var(--signal);
+  border-radius:6px;height:30px;display:grid;place-items:center;
+}
+.step .t b{display:block;font-size:16px;margin-bottom:2px}
+.step .t span{color:var(--muted);font-size:14.5px}
+
+.callout{
+  border-left:3px solid var(--signal);background:var(--signal-soft);
+  border-radius:0 10px 10px 0;padding:16px 20px;margin-top:24px;font-size:15.5px;
+}
+.callout b{color:var(--signal)}
+
+.foot{
+  position:fixed;bottom:0;left:0;right:0;height:38px;display:flex;align-items:center;
+  padding:0 24px;gap:16px;border-top:1px solid var(--line);background:var(--ink);
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.12em;font-size:12.5px;color:var(--muted);
+}
+.foot .spacer{flex:1}
+.foot .idx{font-family:var(--mono);letter-spacing:0;color:var(--text)}
+
+/* notes présentateur */
+.notes{
+  display:none;position:fixed;left:0;right:0;bottom:38px;max-height:46vh;overflow-y:auto;
+  background:var(--panel-2);border-top:2px solid var(--signal);padding:20px 24px 24px;z-index:40;
+}
+body.notes-on .notes.on{display:block}
+.notes h4{
+  font-family:var(--display);text-transform:uppercase;letter-spacing:.14em;font-size:13px;
+  color:var(--signal);margin:0 0 10px;
+}
+.notes p{margin:0 0 10px;font-size:15px;color:var(--notes-text);max-width:100ch}
+.notes p:last-child{margin-bottom:0}
+.notes .q{color:var(--muted);font-size:14px;border-left:2px solid var(--line);padding-left:12px}
+
+/* vue plan */
+.plan{
+  display:none;position:fixed;inset:44px 0 0 0;z-index:60;background:var(--ink);
+  overflow-y:auto;padding:28px clamp(24px,4vw,56px) 60px;
+}
+body.plan-on .plan{display:block}
+.plan-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.plan-item{
+  text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;cursor:pointer;color:var(--text);font-family:var(--body);
+}
+.plan-item:hover,.plan-item:focus-visible{border-color:var(--signal);outline:none}
+.plan-item .n{font-family:var(--mono);font-size:11px;color:var(--signal)}
+.plan-item .t{font-family:var(--display);text-transform:uppercase;font-size:15px;letter-spacing:.04em;margin-top:4px}
+
+/* slide de titre */
+.title-slide{display:grid;place-content:center;text-align:left;height:calc(100vh - 120px)}
+.title-slide h1{font-size:clamp(48px,9vw,120px);margin-bottom:6px}
+.title-slide .sub{font-family:var(--display);text-transform:uppercase;letter-spacing:.22em;font-size:clamp(15px,1.7vw,20px);color:var(--app)}
+.title-slide .rule{width:120px;height:3px;background:var(--signal);margin:26px 0}
+.title-slide .who{font-size:17px;color:var(--muted)}
+.title-slide .who b{color:var(--text);font-weight:600}
+
+:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}.net .dot{animation:none}}
+
+@media print{
+  :root{color-scheme:light}
+  body{overflow:visible;background:#fff;color:var(--text)}
+  .chrome,.foot,.bar,.plan{display:none}
+  .deck{height:auto;padding:0}
+  .slide{position:static;display:block!important;page-break-after:always;inset:auto;padding:28px}
+  .card,pre,.row{break-inside:avoid}
+  body.notes-on .notes.on{display:block;position:static;max-height:none}
+}
+</style>
+</head>
+<body data-net="online">
+
+<div class="chrome">
+  <span class="brand">Logi<em>Chain</em> Mobile</span>
+  <span class="net"><span class="dot"></span><span id="netLabel">En ligne</span></span>
+  <span class="queue">file sortante <b id="queue">0</b></span>
+  <span class="spacer"></span>
+  <span class="hint"><kbd>←</kbd><kbd>→</kbd> naviguer · <kbd>N</kbd> notes · <kbd>P</kbd> plan · <kbd>T</kbd> thème</span>
+</div>
+<div class="bar" id="bar" style="width:0"></div>
+
+<main class="deck" id="deck">
+
+<!-- 01 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Titre" data-net="online">
+  <div class="title-slide">
+    <div class="sub">Module MP4 · Application mobile terrain</div>
+    <h1>LogiChain<br>Mobile</h1>
+    <div class="rule"></div>
+    <p class="who"><b>Clara Morin</b> · La MANU (NOVEI) · 2026<br>
+    React Native · offline-first · scan industriel</p>
+  </div>
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Salue, présente-toi en une phrase. Annonce que c'est la <b>deuxième moitié</b> de LogiChain : en MP3 j'ai présenté l'API REST, aujourd'hui je présente l'application mobile qui la consomme sur le terrain.</p>
+    <p>Précise tout de suite le lien : l'API est en production sur <span class="mono">api-logichain.fulkia.fr</span>, l'app s'y branche sans aucune modification côté serveur — c'est ce que j'avais annoncé en fin de MP3.</p>
+  </div>
+</section>
+
+<!-- 02 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Le terrain" data-net="offline">
+  <div class="eyebrow"><span class="num">01</span> Le problème</div>
+  <h1>Le terrain n'est pas un bureau</h1>
+  <p class="lede">L'API garantit la cohérence des données. Elle ne sert à rien si personne ne peut les saisir là où elles naissent : dans la boue, dans un sous-sol, à 6 h du matin, avec une seule main libre.</p>
+
+  <div class="cols c4" style="margin-bottom:28px">
+    <div class="stat"><span class="n">0</span><span class="l">barre de réseau</span></div>
+    <div class="stat"><span class="n app">51</span><span class="l">équipements du secteur</span></div>
+    <div class="stat"><span class="n app">1&nbsp;ms</span><span class="l">pour résoudre un QR</span></div>
+    <div class="stat"><span class="n ok">100&nbsp;%</span><span class="l">des gestes hors ligne</span></div>
+  </div>
+
+  <div class="cols c3">
+    <div class="card"><h3>Zones blanches</h3><p>Hangar, sous-sol, foule dense : la 4G tombe exactement au moment du montage.</p></div>
+    <div class="card"><h3>Scan en rafale</h3><p>Un agent vide un camion. Il ne regarde pas l'écran : il écoute le bip.</p></div>
+    <div class="card"><h3>Batterie</h3><p>Une journée de montage sur un terminal pro. Pas de polling, pas de GPS continu.</p></div>
+  </div>
+
+  <div class="callout">Le sujet le dit en une phrase : l'app n'est pas une vitrine d'affichage, c'est un <b>outil industriel critique</b>. Tout le reste de la présentation découle de ça.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Reprends l'image du MP3 : le festival de 12 000 personnes. Mais cette fois on se place du côté de l'agent, pas du serveur.</p>
+    <p>Insiste sur le renversement : en MP3, la question était « comment garantir la cohérence ? ». Ici, c'est « <b>comment ne jamais bloquer l'utilisateur</b>, même quand la cohérence est impossible à vérifier tout de suite ? ». C'est un problème de conception différent.</p>
+    <p>Les trois cartes annoncent les trois piliers : offline-first (§ file d'attente), scan industriel, gestion des ressources.</p>
+  </div>
+</section>
+
+<!-- 03 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Quatre objectifs" data-net="offline">
+  <div class="eyebrow"><span class="num">02</span> Ce que le sujet demande</div>
+  <h1>Quatre objectifs</h1>
+  <p class="lede">Chacun se traduit par une décision d'architecture précise, que je démontre dans la suite.</p>
+
+  <div class="row app">
+    <span class="tag">objectif 1</span>
+    <span class="body"><b>Une UI résiliente aux transitions réseau</b> <span>— l'agent ne doit jamais savoir s'il est en ligne</span></span>
+    <span class="state">SQLite + outbox</span>
+  </div>
+  <div class="row app">
+    <span class="tag">objectif 2</span>
+    <span class="body"><b>Exploiter le matériel du terminal</b> <span>— caméra, GPS, haptique, avec un minimum de latence</span></span>
+    <span class="state">Vision Camera</span>
+  </div>
+  <div class="row app">
+    <span class="tag">objectif 3</span>
+    <span class="body"><b>Valider à la source</b> <span>— règles métier rejouées côté client avant l'envoi</span></span>
+    <span class="state">machine à états</span>
+  </div>
+  <div class="row app">
+    <span class="tag">objectif 4</span>
+    <span class="body"><b>Réconcilier au retour du réseau</b> <span>— sans doublon, sans écraser le travail d'un autre</span></span>
+    <span class="state">flush FIFO</span>
+  </div>
+
+  <div class="callout">Un cinquième objectif est implicite et c'est le plus dur : <b>que l'utilisateur ne voie rien de tout ça</b>. La complexité distribuée doit rester invisible.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Lis les quatre objectifs vite, ce sont ceux du sujet. Ce qui compte, c'est la colonne de droite : à chaque objectif correspond une brique technique que je vais montrer.</p>
+    <p>Le « cinquième objectif implicite » est ta phrase, pas celle du sujet — assume-la, c'est ce qui fait la différence entre une app qui compile et une app utilisable.</p>
+  </div>
+</section>
+
+<!-- 04 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Périmètre" data-net="online">
+  <div class="eyebrow"><span class="num">03</span> Périmètre</div>
+  <h1>Ce que je présente<br>aujourd'hui</h1>
+
+  <div class="cols c2">
+    <div>
+      <h2 style="color:var(--ok)">Dans l'app</h2>
+      <ul class="clean">
+        <li><b>Authentification</b> JWT + mot de passe temporaire à remplacer</li>
+        <li><b>Onboarding</b> : téléchargement du secteur assigné en cache local</li>
+        <li><b>Tableau de bord</b> opérationnel : stocks, alertes, état de synchro</li>
+        <li><b>Scan industriel</b> : rafale, 3 modes, retour haptique et sonore</li>
+        <li><b>Signalements</b> géolocalisés : anomalie, perte, maintenance</li>
+        <li><b>Centre de synchronisation</b> : file d'attente, conflits, forçage</li>
+        <li><b>Carte</b> des zones et des équipements · <b>KPI</b> en lecture seule</li>
+      </ul>
+    </div>
+    <div>
+      <h2 style="color:var(--muted)">Hors périmètre, assumé</h2>
+      <ul class="clean">
+        <li><b>Back-office admin</b> : création d'événement, découpage de zones, feuilles de route — ça reste du ressort du responsable, sur poste fixe</li>
+        <li><b>SIG complet</b> : on affiche les zones, on ne fait pas de la cartographie riche</li>
+        <li><b>Android</b> : le code est cross-platform, seul iOS est validé sur device physique</li>
+      </ul>
+      <div class="card hi" style="margin-top:20px">
+        <h3>L'API n'a pas bougé</h3>
+        <p>Toute cette app consomme l'API livrée en MP3, telle quelle. C'était la promesse de fin de MP3 : elle tient.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Délimite clairement, comme en MP3. Le jury doit savoir ce qu'il ne verra pas, et surtout <b>pourquoi</b> : l'app cible l'agent de terrain, pas le responsable derrière son bureau.</p>
+    <p>La carte de droite est ton argument de continuité : le contrat d'API défini au MP3 était suffisant. Si on te demande « vraiment aucune modification ? » — une seule, tardive : <span class="mono">GET /auth/me</span> renvoyait le contenu du jeton, il renvoie maintenant le profil complet pour afficher le nom de l'agent. Le contrat OpenAPI l'annonçait déjà.</p>
+  </div>
+</section>
+
+<!-- 05 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="La stack" data-net="online">
+  <div class="eyebrow"><span class="num">04</span> La stack</div>
+  <h1>Ce que j'utilise,<br>et pourquoi</h1>
+
+  <table>
+    <tr><th>Besoin</th><th>Choix</th><th>La raison en une ligne</th></tr>
+    <tr><td>Framework</td><td><code>react-native 0.86</code> (CLI)</td><td>imposé par le sujet — en <b>bare workflow</b>, sans Expo</td></tr>
+    <tr><td>Base locale</td><td><code>op-sqlite</code></td><td>API <b>synchrone</b> via JSI : un scan résout son QR sans passer par une promesse</td></tr>
+    <tr><td>Caméra</td><td><code>react-native-vision-camera</code> v4</td><td>détection des codes sur le <b>thread natif</b>, pas image par image en JS</td></tr>
+    <tr><td>Navigation</td><td><code>@react-navigation</code> (stack + tabs)</td><td>standard de fait, gère l'état actif des onglets</td></tr>
+    <tr><td>Cache mémoire</td><td><code>@tanstack/react-query</code></td><td>invalidation et refetch ; SQLite reste la vérité persistante</td></tr>
+    <tr><td>Jetons</td><td><code>react-native-keychain</code></td><td>trousseau iOS, jamais de jeton en clair</td></tr>
+    <tr><td>Temps réel</td><td><code>react-native-sse</code></td><td>consomme le flux SSE déjà exposé par l'API</td></tr>
+    <tr><td>Icônes</td><td><code>lucide-react-native</code> + <code>svg</code></td><td>SVG qui héritent de la couleur du thème</td></tr>
+    <tr><td>Validation</td><td><code>zod</code></td><td>mêmes schémas que l'API, côté client</td></tr>
+  </table>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Ne lis pas le tableau ligne à ligne. Arrête-toi sur <b>deux lignes</b> seulement :</p>
+    <p><b>op-sqlite</b> — le choix est fait pour une raison mesurable : l'API est synchrone. Au moment du scan, je fais un <span class="mono">SELECT</span> et j'ai la réponse dans la même frame, donc le bip part immédiatement. Avec une base asynchrone, il y aurait un aller-retour dans la boucle d'événements avant le retour haptique, et l'agent le sentirait.</p>
+    <p><b>vision-camera</b> — la détection tourne côté natif. Si je faisais transiter chaque image par le pont JS, la caméra saturerait la boucle et le reste de l'UI ramerait.</p>
+    <p class="q">Si on demande « pourquoi pas Expo ? » → slide suivante.</p>
+  </div>
+</section>
+
+<!-- 06 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="React Native pur" data-net="online">
+  <div class="eyebrow"><span class="num">05</span> Décision structurante</div>
+  <h1>React Native pur,<br>pas Expo</h1>
+  <p class="lede">Une décision prise au premier jour, jamais remise en cause — et qui a eu un coût réel, que j'assume.</p>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3>Pourquoi</h3>
+      <p>Le projet a besoin d'accès natifs pointus : caméra en mode scanner continu, trousseau sécurisé, géolocalisation à la demande, SQLite en JSI. En bare workflow, j'écris directement dans le projet Xcode : permissions, pods, signature. Rien n'est masqué par une couche d'abstraction.</p>
+    </div>
+    <div class="card hi">
+      <h3>Le coût, constaté</h3>
+      <p>La génération actuelle de <code>@react-native-vector-icons</code> déclare <code>@expo/config-plugins</code> en dépendance de pair. Elle est donc inutilisable ici. J'ai basculé sur <b>Lucide + react-native-svg</b> — et ce contretemps s'est révélé être un meilleur choix : les icônes SVG héritent de la couleur, donc elles suivent le thème clair/sombre sans une ligne de code en plus.</p>
+    </div>
+  </div>
+
+  <div class="callout">Ce que je retiens : une contrainte d'architecture posée tôt <b>ferme des portes plus tard</b>. Le travail n'est pas d'éviter ça, c'est de savoir quelle porte on ferme, et de vérifier qu'il existe une autre issue.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>C'est ta slide « décision d'ingénieur ». Le jury aime les décisions documentées avec leur coût — pas les choix présentés comme évidents.</p>
+    <p>Raconte-la comme une petite histoire : contrainte posée → problème rencontré des semaines plus tard → solution qui s'est avérée supérieure. Ça montre que tu traces tes décisions.</p>
+    <p class="q">Si on demande « Expo aurait marché ? » — oui, probablement, avec un development build. Mais le sujet impose React Native et je voulais garder la main sur le projet natif ; sur un scan caméra en continu, c'est là que se jouent les performances.</p>
+  </div>
+</section>
+
+<!-- 07 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Cinq exigences" data-net="online">
+  <div class="eyebrow"><span class="num">06</span> Les axes notés</div>
+  <h1>Cinq exigences<br>non-fonctionnelles</h1>
+
+  <div class="row ok"><span class="tag">01</span><span class="body"><b>Architecture rigoureuse</b> <span>— « vibe coding » et code spaghetti explicitement interdits par le sujet</span></span><span class="state">✓ 3 couches</span></div>
+  <div class="row ok"><span class="tag">02</span><span class="body"><b>Offline-first</b> <span>— base embarquée, file d'attente locale, synchro asynchrone</span></span><span class="state">✓ SQLite</span></div>
+  <div class="row ok"><span class="tag">03</span><span class="body"><b>Optimistic UI</b> <span>— effet immédiat à l'écran, rollback visuel si la synchro échoue définitivement</span></span><span class="state">✓ + rollback</span></div>
+  <div class="row ok"><span class="tag">04</span><span class="body"><b>Typage fort bout-en-bout</b> <span>— les types du front sont le miroir des DTO de l'API</span></span><span class="state">✓ TS strict</span></div>
+  <div class="row ok"><span class="tag">05</span><span class="body"><b>Batterie et mémoire</b> <span>— pas de polling, pas de tracking en arrière-plan</span></span><span class="state">✓ événementiel</span></div>
+
+  <div class="callout">Ce sont les axes notés, exactement comme les cinq contraintes de l'API en MP3. Les slides qui suivent en apportent la <b>preuve dans le code</b>, pas l'affirmation.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Miroir volontaire de la slide « contraintes imposées » du MP3. Le jury reconnaîtra la structure, ça facilite son travail de notation.</p>
+    <p>Annonce le plan : les cinq lignes sont dans l'ordre où je vais les traiter. Architecture d'abord, puis l'offline, puis le scan, puis la sécurité, puis les ressources.</p>
+  </div>
+</section>
+
+<!-- 08 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Architecture" data-net="online">
+  <div class="eyebrow"><span class="num">07</span> Architecture</div>
+  <h1>Trois couches,<br>une règle d'or</h1>
+
+<pre>┌─ <span class="k">UI</span> ─────────────── <span class="c">screens/ + components/</span> ────────────────────────┐
+│  rendu et capture d'événements. Zéro fetch, zéro SQL, zéro règle.     │
+└───────────────────────────────┬───────────────────────────────────────┘
+                                │ appelle
+┌─ <span class="k">HOOKS</span> ──────────── <span class="c">hooks/</span> ──▼──────────────────────────────────────┐
+│  orchestration : useScanner, useSync, useItems, useAuth…              │
+└───────────────────────────────┬───────────────────────────────────────┘
+                                │ appelle
+┌─ <span class="k">SERVICES</span> ───────── <span class="c">services/ + domain/</span> ─▼───────────────────────────┐
+│  api/ (REST+JWT)   db/ (SQLite)   sync/ (moteur)   scan/   geo/       │
+│  domain/ = règles métier pures, testables sans device                 │
+└───────────────────────────────┬───────────────────────────────────────┘
+                                ▼
+              <span class="s">SQLite local</span>  ◄── synchro ──►  <span class="s">API LogiChain</span></pre>
+
+  <div class="callout" style="margin-top:22px">
+    <b>La règle d'or :</b> un écran importe des <code>hooks/</code>, jamais des <code>services/</code>. La séparation physique des dossiers rend la violation visible en revue de code — c'est la même logique que le N-Tier de l'API : chaque couche ne connaît que celle du dessous.
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Fais le parallèle explicite avec le MP3 : là-bas c'était Entity / Repository / Service / Controller. Ici c'est UI / Hooks / Services. <b>Même principe, appliqué à un contexte différent</b> — ce n'est pas une recette recopiée, c'est le même raisonnement.</p>
+    <p>Le dossier <span class="mono">domain/</span> mérite une phrase : j'y ai isolé toutes les règles pures — machine à états, matrice de permissions, décision de réconciliation, filtrage. Aucune dépendance à React ni à React Native. C'est <b>pour ça</b> que je peux avoir 271 tests qui tournent en 1,3 seconde sans simulateur.</p>
+    <p class="q">Si on demande la preuve que la règle tient : <span class="mono">grep -r "services/" src/screens</span> — l'écran de scan ne connaît que <span class="mono">useScanner</span>.</p>
+  </div>
+</section>
+
+<!-- 09 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="SQLite local" data-net="offline">
+  <div class="eyebrow"><span class="num">08</span> Offline-first</div>
+  <h1>SQLite est la source<br>de vérité locale</h1>
+  <p class="lede">Pas un cache d'appoint : la base embarquée est ce que l'app lit, toujours. Le réseau ne fait que la rafraîchir.</p>
+
+<pre><span class="k">CREATE TABLE</span> items (id <span class="s">TEXT PRIMARY KEY</span>, qrCode <span class="s">TEXT</span>, label <span class="s">TEXT</span>,
+  category <span class="s">TEXT</span>, status <span class="s">TEXT</span>, eventId <span class="s">TEXT</span>, lng <span class="s">REAL</span>, lat <span class="s">REAL</span>,
+  weightKg <span class="s">REAL</span>, version <span class="s">INTEGER</span>, updatedAt <span class="s">TEXT</span>, syncedAt <span class="s">TEXT</span>);
+
+<span class="k">CREATE INDEX</span> idx_items_qrCode  <span class="k">ON</span> items(qrCode);   <span class="c">-- le scan tape ici</span>
+<span class="k">CREATE INDEX</span> idx_items_status  <span class="k">ON</span> items(status);
+<span class="k">CREATE INDEX</span> idx_items_eventId <span class="k">ON</span> items(eventId);</pre>
+
+  <div class="cols c3" style="margin-top:22px">
+    <div class="card"><h3>events · zones</h3><p>Le secteur assigné : l'événement actif et ses zones géographiques, téléchargés une fois à la connexion.</p></div>
+    <div class="card"><h3>items</h3><p>Les 51 équipements du secteur. Index sur <code>qrCode</code> : c'est lui qui rend le scan instantané.</p></div>
+    <div class="card"><h3>sync_meta</h3><p>Clés-valeurs : secteur assigné, dernière synchro complète, mode de thème choisi.</p></div>
+  </div>
+
+  <div class="callout">Les migrations sont <b>idempotentes</b> (<code>IF NOT EXISTS</code>) et rejouées à chaque ouverture. Une app terrain ne peut pas se permettre un échec de migration à 6 h du matin sur un parking.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Le point à faire passer : <b>l'app ne lit jamais le réseau pour afficher quelque chose</b>. Elle lit SQLite. Le réseau alimente SQLite, en arrière-plan. C'est ce renversement qui rend le mode hors ligne transparent — il n'y a pas de « mode dégradé », c'est le même chemin de code.</p>
+    <p>L'index sur <span class="mono">qrCode</span> est le point sensible : c'est lui qui fait tenir la promesse du scan en rafale. Sans index, un balayage complet à chaque code lu.</p>
+    <p class="q">Si on demande pourquoi SQLite et pas AsyncStorage : AsyncStorage est un magasin clé-valeur, il ne sait ni indexer, ni filtrer, ni trier. Le sujet demande explicitement des requêtes relationnelles sur des milliers d'enregistrements.</p>
+  </div>
+</section>
+
+<!-- 10 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Manifest de cache" data-net="offline">
+  <div class="eyebrow"><span class="num">09</span> Offline-first</div>
+  <h1>Ce qu'on garde,<br>ce qu'on jette</h1>
+  <p class="lede">La stratégie de cache n'est pas éparpillée dans le code : elle est déclarée à un seul endroit, <code>data/cacheManifest.ts</code>.</p>
+
+  <div class="row app"><span class="tag">item</span><span class="body"><b>persisté, jamais purgé</b> <span>— mis à jour en upsert à chaque synchro</span></span><span class="state">12 champs</span></div>
+  <div class="row app"><span class="tag">event · zone</span><span class="body"><b>persisté</b> <span>— le secteur assigné, remplacé si l'agent est réaffecté</span></span><span class="state">persistant</span></div>
+  <div class="row warn"><span class="tag">outbox</span><span class="body"><b>persisté puis vidé</b> <span>— chaque ligne disparaît dès qu'elle est confirmée par le serveur</span></span><span class="state">éphémère</span></div>
+  <div class="row bad"><span class="tag">écarté</span><span class="body"><b><code>history[]</code>, prix d'achat, CO₂ détaillé</b> <span>— consultés en ligne, jamais mis en cache</span></span><span class="state">non caché</span></div>
+
+  <div class="callout">Décision assumée : je ne cache que ce dont l'UI a besoin <b>hors ligne</b>. L'historique d'un équipement peut peser lourd et ne sert qu'à la consultation ponctuelle d'une fiche — le mettre en cache aurait fait grossir la base pour rien.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Ce qui compte ici, ce n'est pas la liste : c'est le fait qu'elle soit <b>déclarative et centralisée</b>. Quand la stratégie de cache est répartie dans dix fichiers, personne ne sait plus ce qui survit à une déconnexion. Là, il y a un fichier à lire.</p>
+    <p>La ligne rouge est ton exemple d'arbitrage : j'ai choisi de ne pas tout cacher, et je peux dire pourquoi.</p>
+  </div>
+</section>
+
+<!-- 11 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="L'outbox" data-net="offline">
+  <div class="eyebrow"><span class="num">10</span> Le cœur du projet</div>
+  <h1>La file sortante</h1>
+  <p class="lede">Tout ce que l'agent fait devient une ligne dans une table. C'est la pièce centrale de l'application : sans elle, il n'y a pas de mode hors ligne.</p>
+
+<pre><span class="k">CREATE TABLE</span> outbox (
+  localId     <span class="s">TEXT PRIMARY KEY</span>,   <span class="c">-- uuid généré sur le téléphone</span>
+  createdAt   <span class="s">TEXT NOT NULL</span>,     <span class="c">-- l'ordre de rejeu, FIFO</span>
+  entityId    <span class="s">TEXT NOT NULL</span>,     <span class="c">-- l'équipement concerné</span>
+  actionType  <span class="s">TEXT NOT NULL</span>,     <span class="c">-- scan | transit | deploy | anomaly | lost…</span>
+  payload     <span class="s">TEXT NOT NULL</span>,     <span class="c">-- JSON : position GPS, note…</span>
+  baseVersion <span class="s">INTEGER</span>,           <span class="c">-- ⚠ la version de l'item AU MOMENT du geste</span>
+  status      <span class="s">TEXT NOT NULL</span>,     <span class="c">-- pending | failed | conflict</span>
+  attempts    <span class="s">INTEGER DEFAULT 0</span>,
+  lastError   <span class="s">TEXT</span>);</pre>
+
+  <div class="callout"><b><code>baseVersion</code> est le lien direct avec le MP3.</b> C'est le <code>__v</code> du verrouillage optimiste que j'ai présenté côté API. L'app le capture au moment du geste et le renvoie à la synchro : c'est ce qui permet au serveur de détecter qu'un autre agent est passé entre-temps et de répondre 409.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>C'est <b>la</b> slide du projet. Prends ton temps.</p>
+    <p>Fais le lien explicitement : « en MP3, j'ai présenté le verrouillage optimiste et le code 409, en disant que la partie mobile en aurait besoin. Voilà où il atterrit : dans une colonne d'une table SQLite sur le téléphone. »</p>
+    <p>Le scénario du MP3 se rejoue ici pour de vrai : l'agent A scanne à 9 h dans un sous-sol — <span class="mono">baseVersion: 1</span> écrit en local. L'agent B scanne le même équipement à 9 h 05 — le serveur passe à la version 2. À 9 h 12, A retrouve le réseau, envoie sa ligne avec <span class="mono">baseVersion: 1</span> → 409.</p>
+    <p class="q">Si on demande pourquoi un <span class="mono">localId</span> en uuid : la ligne existe avant que le serveur n'en sache quoi que ce soit. Il lui faut une identité côté client, sinon on ne peut ni la retrouver, ni la dédoublonner, ni la supprimer après confirmation.</p>
+  </div>
+</section>
+
+<!-- 12 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Une action offline" data-net="offline">
+  <div class="eyebrow"><span class="num">11</span> Optimistic UI</div>
+  <h1>Le geste, puis<br>la promesse</h1>
+
+  <div class="flow">
+    <div class="step"><span class="i">1</span><span class="t"><b>L'agent appuie</b><span>« Déployé » sur une fiche équipement, ou un QR entre dans le champ de la caméra.</span></span></div>
+    <div class="step"><span class="i">2</span><span class="t"><b>Une transaction SQLite, deux écritures</b><span>Le statut local passe à <code>deployed</code> <em>et</em> une ligne est empilée dans la file sortante. Les deux ensemble, ou aucune des deux.</span></span></div>
+    <div class="step"><span class="i">3</span><span class="t"><b>L'écran est déjà à jour</b><span>Vibration, bip, compteur incrémenté. L'agent enchaîne. Aucun appel réseau n'a eu lieu.</span></span></div>
+    <div class="step"><span class="i">4</span><span class="t"><b>Plus tard, le réseau revient</b><span>Le moteur de synchro vide la file dans l'ordre. Ça peut être dans dix secondes ou dans deux heures : l'agent, lui, a fini son geste.</span></span></div>
+  </div>
+
+  <div class="callout">L'optimistic UI n'est pas un effet cosmétique : c'est un <b>engagement</b>. L'app affirme un résultat que le serveur n'a pas encore validé. Elle doit donc savoir revenir en arrière — c'est l'objet des deux slides suivantes.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Insiste sur l'étape 2 : la transaction. Si le statut local changeait sans que la ligne de file soit écrite, l'agent verrait « déployé » à l'écran et le serveur ne l'apprendrait jamais. C'est le pire cas possible sur le terrain — une donnée perdue qui a l'air enregistrée.</p>
+    <p>Étape 3, le mot important est <b>« enchaîne »</b> : sur un déchargement de camion, l'agent scanne toutes les deux secondes. Un spinner réseau à chaque geste rendrait l'app inutilisable.</p>
+    <p>Termine en annonçant la suite : « une app qui promet doit savoir se dédire ».</p>
+  </div>
+</section>
+
+<!-- 13 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Le flush" data-net="online">
+  <div class="eyebrow"><span class="num">12</span> Réconciliation</div>
+  <h1>Vider la file :<br>quatre réponses possibles</h1>
+  <p class="lede">Le moteur de synchro rejoue les lignes <b>dans l'ordre de création</b>, et une seule question se pose à chaque réponse du serveur : recommencer, abandonner, ou demander à l'humain ?</p>
+
+  <table>
+    <tr><th>Réponse</th><th>Décision</th><th>Ce qui se passe</th></tr>
+    <tr><td><code style="color:var(--ok)">2xx</code></td><td><b>succès</b></td><td>la ligne est supprimée, l'équipement est réécrit depuis la réponse du serveur (version incluse)</td></tr>
+    <tr><td><code style="color:var(--alert)">409</code></td><td><b>conflit</b></td><td>quelqu'un est passé avant : la ligne est marquée <code>conflict</code> et remonte dans le centre de synchro</td></tr>
+    <tr><td><code style="color:var(--alert)">422</code> <span class="mono" style="font-size:11px">invalid_transition</span></td><td><b>conflit</b></td><td>l'état réel n'est plus celui qu'on croyait : même traitement, c'est un désaccord, pas une panne</td></tr>
+    <tr><td><code style="color:var(--warn)">5xx</code> / réseau</td><td><b>réessai</b></td><td>ce n'est pas un désaccord, c'est une indisponibilité : on retente plus tard</td></tr>
+  </table>
+
+  <div class="callout">L'ordre FIFO n'est pas cosmétique : <b>une transition dépend de la précédente</b>. « Chargement » doit être rejoué avant « déploiement », sinon le serveur refuse une transition pourtant légitime.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>La distinction à faire comprendre est celle entre <b>désaccord</b> et <b>panne</b>. Une panne se retente : le serveur redeviendra disponible. Un désaccord ne se retente pas — le rejouer cent fois donnerait cent fois 409. Il faut un arbitrage humain.</p>
+    <p>C'est pour ça que <span class="mono">decideReconcile</span> est une fonction pure de trois lignes, isolée dans <span class="mono">domain/</span> : c'est la décision la plus importante du moteur, elle doit être lisible et testable seule.</p>
+    <p>Le 422 <span class="mono">item.invalid_transition</span> mérite un mot : techniquement c'est une erreur de validation, mais fonctionnellement c'est un conflit — l'équipement n'est plus dans l'état que l'agent croyait. Je le route donc vers l'arbitrage, pas vers le réessai.</p>
+  </div>
+</section>
+
+<!-- 14 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Backoff & rollback" data-net="online">
+  <div class="eyebrow"><span class="num">13</span> Réconciliation</div>
+  <h1>Savoir insister,<br>savoir renoncer</h1>
+
+  <div class="cols c2">
+    <div>
+      <h2>Insister — le repli exponentiel</h2>
+<pre>nextDelayMs = <span class="k">min</span>(1000 × 2^tentatives, 60 000)
+
+<span class="c">1 s → 2 s → 4 s → 8 s → 16 s … plafonné à 1 min</span></pre>
+      <p style="color:var(--muted);font-size:15px;margin-top:14px">Sans plafond, la 10ᵉ tentative attendrait 17 minutes. Sans progression, 200 agents qui retrouvent le réseau en même temps au démontage feraient tomber l'API — c'est exactement le pic de charge annoncé en MP3.</p>
+    </div>
+    <div>
+      <h2>Renoncer — le rollback visuel</h2>
+      <div class="row bad"><span class="tag">tentative 5</span><span class="body"><b>Échec définitif</b> <span>— l'effet local est annulé, la ligne est supprimée</span></span><span class="state">rollback</span></div>
+      <p style="color:var(--muted);font-size:15px;margin-top:14px">C'est la contrepartie de l'optimistic UI, et l'exigence explicite du sujet. L'app a affirmé « déployé ». Si le serveur ne l'a jamais accepté, elle doit se dédire — sinon l'agent repart avec une information fausse, et c'est pire que pas d'information du tout.</p>
+      <p style="color:var(--muted);font-size:15px">Le rollback est <b>optionnel par action</b> : un pointage n'a rien modifié localement, il n'a rien à annuler.</p>
+    </div>
+  </div>
+
+  <div class="callout">Le résultat d'une synchro n'est donc pas « ça a marché / ça n'a pas marché », mais quatre compteurs : <b>synchronisées, en conflit, en échec temporaire, annulées</b>. Le centre de synchronisation les affiche tels quels — l'agent voit exactement où il en est.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Le repli exponentiel se justifie par le MP3 : j'y ai parlé des pics de charge au montage et au démontage. Le voici traité <b>côté client</b> — si chaque téléphone réessaie toutes les secondes, c'est l'API qui trinque. Le client participe à la tenue de charge du serveur.</p>
+    <p>Le rollback est l'exigence la plus subtile du sujet. Formule-la simplement : « l'app a le droit de mentir un instant, à condition de savoir se corriger. »</p>
+    <p class="q">Si on demande pourquoi 5 tentatives : c'est un réglage, pas une loi — <span class="mono">SYNC_MAX_ATTEMPTS</span> dans <span class="mono">config/env.ts</span>. Cinq tentatives couvrent environ 30 secondes de réseau instable ; au-delà, ce n'est plus un passage sous un pont, c'est un vrai problème qui mérite d'être signalé à l'agent.</p>
+  </div>
+</section>
+
+<!-- 15 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Bug : double synchro" data-net="online">
+  <div class="eyebrow"><span class="num">14</span> Un bug réel</div>
+  <h1>Deux écrans,<br>deux synchros,<br>un doublon</h1>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3>Le symptôme</h3>
+      <p>Au retour du réseau, certaines actions partaient <b>deux fois</b>. L'API n'étant pas idempotente sur les scans, l'historique d'un équipement se retrouvait avec deux mouvements identiques.</p>
+    </div>
+    <div class="card">
+      <h3>La cause</h3>
+      <p><code>useSync</code> est monté dans plusieurs écrans, et React Navigation <b>garde les onglets vivants</b>. Au retour du réseau, chaque instance du hook déclenchait sa propre synchro. Deux flushes lisaient la même file au même moment.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:20px">
+    <div class="row bad"><span class="tag">tentative 1</span><span class="body"><b>Un garde-fou dans le hook</b> <span>— inopérant : chaque instance a son propre état</span></span><span class="state">échec</span></div>
+    <div class="row ok"><span class="tag">solution</span><span class="body"><b>Un verrou au niveau du module</b> <span>— une seule fois pour toute l'app ; un appel concurrent renvoie <code>null</code> au lieu de dupliquer</span></span><span class="state">résolu</span></div>
+  </div>
+
+  <div class="callout">Le verrou est relâché dans un <code>finally</code> : sans ça, une erreur réseau bloquerait définitivement <b>toute</b> synchro ultérieure. Le remède aurait été pire que le mal.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Slide volontairement « honnête ». Un jury retient mieux un bug raconté qu'une fonctionnalité listée, et ça prouve que l'app a réellement tourné sur un téléphone.</p>
+    <p>Le point technique à faire passer : <b>un état porté par un hook est local à son instance</b>. Quand l'unicité doit valoir pour toute l'application, elle doit vivre au niveau du module. C'est une leçon d'architecture React, pas un détail.</p>
+    <p>Le <span class="mono">finally</span> est le vrai raffinement : un verrou qu'on oublie de relâcher est un verrou pire que pas de verrou. C'est exactement l'argument que j'ai donné en MP3 contre le verrouillage pessimiste.</p>
+  </div>
+</section>
+
+<!-- 16 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Le scan" data-net="offline">
+  <div class="eyebrow"><span class="num">15</span> Scan industriel</div>
+  <h1>D'un QR code<br>au bip, sans réseau</h1>
+
+  <div class="flow">
+    <div class="step"><span class="i">①</span><span class="t"><b>Détection, sur le thread natif</b><span>Vision Camera repère le code sans faire traverser chaque image au pont JS.</span></span></div>
+    <div class="step"><span class="i">②</span><span class="t"><b>Anti-doublon</b><span>Le même code vu il y a moins de 1,5 s est ignoré — sinon la caméra l'enfilerait des dizaines de fois par seconde.</span></span></div>
+    <div class="step"><span class="i">③</span><span class="t"><b>Résolution locale</b><span><code>SELECT * FROM items WHERE qrCode = ?</code> — index, base synchrone, environ 1 ms. <b>Aucun appel réseau.</b></span></span></div>
+    <div class="step"><span class="i">④</span><span class="t"><b>Feedback immédiat</b><span>Vibration + bip. Vert si l'équipement est reconnu et le geste autorisé, rouge sinon. L'agent ne regarde pas l'écran.</span></span></div>
+    <div class="step"><span class="i">⑤</span><span class="t"><b>Position, puis empilement</b><span>Le GPS est interrogé pour ce scan précis, puis la ligne part dans la file sortante.</span></span></div>
+  </div>
+
+  <div class="callout">Aucune de ces cinq étapes ne touche au réseau. C'est ce qui permet de <b>vider un camion entier en zone blanche</b> — et c'est aussi pour ça que le scan reste rapide même avec du réseau : il ne l'attend jamais.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>La phrase à retenir, dis-la telle quelle : « le scan ne dépend pas du réseau, <b>même quand il y en a</b> ». Ce n'est pas un mode dégradé qui s'active en cas de panne, c'est le seul chemin de code.</p>
+    <p>L'ordre des étapes 4 et 5 est délibéré : le retour haptique part <b>avant</b> l'écriture en base. L'agent perçoit la réponse à l'instant où il vise, pas après la persistance.</p>
+    <p class="q">Si on demande « et si le QR n'est pas dans le cache ? » — bip rouge, l'équipement est listé comme non identifié. Ça arrive pour les 15 QR du jeu de démo qui appartiennent à un autre secteur : c'est le comportement voulu, l'agent ne doit pas manipuler du matériel qui n'est pas le sien.</p>
+    <p class="q">Si on demande la latence : je ne l'ai pas instrumentée au millimètre, je l'ai validée à l'usage sur iPhone. Le facteur limitant est la caméra, pas le code.</p>
+  </div>
+</section>
+
+<!-- 17 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Bug : anti-rebond" data-net="offline">
+  <div class="eyebrow"><span class="num">16</span> Un bug réel</div>
+  <h1>Le QR qui se<br>rescannait tout seul</h1>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3>Le symptôme</h3>
+      <p>En laissant la caméra pointée sur une étiquette, le même équipement était réenfilé dans la file <b>toutes les 1,5 seconde</b>. Un agent qui pose son téléphone sur un carton génère cinquante lignes en deux minutes.</p>
+    </div>
+    <div class="card hi">
+      <h3>La correction, en un mot</h3>
+      <p>La fenêtre court désormais depuis la <b>dernière vue</b> du code, pas depuis le dernier scan accepté. Chaque image repousse l'échéance : le code doit <b>quitter le champ</b> pendant 1,5 s pour être accepté à nouveau.</p>
+    </div>
+  </div>
+
+<pre style="margin-top:20px"><span class="k">isDuplicate</span>(code, now) {
+  <span class="k">const</span> prev = lastSeen.get(code);
+  lastSeen.set(code, now);          <span class="c">// ⚠ repoussé à chaque vue, doublon ou non</span>
+  <span class="k">return</span> prev !== undefined &amp;&amp; now - prev &lt; windowMs;
+}</pre>
+
+  <div class="callout">Une ligne déplacée. C'est le genre de détail qui ne se voit ni dans une revue de code, ni dans un test unitaire écrit d'après la spec — il se voit <b>en tenant le téléphone</b>.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Deuxième bug raconté, et il complète le premier : celui-là ne pouvait être trouvé qu'en usage réel. Assume-le, c'est ton argument « j'ai vraiment testé sur device ».</p>
+    <p>Explique la nuance : la première version demandait « ce code a-t-il été accepté il y a moins de 1,5 s ? ». La bonne question est « ce code a-t-il <b>disparu du champ</b> depuis 1,5 s ? ». Ce n'est pas la même chose dès que la caméra produit soixante images par seconde.</p>
+    <p>La fonction est isolée dans <span class="mono">services/scan/ScanService.ts</span> et testée seule — la correction est couverte par un test qui simule un flux d'images.</p>
+  </div>
+</section>
+
+<!-- 18 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Modes & états" data-net="offline">
+  <div class="eyebrow"><span class="num">17</span> Règles métier</div>
+  <h1>Trois modes,<br>une machine à états</h1>
+  <p class="lede">Le mode sélectionné décide de ce que <em>signifie</em> un scan. La machine à états décide s'il est <em>permis</em>.</p>
+
+  <table style="margin-bottom:24px">
+    <tr><th>Mode</th><th>Transition</th><th>Appel API différé</th></tr>
+    <tr><td><b>Chargement</b></td><td><code>allocated → in_transit</code></td><td><code>POST /items/:id/transit</code></td></tr>
+    <tr><td><b>Déploiement</b></td><td><code>in_transit → deployed</code></td><td><code>POST /items/:id/deploy</code></td></tr>
+    <tr><td><b>Pointage</b></td><td><span style="color:var(--muted)">aucune — position seule</span></td><td><code>POST /items/:id/scan</code></td></tr>
+  </table>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3>La machine à états est répliquée côté client</h3>
+      <p><code>ALLOWED_TRANSITIONS</code> reproduit la table de l'entité <code>ItemEntity</code> de l'API. Un scan illégal est refusé <b>sur le téléphone</b>, avec un bip rouge et la raison affichée — au lieu de partir dans la file pour revenir en 422 une heure plus tard.</p>
+    </div>
+    <div class="card hi">
+      <h3>Le risque, et comment je le tiens</h3>
+      <p>Deux copies d'une même règle peuvent diverger. <b>L'API reste l'autorité</b> : la copie client est une optimisation d'expérience, tout est revérifié à la synchro. Et une sonde d'intégration compare les deux matrices contre l'API réelle — si elles divergent, le test casse.</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Rappelle la machine à états du MP3 — six états, transitions strictes, tout ce qui n'est pas autorisé est interdit. Ici, elle est <b>rejouée côté client</b>.</p>
+    <p>Anticipe la critique, elle viendra : « vous dupliquez une règle métier, c'est une faute ». Réponds avant qu'on te la pose, avec la carte de droite. La duplication est <b>assumée, documentée et testée</b> — la différence entre une dette et une décision, c'est qu'une décision se justifie.</p>
+    <p>Le vrai argument : sans validation locale, un agent en zone blanche scannerait cinquante équipements sans le moindre retour d'erreur, et découvrirait ses cinquante refus deux heures plus tard. C'est inacceptable sur le terrain.</p>
+  </div>
+</section>
+
+<!-- 19 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Rôles" data-net="online">
+  <div class="eyebrow"><span class="num">18</span> Sécurité</div>
+  <h1>L'API décide,<br>l'app anticipe</h1>
+  <p class="lede">Les quatre rôles du MP3 se retrouvent ici — non pas pour protéger quoi que ce soit, mais pour ne jamais proposer un geste qui finirait en 403.</p>
+
+  <table>
+    <tr><th>Geste</th><th>Admin</th><th>Resp. log.</th><th>Agent</th><th>Transporteur</th></tr>
+    <tr><td>Pointer, transit, anomalie, perte</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td></tr>
+    <tr><td>Déployer sur site</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--alert)">✗</td></tr>
+    <tr><td>Mettre en maintenance</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--ok)">✓</td><td style="color:var(--alert)">✗</td></tr>
+    <tr><td>Créer un compte</td><td style="color:var(--ok)">✓</td><td style="color:var(--alert)">✗</td><td style="color:var(--alert)">✗</td><td style="color:var(--alert)">✗</td></tr>
+  </table>
+
+  <div class="cols c3" style="margin-top:24px">
+    <div class="card"><h3>Fermé par défaut</h3><p>Tant que <code>/auth/me</code> n'a pas répondu, aucun geste n'est proposé. On ne promet rien qu'on ne puisse tenir.</p></div>
+    <div class="card"><h3>Dire pourquoi</h3><p>Un bouton grisé affiche <b>qui</b> a le droit et <b>ce que vous êtes</b> : « Réservé à : Administrateur, Responsable logistique. Vous êtes Transporteur. »</p></div>
+    <div class="card hi"><h3>Pourquoi anticiper</h3><p>Un 403 n'est pas un conflit : il serait réessayé cinq fois puis annulé sans un mot d'explication. Mieux vaut ne jamais l'émettre.</p></div>
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Le titre est l'essentiel : <b>l'app n'est pas un dispositif de sécurité</b>. Le code est sur le téléphone de l'utilisateur, il est modifiable. La sécurité, c'est <span class="mono">requireRole</span> côté API, que j'ai présenté en MP3. Ici, c'est de l'ergonomie.</p>
+    <p>La carte « Dire pourquoi » vaut le détour : un bouton grisé sans explication est une impasse. L'utilisateur doit savoir à qui s'adresser. C'est de l'écriture d'interface, pas de la technique — mais ça change complètement l'expérience.</p>
+    <p class="q">Si on demande « et si quelqu'un modifie l'app ? » — il obtiendra des 403 de l'API. La matrice locale n'est qu'un miroir, elle n'accorde aucun droit.</p>
+  </div>
+</section>
+
+<!-- 20 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Sécurité client" data-net="online">
+  <div class="eyebrow"><span class="num">19</span> Sécurité</div>
+  <h1>Ce qu'un téléphone<br>perdu ne doit pas livrer</h1>
+
+  <ul class="clean">
+    <li><b>Jetons dans le trousseau iOS</b> — <code>react-native-keychain</code>, jamais en stockage clair. Un téléphone égaré sur un festival ne donne pas accès à la plateforme.</li>
+    <li><b>Rafraîchissement transparent</b> — un 401 déclenche <code>POST /auth/refresh</code> et rejoue la requête. L'agent n'est jamais déconnecté au milieu d'un geste ; si le rafraîchissement échoue, retour à l'écran de connexion.</li>
+    <li><b>Mot de passe temporaire imposé</b> — un compte créé par l'admin arrive avec <code>mustChangePassword</code>. L'app le détecte au démarrage et bloque l'accès aux écrans métier tant que le mot de passe n'a pas été remplacé — exactement comme le middleware côté API.</li>
+    <li><b>HTTPS strict, sauf en local</b> — l'exception <code>NSAllowsLocalNetworking</code> de l'Info.plist ne couvre <b>que</b> le réseau local pour les démos. Une IP publique en clair serait refusée par App Transport Security.</li>
+    <li><b>Validation avant l'envoi</b> — les schémas Zod du client reprennent ceux de l'API : retour immédiat sur un formulaire, y compris hors ligne. L'API revalide de toute façon.</li>
+  </ul>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Reprends la logique du MP3 : la sécurité n'est pas une couche ajoutée à la fin. Mais côté mobile, la menace est différente — ce n'est plus l'attaquant réseau, c'est le <b>terminal perdu ou volé</b>. Le contexte est un festival avec des milliers de personnes.</p>
+    <p>Le mot de passe temporaire est le bon exemple de cohérence bout-en-bout : la règle est portée par le jeton côté API, l'app la lit et adapte sa navigation. Aucun des deux ne fait confiance à l'autre.</p>
+    <p class="q">Si on demande pourquoi une exception HTTP dans l'Info.plist : uniquement pour pointer sur l'API locale pendant le développement et les démonstrations. Elle est limitée au réseau local par iOS lui-même, elle ne peut pas servir à joindre un serveur public en clair.</p>
+  </div>
+</section>
+
+<!-- 21 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Temps réel & GPS" data-net="online">
+  <div class="eyebrow"><span class="num">20</span> Matériel & temps réel</div>
+  <h1>Écouter, localiser,<br>sans vider la batterie</h1>
+
+  <div class="cols c2">
+    <div>
+      <h2>Alertes en direct</h2>
+      <p style="color:var(--muted);font-size:15.5px">L'app s'abonne au flux SSE que l'API expose déjà — celui que j'ai présenté en MP3, alimenté par les Change Streams MongoDB. Une anomalie déclarée par un agent apparaît chez les autres sans qu'aucun ne rafraîchisse quoi que ce soit.</p>
+      <div class="row app" style="margin-top:16px"><span class="tag">GET</span><span class="body"><b>/notifications/stream</b> <span>— jeton passé en paramètre, l'API l'accepte pour ce flux</span></span><span class="state">SSE</span></div>
+      <p style="color:var(--muted);font-size:15px;margin-top:14px"><b>Le flux est fermé dès que l'app passe en arrière-plan.</b> Une connexion ouverte en permanence sur une journée de montage, c'est de la batterie pour rien.</p>
+    </div>
+    <div>
+      <h2>Position</h2>
+      <ul class="clean">
+        <li><b>À la demande, jamais en continu</b> — le GPS est interrogé au moment du scan et du signalement, puis relâché. Aucun suivi en arrière-plan.</li>
+        <li><b>Pas de position, pas de scan</b> — un scan sans coordonnées n'a aucune valeur logistique : l'action est refusée avec un bip rouge plutôt qu'enregistrée à moitié.</li>
+        <li><b>Carte des zones</b> — les polygones GeoJSON de l'événement et la position des équipements, lus depuis le cache local.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">C'est la réponse à l'exigence « batterie et mémoire » du sujet : <b>aucun polling réseau nulle part</b>. L'app réagit à des événements — retour du réseau, alerte poussée, geste de l'agent — au lieu d'interroger en boucle.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Rappelle la mesure du MP3 : environ 7 ms entre l'action terrain et la réception SSE. Ici, tu montres l'autre bout du fil — le consommateur.</p>
+    <p>Le refus de scan sans GPS est un choix discutable, sois prête à le défendre : un scan sert à savoir <b>où</b> se trouve un équipement. Sans coordonnées, la donnée est incomplète et faussement rassurante. Je préfère un refus explicite à une donnée trompeuse.</p>
+  </div>
+</section>
+
+<!-- 22 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="KPI" data-net="online">
+  <div class="eyebrow"><span class="num">21</span> Pilotage</div>
+  <h1>Les KPI, en lecture<br>seule et en ligne</h1>
+
+  <div class="cols c2">
+    <div>
+      <h2>Ce que l'app affiche</h2>
+      <ul class="clean">
+        <li><b>État des stocks</b> par statut et par catégorie</li>
+        <li><b>Empreinte carbone consolidée</b> de l'événement — fabrication amortie + transport</li>
+        <li><b>Facteurs d'émission</b> issus de l'API Open Data de l'ADEME, en direct</li>
+      </ul>
+      <p style="color:var(--muted);font-size:15px;margin-top:16px">Tout est calculé par le pipeline d'agrégation <code>$facet</code> côté MongoDB, présenté en MP3. L'app ne recalcule rien : elle affiche.</p>
+    </div>
+    <div class="card hi">
+      <h3>Une limite assumée</h3>
+      <p><b>Les KPI ne fonctionnent pas hors ligne.</b> C'est délibéré : un indicateur consolidé calculé sur un cache partiel serait <b>faux</b>, et un chiffre faux sur un tableau de bord est pire qu'un chiffre absent — il sera utilisé pour décider.</p>
+      <p style="margin-top:10px">Hors réseau, l'écran affiche ce qu'il en est plutôt qu'une valeur périmée sans le dire.</p>
+    </div>
+  </div>
+
+  <div class="callout">C'est la frontière du choix offline-first : <b>on met hors ligne ce qui doit être capturé</b> (les gestes de l'agent), <b>pas ce qui doit être exact</b> (les indicateurs de pilotage).</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Ne survends pas cette partie : elle est en lecture seule et c'est normal, le pilotage n'est pas le métier de l'agent de terrain. Ce qui compte, c'est la <b>justification de la limite</b>.</p>
+    <p>La phrase à garder : « un chiffre faux est pire qu'un chiffre absent, parce qu'on décide avec ». C'est un argument de conception, pas un aveu de manque.</p>
+    <p class="q">Si on demande de rappeler la méthode ADEME : deux termes, la fabrication amortie sur la durée de vie au prorata des jours d'événement, et le transport en tonnes × km × facteur d'émission. Les facteurs viennent en direct de l'API ADEME avec un repli codé en dur si elle est indisponible. Tout ça est côté API, je l'ai détaillé en MP3.</p>
+  </div>
+</section>
+
+<!-- 23 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Refonte UI" data-net="online">
+  <div class="eyebrow"><span class="num">22</span> Itération produit</div>
+  <h1>Ce que l'usage réel<br>a changé</h1>
+  <p class="lede">L'app tourne sur iPhone physique. Trois défauts ne se sont vus qu'à ce moment-là — aucun n'était visible dans le simulateur.</p>
+
+  <div class="row bad"><span class="tag">constat</span><span class="body"><b>Des emoji en guise d'icônes</b> <span>— taille et alignement non maîtrisés, rendu variable selon la version d'iOS</span></span><span class="state">→ Lucide</span></div>
+  <div class="row bad"><span class="tag">constat</span><span class="body"><b>Palette figée en sombre</b> <span>— inutilisable en plein soleil, et c'est un usage extérieur</span></span><span class="state">→ clair / sombre / auto</span></div>
+  <div class="row bad"><span class="tag">constat</span><span class="body"><b>Aucun écran de compte</b> <span>— « je ne me sens pas administrateur » : le rôle n'était visible nulle part</span></span><span class="state">→ onglet Profil</span></div>
+  <div class="row bad"><span class="tag">constat</span><span class="body"><b>51 équipements dans une liste</b> <span>— impossible à parcourir à la main sur un chantier</span></span><span class="state">→ filtres + recherche</span></div>
+
+  <div class="callout">Le diagnostic honnête sur la liste : ce <b>n'était pas</b> un problème de performance. Le <code>FlatList</code> est virtualisé, seules les lignes visibles sont rendues. Paginer n'aurait rien réglé — le vrai besoin était de <b>retrouver</b> un équipement, pas d'en afficher moins. Les tuiles de statut sont devenues des filtres, et un champ de recherche couvre le code QR et le libellé.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Cette slide montre que tu sais <b>diagnostiquer avant de corriger</b>. La demande initiale était « paginer la liste ». La bonne réponse était « le problème n'est pas la quantité affichée, c'est la findabilité ». Un développeur qui applique la demande sans l'examiner aurait paginé pour rien.</p>
+    <p>Le passage aux icônes Lucide a un bénéfice qui n'était pas prévu et qui a servi juste après : les SVG héritent de la couleur, donc le thème clair/sombre n'a demandé aucun travail supplémentaire sur les icônes. C'est le lot 1 qui a rendu le lot 3 facile.</p>
+    <p>Le thème clair est un besoin terrain, pas un caprice : un écran sombre en plein soleil est illisible.</p>
+  </div>
+</section>
+
+<!-- 24 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Tests" data-net="online">
+  <div class="eyebrow"><span class="num">23</span> Qualité</div>
+  <h1>271 tests,<br>1,3 seconde</h1>
+
+  <div class="cols c4" style="margin-bottom:26px">
+    <div class="stat"><span class="n ok">271</span><span class="l">tests, tous verts</span></div>
+    <div class="stat"><span class="n ok">33</span><span class="l">suites</span></div>
+    <div class="stat"><span class="n app">1,3&nbsp;s</span><span class="l">temps d'exécution</span></div>
+    <div class="stat"><span class="n">2</span><span class="l">sondes contre l'API réelle</span></div>
+  </div>
+
+  <div class="cols c2">
+    <div class="card">
+      <h3>Pourquoi c'est rapide</h3>
+      <p>Les règles métier vivent dans <code>domain/</code>, sans dépendance à React Native ni à un appareil : machine à états, décision de réconciliation, matrice de permissions, repli exponentiel, filtrage, résolution du thème. Les dépôts SQLite sont testés sur une base en mémoire. <b>Aucun simulateur n'est nécessaire.</b></p>
+    </div>
+    <div class="card hi">
+      <h3>Les deux sondes d'intégration</h3>
+      <p>Elles ne tournent pas avec <code>npm test</code> : elles ont besoin d'une API vivante. Elles se connectent réellement avec les quatre comptes de démonstration et <b>comparent la matrice locale aux refus du serveur</b>. Si l'app et l'API divergent, le test casse.</p>
+      <p style="margin-top:10px">Elles visent un identifiant d'équipement inexistant : un rôle interdit est rejeté en 403 <b>avant</b> toute écriture, donc le jeu de démo n'est jamais abîmé.</p>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Compare au MP3 : 40 tests côté API, 271 ici. Ce n'est pas que le front est mieux testé — c'est que <b>l'architecture le permet</b>. En sortant les règles des composants, elles deviennent testables sans device. C'est la récompense concrète de la séparation en couches, et c'est ce qu'il faut dire.</p>
+    <p>Les sondes sont ton argument le plus fort sur le risque de duplication soulevé slide 17 : la divergence entre l'app et l'API n'est pas surveillée à l'œil, elle est vérifiée par un test contre l'API réelle, en local ou en production.</p>
+    <p>Mentionne la précaution des identifiants inexistants — c'est le détail qui montre qu'une sonde a été conçue pour tourner sans casser la démo.</p>
+  </div>
+</section>
+
+<!-- 25 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Limites" data-net="online">
+  <div class="eyebrow"><span class="num">24</span> Honnêteté</div>
+  <h1>Ce que je n'ai pas fait,<br>et pourquoi</h1>
+
+  <ul class="clean">
+    <li><b>Pas de tests de rendu</b> — <code>react-native-testing-library</code> n'est pas installée. Les composants sont testés par leurs fonctions pures (filtrage, visibilité selon le rôle, libellés) ; le rendu visuel et les contrastes sont validés à la main sur iPhone. Limite assumée, pas oubliée.</li>
+    <li><b>Android non validé</b> — le code est cross-platform et ne contient aucune API spécifique à iOS, mais je ne l'ai testé que sur iPhone. Je ne prétendrai pas qu'il tourne sur Android : je ne l'ai pas vérifié.</li>
+    <li><b>Écrans admin absents</b> — hors périmètre, choisi. L'app cible l'agent de terrain ; seule la création de compte est disponible, parce que l'API l'expose déjà.</li>
+    <li><b>Résolution de conflit manuelle</b> — l'app détecte le conflit, l'affiche avec l'état local et l'état serveur, et laisse l'agent trancher. Une fusion automatique déciderait à sa place sur une donnée physique qu'il est le seul à pouvoir constater.</li>
+  </ul>
+
+  <div class="callout">Ces quatre points sont des <b>décisions</b>, pas des oublis. C'est la différence que je veux montrer : un périmètre tenu et documenté vaut mieux qu'un périmètre affiché et creux.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Slide courageuse, garde-la. Un jury pose toujours la question des limites — mieux vaut l'avoir posée soi-même, avec la justification prête.</p>
+    <p>La quatrième ligne est la plus intéressante : la résolution manuelle des conflits n'est pas de la paresse. Sur un conflit de statut d'équipement, <b>seul l'agent qui a l'objet sous les yeux</b> sait qui a raison. Une fusion automatique produirait une donnée que personne n'a constatée.</p>
+    <p>Ne t'excuse pas en disant ça. Ce sont des arbitrages, énonce-les comme tels.</p>
+  </div>
+</section>
+
+<!-- 26 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Récapitulatif" data-net="online">
+  <div class="eyebrow"><span class="num">25</span> Récapitulatif</div>
+  <h1>La chaîne est complète</h1>
+
+  <div class="cols c2">
+    <div>
+      <ul class="clean">
+        <li><b>Trois couches strictes</b> — UI, hooks, services. Aucun appel réseau dans un composant.</li>
+        <li><b>Offline-first réel</b> — SQLite comme source de vérité, file sortante, synchro asynchrone.</li>
+        <li><b>Optimistic UI avec rollback</b> — l'app affirme, puis sait se dédire.</li>
+        <li><b>Scan industriel</b> — anti-doublon, résolution locale, retour haptique, zéro réseau.</li>
+      </ul>
+    </div>
+    <div>
+      <ul class="clean">
+        <li><b>Verrouillage optimiste bout-en-bout</b> — le <code>__v</code> du MP3 traverse le téléphone et revient.</li>
+        <li><b>Rôles miroir de l'API</b> — vérifiés par une sonde contre le serveur réel.</li>
+        <li><b>271 tests</b> en 1,3 seconde, sans simulateur.</li>
+        <li><b>Deux bugs trouvés en usage réel</b>, expliqués et corrigés.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:26px">Le MP3 se terminait sur « la PWA se branchera sans modification ». C'est fait — avec React Native, comme le demande le sujet de cette partie, et sans avoir eu à rouvrir l'API.</div>
+
+  <div class="notes">
+    <h4>Conduite</h4>
+    <p>Récapitulatif en miroir de celui du MP3, huit lignes, tu les lis vite. Le jury a besoin d'un point d'ancrage avant les questions.</p>
+    <p>La dernière phrase referme la boucle des deux soutenances : la promesse de fin de MP3 a été tenue. C'est ta conclusion — dis-la en regardant le jury, pas l'écran.</p>
+  </div>
+</section>
+
+<!-- 27 ─────────────────────────────────────────────────────────────────── -->
+<section class="slide" data-title="Merci" data-net="online">
+  <div class="title-slide">
+    <div class="sub">Module MP4 · Application mobile terrain</div>
+    <h1>Merci</h1>
+    <div class="rule"></div>
+    <p class="who"><b>Clara Morin</b> · La MANU (NOVEI) · 2026<br>
+    <span style="color:var(--app)">Des questions ?</span></p>
+  </div>
+  <div class="notes">
+    <h4>Aide-mémoire pour les questions</h4>
+    <p><b>Lève les yeux.</b></p>
+    <p><b>Sigles :</b> FIFO = premier entré, premier sorti. SSE = Server-Sent Events, flux poussé par le serveur. JSI = l'interface qui permet à op-sqlite d'être synchrone. ATS = App Transport Security, la politique HTTPS d'iOS.</p>
+    <p><b>« Pourquoi pas une base de données synchronisée toute faite ? »</b> — Parce que le sujet impose la réconciliation avec une API REST existante et son verrouillage optimiste. Une solution clé en main aurait imposé son propre modèle de synchronisation, et je n'aurais rien démontré du mécanisme.</p>
+    <p><b>« Comment démontrer le mode hors ligne ? »</b> — Mode avion, scanner trois équipements, montrer le compteur de la file qui monte, réactiver le réseau, montrer la file qui se vide et les statuts qui se mettent à jour.</p>
+    <p><b>« Et si deux agents scannent le même équipement ? »</b> — Le second à synchroniser reçoit un 409, l'action part dans le centre de synchronisation, l'agent tranche. C'est le scénario du MP3, bouclé.</p>
+  </div>
+</section>
+
+</main>
+
+<div class="foot">
+  <span>LogiChain Mobile · MP4 · Clara Morin</span>
+  <span class="spacer"></span>
+  <span id="slideTitle"></span>
+  <span class="idx"><span id="cur">1</span> / <span id="tot">27</span></span>
+</div>
+
+<div class="plan" id="plan">
+  <h2 style="margin-bottom:16px">Plan de la présentation</h2>
+  <div class="plan-grid" id="planGrid"></div>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var i = 0;
+  var bar = document.getElementById('bar');
+  var cur = document.getElementById('cur');
+  var tot = document.getElementById('tot');
+  var title = document.getElementById('slideTitle');
+  var netLabel = document.getElementById('netLabel');
+  var queue = document.getElementById('queue');
+  tot.textContent = slides.length;
+
+  // La file sortante du bandeau se remplit sur les slides hors réseau et se
+  // vide sur celles qui traitent de la synchronisation : le deck raconte la
+  // même histoire que l'app.
+  var q = 0;
+
+  function show(n, dir){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function(s, k){ s.classList.toggle('on', k === i); });
+    var s = slides[i];
+    var off = s.getAttribute('data-net') === 'offline';
+    document.body.setAttribute('data-net', off ? 'offline' : 'online');
+    netLabel.textContent = off ? 'Hors réseau' : 'En ligne';
+    q = 0;
+    for (var j = i; j >= 0 && slides[j].getAttribute('data-net') === 'offline'; j--) { q += 3; }
+    queue.textContent = q;
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    cur.textContent = i + 1;
+    title.textContent = s.getAttribute('data-title') || '';
+    var note = s.querySelector('.notes');
+    slides.forEach(function(x){ var n2 = x.querySelector('.notes'); if (n2) n2.classList.remove('on'); });
+    if (note) note.classList.add('on');
+    s.scrollTop = 0;
+    if (location.hash !== '#' + (i + 1)) history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  function next(){ show(i + 1); }
+  function prev(){ show(i - 1, 'back'); }
+
+  document.addEventListener('keydown', function(e){
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); next(); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); prev(); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 'n' || k === 'N') { document.body.classList.toggle('notes-on'); }
+    else if (k === 'p' || k === 'P') { document.body.classList.toggle('plan-on'); }
+    else if (k === 't' || k === 'T') { setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+    else if (k === 'f' || k === 'F') {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }
+    else if (k === 'Escape') { document.body.classList.remove('plan-on'); }
+  });
+
+  // Vue plan : une grille cliquable de toutes les slides.
+  var grid = document.getElementById('planGrid');
+  slides.forEach(function(s, k){
+    var b = document.createElement('button');
+    b.className = 'plan-item';
+    b.innerHTML = '<div class="n">' + String(k + 1).padStart(2, '0') + '</div>' +
+                  '<div class="t">' + (s.getAttribute('data-title') || '') + '</div>';
+    b.addEventListener('click', function(){
+      document.body.classList.remove('plan-on');
+      show(k);
+    });
+    grid.appendChild(b);
+  });
+
+  // Thème : clair par défaut (salle éclairée, vidéoprojecteur), sombre sur T.
+  var root = document.documentElement;
+  function setTheme(t){
+    root.setAttribute('data-theme', t);
+    try { localStorage.setItem('logichain-deck-theme', t); } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('logichain-deck-theme'); } catch (e) {}
+  setTheme(saved === 'dark' ? 'dark' : 'light');
+
+  var start = parseInt((location.hash || '#1').slice(1), 10);
+  show(isNaN(start) ? 0 : start - 1);
+})();
+</script>
+</body>
+</html>

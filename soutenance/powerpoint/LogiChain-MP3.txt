@@ -1,0 +1,619 @@
+LogiChain API
+Plateforme logistique événementielle
+Module MP3 · Back-end & API REST
+Clara Morin
+La MANU (NOVEI) · Mai 2026
+Salue, présente-toi en une phrase. Annonce que tu présentes la partie back-end du projet LogiChain, l'API REST. La PWA front est un autre repo, autre Mini projet.
+
+Le défi
+12 000
+personnes
+500+
+équipements
+0
+barre de réseau
+Logistique complexe
+festivals, salons, événements éco-responsables
+Scans massifs
+matériel scanné en masse sur le terrain
+Réseau dégradé
+boue, foule, sous-sol, connectivité instable
+Impact temps réel
+empreinte carbone mesurée à la volée
+Pics de charge
+montage et démontage concentrés sur quelques heures
+LogiChain API · MP3 · Clara Morin
+Imaginez un festival de 12 000 personnes. 500 projecteurs, 100 enceintes, 30 régies. Tout doit être tracé, géolocalisé, et son empreinte carbone calculée, y compris quand un agent scanne au fond d'un hangar sans réseau.
+
+2
+
+Quatre objectifs
+Centraliser et sécuriser
+ressources matérielles et humaines sur une plateforme unique
+Garantir l'offline-first
+sur le terrain, sans perte de données quand le réseau lâche
+Piloter par les KPI
+stock, empreinte carbone, goulots mesurés en temps réel
+Encaisser les pics d’utilisation
+scans simultanés au montage et démontage sans dégrader le service
+LogiChain API · MP3 · Clara Morin
+Quatre objectifs qui se traduisent en quatre contraintes techniques majeures pour l'API.
+
+
+encaisser les pics si ya “comment tu encaisses des centaines de scans simultanés au démontage ?”: Côté écriture, chaque scan est une opération atomique indexée ; l'allocation se fait en lot transactionnel pour éviter N requêtes.
+3
+
+Ce que je présente aujourd'hui
+LogiChain API · MP3 · Clara Morin
+▸ Back-end uniquement, l'API REST
+▸ Repo séparé : logichain-api
+▸ La PWA mobile-first viendra dans un autre Mini Projet
+▸ Domaine prod : api-logichain.fulkia.fr
+Architecture cible :
+Clairement délimité, pas de front aujourd'hui. Mais l'API est conçue pour le consommer demain : CORS, format JSON stable, verrouillage optimiste pour la synchro offline.
+
+La stack
+LogiChain API · MP3 · Clara Morin
+Couche
+Choix
+Runtime
+Node.js 20 + TypeScript
+Framework 
+Express
+Base de données
+MongoDB 7 (replica set rs0)
+Object Data Model (ODM)
+Mongoose
+Validation
+Zod (HTTP) + Mongoose (DB)
+Auth
+JWT + Bcrypt
+Tests
+Jest + ts-jest
+Infrastructure
+Docker multi-stage + Traefik HTTPS
+Stack imposée par le sujet sur le cœur, Node + Mongo + Mongoose. J'ai ajouté TypeScript strict pour la robustesse, Zod pour sécuriser les inputs HTTP, et Bruno pour la doc vivante.
+
+Les contraintes imposées par le sujet
+01
+POO obligatoire
+encapsulation, héritage justifié, polymorphisme
+02
+N-Tier strict
+Entity / Repository / Service / Controller
+03
+REST Richardson niveau 2
+verbes, URLs ressources, codes statut
+04
+Security by design
+chiffrement, contrôle d'accès, validation
+05
+Robustesse offline
+verrouillage optimiste pour la sync
+ÉVALUATION
+5 axes notés
+Tout le code respecte ces cinq contraintes, démonstration dans les slides suivants.
+✓
+POO
+✓
+N-Tier
+✓
+REST L2
+✓
+Sécurité
+✓
+Offline
+LogiChain API · MP3 · Clara Morin
+Ce sont les axes notés. Tout le code respecte ces cinq contraintes, je le démontre dans les slides suivants.
+Niveau 0 : un seul endpoint, souvent uniquement POST.
+Niveau 1 : plusieurs ressources (URI distinctes).
+Niveau 2 : ressources + utilisation correcte des verbes HTTP (le standard de fait pour la plupart des API REST).
+Niveau 3 : niveau 2 + hypermédia (HATEOAS).
+
+6
+
+L'architecture N-Tier
+LogiChain API · MP3 · Clara Morin
+Règle d'or
+Chaque couche connaît uniquement la couche du dessous.Le service ne sait pas qu'il y a du HTTP.Le contrôleur ne sait pas qu'il y a une base.
+Règle d'or N-Tier. Si demain je change Mongoose pour Prisma, je ne touche qu'à la couche repository. Si je passe d'Express à Fastify, seuls les controllers changent. Le métier reste intact.
+
+Héritage justifié + Polymorphisme
+LogiChain API · MP3 · Clara Morin
+▸ Héritage justifié : id/version/dates sont vraiment universels
+▸ Polymorphisme : toJSON() surchargé par chaque entité (super.toJSON() + champs propres)
+▸ Le contrôleur appelle entity.toJSON() sans connaître la classe concrète
+Le sujet exige un héritage justifié. Ces quatre champs (id, version, createdat et updatedat) sont vraiment communs à toutes mes entités persistées. La centralisation évite la duplication et garantit l'uniformité du format JSON renvoyé.
+
+Encapsulation : l'entité protège son état
+LogiChain API · MP3 · Clara Morin
+Aucun setter public · transitions contrôlées par une machine à états
+Aucun setter public. Le seul moyen de passer en 'allocated' c'est d'appeler allocateTo(), qui vérifie d'abord que la transition est légale. Impossible de mettre un item en lost puis de le réallouer, c'est interdit par la machine à états.
+
+Cycle de vie d’un item (machine à états) 
+LogiChain API · MP3 · Clara Morin
+Etat
+Signification 
+in_stock
+Dans l'entrepôt, disponible 
+allocated
+Réservé à un événement précis
+in_transit
+En cours de transport 
+deployed
+Installé sur site  
+in_maintenance
+En réparation    
+lost
+Perdu (état terminal)
+Une machine à états, c'est une représentation formelle du cycle de vie d'un objet : un ensemble fini d'états possibles, et un ensemble de transitions autorisées entre ces états. Tout ce qui n'est pas explicitement autorisé est interdit.
+
+L'item passe par 6 états : en stock, alloué, en transit, déployé, en maintenance, perdu. 
+Les transitions sont strictement contrôlées par une table ALLOWED_TRANSITIONS dans l'entité. Toute tentative de transition non autorisée renvoie un 422 avec la liste des transitions valides. C'est l'encapsulation POO appliquée à une machine à états : impossible de corrompre l'état depuis l'extérieur.
+
+
+
+ Comment ai-je modélisé mes données dans MongoDB, et pourquoi ?
+Collection
+Particularités clés
+items
+QR unique · GeoJSON Point + 2dsphere · historique de mouvements imbriqué
+events
+GeoJSON Polygon par zone · slug unique · cycle de vie
+routes
+Stops imbriqués · mode transport · distance réelle / planifiée
+users
+Bcrypt en select:false · rôles enum · email unique
+notifications
+alertes temps réel (SSE + Change Streams) · + collection Time Series monitoring_metrics
+▸
+Dénormalisation assumée
+L'historique des mouvements est imbriqué dans le document item -> On le lit toujours avec l'item, un seul accès disque, zéro jointure. Trade-off assumé : lecture ultra rapide.
+▸
+Validation côté Mongoose (pas natif MongoDB)
+Schémas TypeScript stricts côté ORM : autocomplétion, types portables, indépendance du moteur.
+▸
+Index composés ciblés
+({eventId, status} = un seul index qui sert les requêtes filtrant sur les deux champs), index unique (qrCode pour le scan), index géospatial 2dsphere (pour les requêtes $near).
+▸
+optimisticConcurrency: true
+Mongoose incrémente __v automatiquement à chaque save. C'est la fondation du verrouillage optimiste.
+LogiChain API · MP3 · Clara Morin
+Trois collections principales : items, events, routes. Plus la collection users pour l'authentification.Dénormalisation assumée : au lieu de tables liées par jointures (SQL), on imbrique les données liées dans le document parent. lire l’exemple
+Validation côté Mongoose, pas la validation native MongoDB. C'est ce qui était demandé en cours. L'avantage : la validation reste en TypeScript, on a l'autocomplétion et les types stricts, et c'est portable si on change de base.Index composés ciblés sur les requêtes fréquentes : 
+({eventId, status} = un seul index qui sert les requêtes filtrant sur les deux champs), 
+index unique (qrCode pour le scan), 
+index géospatial 2dsphere (pour les requêtes $near).4. optimisticConcurrency: true / __v : Définis : Mongoose incrémente un numéro de version à chaque sauvegarde. Je détaille slide suivante.
+
+MongoDB me permet de coller le modèle de données au métier : un item porte son propre historique, sa position GeoJSON et sa version, lisibles en un seul accès.
+11
+
+Verrouillage optimiste, le filet pour la sync offline
+Pessimiste, non retenu
+Verrouiller avant d'écrire.
+On pose un lock, on modifie, on libère. Sûr pour la cohérence mais bloquant, impossible à demander à des agents terrain qui scannent hors-ligne.
+Optimiste, mon choix
+Lire, modifier, vérifier la version au commit.
+Compare-and-swap atomique sur __v. Pas de blocage. Les conflits sont détectés au moment de l'écriture, exactement ce qu'il faut pour le offline.
+Scénario terrain : pourquoi c'est critique
+09h00
+Agent A scanne hors-ligne dans un sous-sol.
+09h05
+Agent B scanne le même item en ligne. __v passe à 2.
+09h12
+Agent A retrouve le réseau et POST avec __v: 1.
+→ 409
+Le serveur détecte le conflit. La PWA re-GET, merge côté client, re-soumet.
+▸
+Mongoose maintient __v automatiquement à chaque save
+▸
+Chaque update matche sur { _id, __v }, opération atomique
+▸
+Si findOneAndUpdate retourne null → ConflictError 409
+▸
+La PWA reçoit 409 et déclenche un merge côté client
+LogiChain API · MP3 · Clara Morin
+Le verrouillage optimiste, c'est un pattern qui fait la promesse opposée du verrouillage pessimiste classique.En pessimiste, on pose un verrou avant de modifier, risque de blocage si quelqu'un oublie de libérer. En optimiste, on ne verrouille rien : on lit, on travaille, et au moment d'écrire on vérifie que la version qu'on avait n'a pas changé entre temps. Techniquement c'est un compare-and-swap atomique.Mongoose maintient un champ __v qui s'incrémente automatiquement à chaque save. 
+__v est un champ automatique de Mongoose qui sert à tracker les modifications d'un document. 
+Mon update repository matche sur { _id, __v: versionAttendue }. Si quelqu'un d'autre a modifié le document entre temps, le __v a changé, et findOneAndUpdate retourne null. Je lève alors ConflictError, code 409.POURQUOI C'EST CRITIQUE POUR LOGICHAINLa PWA va tourner hors-ligne. Un agent terrain scanne un item à 9h dans un sous-sol sans réseau, un autre scanne le même item à 9h05 dehors avec du réseau.Quand le premier retrouve du réseau et synchronise, il faut détecter le conflit pour pouvoir merger. Le 409 est l'API contractuelle pour ça, la PWA reçoit 409, refait un GET, merge intelligemment côté client, et re soumet avec la nouvelle version.Pessimiste aurait été impossible : on n'allait pas demander aux agents terrain de poser un verrou avant chaque scan.
+
+12
+
+Transactions ACID et allocation atomique d'un lot
+Réserver d'un coup tout le matériel d'un secteur, sans jamais laisser un état incohérent
+LE PROBLÈME
+Au montage, on réserve d'un coup tout le matériel d'un secteur (50 items). Si l'item n°37 est déjà perdu, que deviennent les 36 déjà traités ?  Sans transaction → état incohérent, ingérable en offline.
+LA SOLUTION
+repo.withTransaction() ouvre une session sur le replica set rs0. Tout-ou-rien : un seul échec (404 / 422 / 409) annule l'intégralité du lot. Le verrouillage optimiste __v reste actif → isolation.
+POST /api/v1/events/:id/allocate   { itemIds: [...] }
+A
+Atomicité
+rollback auto si un item échoue
+C
+Cohérence
+chaque item validé par sa machine à états
+I
+Isolation
+__v + snapshot transactionnel
+D
+Durabilité
+commit répliqué sur rs0
+LogiChain API · MP3 · Clara Morin
+Le verrouillage optimiste qu'on vient de voir protège UN document. Mais au montage, un responsable logistique réserve d'un coup tout le matériel d'un secteur : parfois 50 items en une action. La question, c'est : que se passe-t-il si le 37e item est déjà perdu ou déjà alloué ailleurs ?
+
+Sans transaction, on se retrouve avec 36 items alloués et 14 non traités : un état incohérent, impossible à rattraper proprement, surtout en mode offline où le client ne peut pas deviner ce qui a réellement été écrit.
+
+Ma réponse, c'est une transaction ACID. La méthode withTransaction du repository ouvre une session sur le replica set rs0. C'est du tout-ou-rien : si un seul item échoue : 404 introuvable, 422 état non allouable, ou 409 conflit de version : toute la transaction est annulée. Aucun item n'est alloué, on revient à l'état initial.
+
+
+Et point important : le verrouillage optimiste sur __v reste actif À L'INTÉRIEUR de la transaction, ce qui me donne l'isolation entre deux opérateurs simultanés.
+
+Sur les quatre lettres d'ACID : l'Atomicité c'est le rollback automatique ; la Cohérence, c'est que chaque item est validé par sa machine à états avant d'être écrit ; l'Isolation vient du __v et du snapshot de transaction ; la Durabilité, c'est le commit répliqué sur rs0.
+
+J'ai prouvé ce comportement en conditions réelles : un lot avec un item invalide laisse bien tous les autres en stock, et un lot valide les alloue tous.
+
+[Si question "pourquoi pas une transaction par item ?"] Parce que ça ne donnerait
+PAS l'atomicité du lot : on retomberait dans le cas 36 réussis / 14 échoués. C'est
+justement le périmètre métier , « ce secteur, en un geste » , qui doit être atomique.
+
+[Si question "c'est quoi rs0 / un replica set ?"] Un groupe de serveurs Mongo qui
+gardent la même copie des données : un PRIMARY qui reçoit les écritures, des
+SECONDARY qui répliquent. Si le primary tombe, un secondary est élu : c'est la
+tolérance aux pannes. Et c'est la condition technique des transactions ACID et des
+Change Streams.
+
+
+
+Conventions REST, Richardson niveau 2
+Modèle de maturité de Richardson
+0
+RPC sur HTTP
+1
+Ressources
+2
+Verbes + statuts
+3
+HATEOAS sur-engineering pour notre PWA
+Action
+Verbe
+URL
+Lister
+GET
+/api/v1/events/:id/items?status=in_stock
+Créer
+POST
+/api/v1/items
+Modifier
+PATCH
+/api/v1/items/:id
+Supprimer
+DELETE
+/api/v1/items/:id
+Action métier
+POST
+/api/v1/items/:id/scan  ·  /allocate  ·  /deploy
+Codes statut clés, trois échecs, trois codes sémantiquement distincts
+200
+OK
+201
+Created
+204
+No Content
+400
+Bad Request
+Input mal formé (Zod refuse)
+401
+Unauthorized
+404
+Not Found
+403
+Forbidden
+Rôle insuffisant (RBAC requireRole)
+422
+Unprocessable
+Règle métier refuse
+LogiChain API · MP3 · Clara Morin
+409
+Conflict
+Version OCC ou clé unique
+REST RICHARDSON NIVEAU 2Le modèle de maturité de Richardson est une grille à 4 niveaux qui mesure à quel point une API est REST.- Niveau 0 : un seul endpoint qui reçoit tout, façon RPC sur HTTP.- Niveau 1 : on découpe par ressources.- Niveau 2 : on utilise les verbes HTTP de manière sémantique et les codes statut standards.- Niveau 3 : HATEOAS, l'API renvoie les liens vers ses ressources.Le sujet impose le niveau 2 minimum. (((((Je suis exactement à ce niveau, HATEOAS aurait été du sur-engineering pour une PWA qui connaît déjà sa structure.)))))Donc : verbes sémantiques. GET pour lire, POST pour créer, PATCH pour modifier partiellement, DELETE pour supprimer. PUT je n'utilise pas car on ne remplace jamais un item entièrement.Et pour les actions métier qui ne sont pas CRUD, scanner, allouer, déployer, je fais POST sur une sous-ressource verbeuse : POST /items/:id/scan, POST /items/:id/allocate. C'est un compromis acceptable au niveau 2.LES CODES STATUT, MA GRILLE DE DIFFÉRENCIATION- 400 si Zod refuse l'input (mal formé)- 422 si la règle métier refuse, par exemple une transition d'état interdite, l'input est syntaxiquement valide mais le métier dit non- 409 si conflit de version optimistic ou clé unique violée
+-403 forbiddennTrois codes différents pour trois échecs sémantiquement distincts, c'est ça, Richardson niveau 2 bien fait.
+
+14
+
+Security by design
+Contrôle d'accès strict et validation systématique  du token jusqu'à la base
+✓
+Authentification
+JWT Bearer (HS256), secret ≥ 32 caractères validé au boot (Zod fail-fast)
+✓
+Mots de passe
+Bcrypt 12 rounds · passwordHash en select:false → jamais sérialisé
+✓
+Autorisation
+RBAC 4 rôles via requireRole() → 403 Forbidden  (admin · logistics_manager · field_agent · transporter)
+✓
+Validation en profondeur
+Zod (entrée HTTP) puis Mongoose (avant écriture en base)
+✓
+Durcissement HTTP
+Helmet · CORS allow-list · body limit 1 Mo · x-powered-by off
+✓
+Transport
+HTTPS Let's Encrypt (Traefik) · MongoDB jamais exposé publiquement
+LogiChain API · MP3 · Clara Morin
+La sécurité n'est pas une couche qu'on rajoute à la fin, elle est pensée à chaque étage de l'API  du token de l'agent jusqu'à l'écriture en base.
+
+L'authentification se fait par JWT Bearer signé en HS256. Le secret fait au moins 32 caractères, et il est validé au démarrage par Zod : si le secret est trop court, l'application refuse de booter. C'est du fail-fast, on ne tourne jamais en config non sécurisée.
+
+Les mots de passe ne sont jamais stockés en clair : Bcrypt avec 12 rounds. Et le champ passwordHash est en select:false dans Mongoose, donc il ne remonte jamais, même par accident, dans une réponse JSON.
+
+L'autorisation, c'est du RBAC à quatre rôles : admin, responsable logistique, agent de terrain, transporteur : appliqué par un middleware requireRole. Un rôle insuffisant renvoie un 403 Forbidden, distinct du 401 qui, lui, veut dire « pas
+authentifié ».
+
+La validation se fait en profondeur, sur deux niveaux : Zod valide la requête HTTP en entrée, puis Mongoose re-valide avant l'écriture en base. Les deux sont volontaires : défense en profondeur.
+
+Côté durcissement HTTP : Helmet pour les en-têtes de sécurité, CORS en liste blanche, une limite de corps à 1 Mo contre les abus, et x-powered-by désactivé pour ne pas divulguer la stack.
+
+Enfin le transport : HTTPS avec certificat Let's Encrypt via Traefik, et surtout MongoDB n'est jamais exposé publiquement : il n'écoute qu'en local derrière l'API.
+
+[Si question "et la validation native MongoDB ?"] J'ai fait le choix de la validation
+au niveau de l'ODM Mongoose plutôt que des validateurs $jsonSchema natifs : ça me
+donne des types TypeScript portables et l'autocomplétion, tout en gardant une
+double barrière Zod + Mongoose.
+
+
+KPI temps réel par agrégation
+Un seul pipeline MongoDB, plusieurs métriques en un passage
+▸
+Pipeline $facet  :  aggregateByEvent : stocks par statut et par catégorie, poids total, CO₂ de fabrication cumulé : en une seule requête
+▸
+Isolé dans le Repository  :  les pipelines d'agrégation sont confinés à la couche d'accès aux données (exigence du sujet)
+▸
+Alimente le pilotage  :  tableau de bord, empreinte carbone consolidée, détection des goulots d'étranglement
+▸
+Endpoints  :  /dashboard/events/:id/carbon-footprint  ·  /dashboard/allocations/check
+{ $match: { eventId } },
+{ $facet: {
+    byStatus:   [ { $group: { _id: '$status',   count: { $sum: 1 } } } ],
+    byCategory: [ { $group: { _id: '$category', count: { $sum: 1 } } } ],
+    sums:       [ { $group: { _id: null, weight: { $sum: '$weightKg' } } } ]
+} }
+LogiChain API · MP3 · Clara Morin
+Le troisième objectif, c'est le pilotage : donner aux responsables des indicateurs en temps réel. Plutôt que de charger tous les items et de compter côté Node (ce qui serait lent et coûteux en mémoire) je fais le calcul au plus près de la donnée, dans MongoDB, avec un pipeline d'agrégation.
+
+La clé, c'est l'opérateur $facet : en un seul passage sur la collection, je calcule plusieurs métriques à la fois,  le nombre d'items par statut, par catégorie, le poids total, et le CO2 de fabrication cumulé. Une seule requête au lieu de quatre.
+
+Architecturalement, ce pipeline est isolé dans le Repository. C'est une exigence du sujet : toute la logique d'accès aux données, y compris les agrégations, reste confinée à la couche data. Le service ne voit jamais de requête Mongo.
+
+Cette agrégation alimente trois choses : le tableau de bord d'état des stocks, l'empreinte carbone consolidée d'un événement, et la détection des goulots d'étranglement. Le tout exposé par les endpoints du dashboard.
+
+Le bloc de code en bas, c'est la structure réelle du $facet : un $match pour cibler l'événement, puis trois sous-pipelines parallèles regroupés par statut, par catégorie et pour les sommes.
+
+[Si question "pourquoi pas calculer côté application ?"] Parce que l'agrégation Mongo
+s'exécute côté serveur de base, profite des index, et ne transfère que le résultat :
+pas les milliers de documents. C'est ce qui tient la charge sur un gros événement.
+
+
+LogiChain API · MP3 · Clara Morin
+Empreinte carbone et méthodologie ADEME
+Mode de transport
+kgCO2e / tonne•km
+Source
+Camion thermique 7,5-26t
+0,058
+API ADEME live
+Camion électrique
+0,020
+Fallback
+Rail (fret ferroviaire)
+0,00401
+API ADEME live
+Vélo cargo
+0
+Fallback
+
+Agence de l'environnement et de la maîtrise de l'énergie
+Deux composantes. 
+Fabrication amortie : un projecteur qui sert 8 ans sur 50 événements ne peut pas compter à 100 % sur chacun. 
+Formule ADEME : la consommation carbone fabricant divisée par la durée de vie, puis multipliée par le ratio jours-événement sur 365 jours. 
+
+Transport : formule canonique Base Carbone = tonnes × kilomètres × facteur d'émission par mode. 
+Les facteurs ne sont pas hardcodés, ils viennent en live de l'API ADEME, je détaille slide suivante.
+
+
+
+
+Intégration API Open Data ADEME
+LogiChain API · MP3 · Clara Morin
+▸ Endpoint ADEME : data.ademe.fr/.../base-carboner
+▸ Sélection par identifiant ADEME (#28030, #43732) → robuste
+▸ Pattern stale-while-revalidate
+▸ Fallback hardcodé si ADEME down → service jamais HS
+▸ Endpoint debug : GET /dashboard/emission-factors
+
+J'aurais pu hardcoder les facteurs ADEME. J'ai préféré consommer leur API Open Data directement. Au démarrage de l'application, mon service AdemeFactorService fait un fetch HTTP vers data.ademe.fr, récupère les facteurs par identifiant ADEME précis, 28030 pour le camion Rigide, 43732 pour le fret ferroviaire, et les met en cache mémoire pendant 24 heures. voici le diagramme architectural
+
+C'est le pattern stale-while-revalidate : latence nulle au runtime, valeurs toujours fraîches. Si l'API ADEME est indisponible, on retombe sur des valeurs de secours hardcodées et l'API LogiChain continue de fonctionner. C'est résilient par design.
+
+
+Allocation sans goulot, algorithme du banquier (Dijkstra 1965)
+Mapping OS → LogiChain : on prouve la sûreté avant d'accorder une ressource
+OS classique
+LogiChain
+processus
+→
+événement
+ressource
+→
+catégorie d'item
+max claim
+→
+besoin prévisionnel
+allocation
+→
+items alloués
+available
+→
+items in_stock
+État sûr
+DÉFINITION
+Il existe une séquence d'événements où chaque besoin peut être satisfait à la suite, en récupérant les ressources libérées par les événements déjà servis.
+✓
+Avant chaque allocation, on simule, puis on vérifie la sûreté
+✓
+Si l'état devient non-sûr, refus HTTP 422 (Unprocessable Entity)
+✓
+Empêche les goulots, d'étranglement structurels avant qu'ils n'arrivent
+LogiChain API · MP3 · Clara Morin
+L'algorithme du banquier répond à une seule question :
+
+▎ « Si j'accorde cette demande de matériel maintenant, est-ce que je reste capable de servir tous les événements jusqu'au bout, ou est-ce que je risque de me retrouver coincée ? »
+
+Si la réponse est « je reste capable » → on accorde. Sinon → on refuse (HTTP 422). On simule avant d'accorder, on n'attend pas que le blocage arrive.
+
+Analogie de la banque (d'où le nom) : un banquier prête de l'argent à plusieurs clients. Chaque client a annoncé un besoin maximum. Le banquier n'accorde un retrait que s'il lui reste assez pour satisfaire tout le monde. dans notre cas : le « banquier » = le pool d'équipements, les « clients » = les événements.
+
+19
+
+Tests et qualité
+Couverture des points sensibles + 1 test de charge k6 (pics de scan)
+40
+tests unitaires
+✓  TOUS VERTS
+Focus services à logique riche (exigence sujet)
+Repositories mockés (pas de DB en unitaire)
+Formule ADEME vérifiée au centime
+Exemple historique Dijkstra à 5 processus
+Transitions sûr ↔ non-sûr couvertes
+Immutabilité de ResourceState garantie
+TypeScript strict (noUncheckedIndexedAccess)
+Zero any non justifié
+LogiChain API · MP3 · Clara Morin
+Intégration live API ADEME
+Allocation transactionnelle ACID : atomicité et rollback couverts
+40 tests Jest sur les deux services à logique riche, c'est ce qu'imposait le sujet : focus sur les services. 
+Les repositories et le fetch HTTP vers ADEME sont mockés, donc tests vraiment unitaires. 
+La nouveauté depuis l'intégration ADEME : je teste le comportement du cache, fetch live qui peuple le cache, fallback si l'API est en erreur, et rejet des valeurs aberrantes que l'API pourrait renvoyer. TypeScript strict avec tous les flags. Zero any non justifié.
+
+K6 est un outil de test de charge open source développé par Grafana Labs . Il est conçu pour aider les développeurs et les ingénieurs à tester les performances et la fiabilité de leurs systèmes, notamment les API, les microservices et les sites web.
+20
+
+Documentation interactive de l'API
+OpenAPI 3 généré depuis les schémas Zod, servi par Scalar sur /docs
+✓
+Single source of truth
+le même schéma Zod valide la requête ET génère la doc OpenAPI → jamais désynchronisée
+✓
+UI Scalar interactive
+43 endpoints documentés · « try it out » · bouton Authorize (Bearer JWT)
+✓
+Protégée par Basic Auth
+/docs et /openapi.json derrière login · comparaison à temps constant (timingSafeEqual)
+✓
+La vitrine de l'API
+sans frontend
+GET https://api-logichain.fulkia.fr/docs
+LogiChain API · MP3 · Clara Morin
+Ici je montre comment l'API est documentée. Le point important : la doc n'est pas écrite à la main, elle est générée automatiquement à partir du code.
+
+1. Single source of truth : On utilise Zod pour valider les requêtes entrantes. Avec la librairie zod-to-openapi, ces mêmes schémas Zod produisent aussi la spec OpenAPI 3. Résultat : un seul schéma sert à la fois à valider la requête et à documenter l'endpoint. La doc ne peut donc jamais être désynchronisée du code réel : si je change un champ, la doc se met à jour toute seule.
+
+2. UI Scalar : Cette spec OpenAPI est ensuite affichée par Scalar, servi sur la route /docs. OpenAPI, c'est le format standard ; Scalar, c'est juste l'outil qui l'affiche joliment : équivalent à Swagger UI, en plus moderne. On a 35 endpoints documentés, avec le bouton « Try it out » pour tester en direct et un bouton « Authorize » pour coller son token JWT.
+
+3. Protégée par Basic Auth : /docs et /openapi.json sont derrière un login HTTP Basic. Détail sécu : la comparaison des identifiants se fait à temps constant (timingSafeEqual sur des hash SHA-256), pour ne pas laisser fuiter d'info par timing. On évite d'exposer publiquement la structure complète de l'API.
+
+ 4. La vitrine de l'API : Comme le projet n'a pas de frontend, cette doc interactive est l'interface de démonstration : je peux montrer l'API en marche, en direct devant le jury, sans écrire une ligne de code client.
+
+DIRE QUE : l'API ne se contente pas du strict énoncé, elle complète les cycles de vie (CRUD complet, retour/perte d'items) et ajoute des briques d'ingénierie (refresh token, health check, cache ADEME auditable, allocation ACID, algorithme du banquier).
+
+
+genre POST /api/v1/items/:id/lost Permet de marquer un item comme perdu.
+POST /api/v1/items/:id/return Permet de remettre un item en stock.
+POST /api/v1/items/:id/allocate Permet d’allouer un item à un événement.
+POST /api/v1/events/:id/allocate Permet l’allocation atomique d’un lot d’items à un événement (transaction ACID, tout-ou-rien).
+DELETE /api/v1/events/:id/zones/:zoneId Permet de supprimer une zone (le sujet ne mentionne initialement que la création).
+POST /api/v1/routes/:id/distance Permet d’enregistrer la distance réelle d’une tournée (utilisée pour le calcul carbone).
+POST /api/v1/routes/:id/stops/:stopId/items Permet d’affecter des items à une étape spécifique d’une tournée.
+
+
+
+
+Notifications temps réel
+Change Streams MongoDB → push SSE aux agents, sans polling
+✓
+Détection par Change Streams
+MongoDB surveille les écritures en base ; le serveur réagit à la source, aucun polling
+✓
+Push via Server-Sent Events
+l'agent connecté reçoit l'alerte en direct : anomalie, perte d'item, annulation
+✓
+Persistées pour l'offline
+collection « notifications » : l'agent reconnecté récupère les alertes manquées
+✓
+~7 ms bout en bout
+du POST /anomaly à la réception SSE — mesuré en démo live
+GET /api/v1/notifications/stream 
+
+LogiChain API · MP3 · Clara Morin
+flux SSE
+Slide temps réel. Le sujet demande des notifications critiques en temps réel. Je l'ai implémenté côté serveur avec deux briques : les Change Streams MongoDB, qui surveillent les écritures en base sans polling, et un canal Server-Sent Events (SSE) qui pousse l'alerte à l'agent connecté. Quand une anomalie est déclarée sur un item, le Change Stream la détecte, le service construit une notification critique, la persiste dans la collection notifications, puis la diffuse aux agents abonnés. Latence mesurée en démo : ~7 ms entre l'action terrain et la réception. La persistance permet à un agent déconnecté de récupérer les alertes manquées via GET /notifications. 
+
+Déploiement et préparation pour la suite
+EN LIGNE
+Déployé en production
+✓
+Dockerfile multi-stage Alpine non-root
+✓
+docker-compose : Mongo rs0 auto-init + API
+✓
+Traefik HTTPS auto avec Let's Encrypt
+✓
+Domaine api-logichain.fulkia.fr prêt
+✓
+Mongo non exposé publiquement
+À VENIR
+Préparé pour le front + MP4/5
+→
+Verrouillage optimiste actif → sync offline
+→
+Format JSON stable + pagination
+→
+Endpoint /items/by-qr/:code (scan mobile)
+→
+Temps réel SSE + Change Streams actif → WebSocket front
+→
+Monitoring Time Series actif → dashboards Grafana
+En ligne sur https://api-logichain.fulkia.fr : la PWA se branchera sans modification.
+LogiChain API · MP3 · Clara Morin
+Le déploiement est immédiat, docker compose up -d. La PWA pourra se brancher sur cette API sans modification.
+
+23
+
+Récapitulatif
+LogiChain API · MP3 · Clara Morin
+✓
+N-Tier strict, POO démontrée à tous les niveaux
+✓
+REST Richardson 2, security by design
+✓
+MongoDB optimisé : index, GeoJSON, OCC
+✓
+Deux services métier signature + 40 tests
+✓
+Infrastructure Docker déployé
+✓
+Temps réel : SSE + Change Streams (~7 ms)
+Merci. levez les yeux clara
+
+occ : Optimistic Concurrency Control : verrouillage optimiste
+
+Merci pour votre attentionDes questions ?
+LogiChain API
+Plateforme logistique événementielle
+Module MP3 · Back-end & API REST
+Clara Morin
+La MANU (NOVEI) · Mai 2026
+Merci. levez les yeux clara
+
+occ : Optimistic Concurrency Control : verrouillage optimiste
