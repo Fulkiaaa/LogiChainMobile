@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Démo — Transporteur, hors réseau</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --ink:#f7f9fc; --panel:#ffffff; --panel-2:#eef2f7; --line:#d5dee9;
+  --line-soft:rgba(15,23,42,.10);
+  --text:#0f172a; --muted:#5a6c82;
+  --signal:#c2410c; --signal-soft:rgba(194,65,12,.07);
+  --app:#0369a1; --ok:#15803d; --alert:#b91c1c; --warn:#b45309;
+  --display:"Barlow Condensed",Impact,sans-serif;
+  --body:"IBM Plex Sans",-apple-system,Segoe UI,Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);line-height:1.6}
+.wrap{max-width:1060px;margin:0 auto;padding:44px 24px 90px}
+header{border-bottom:2px solid var(--signal);padding-bottom:22px;margin-bottom:32px}
+.eyebrow{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--signal)}
+h1{font-family:var(--display);text-transform:uppercase;font-size:clamp(30px,4.6vw,50px);line-height:1.04;margin:8px 0 10px;letter-spacing:-.01em}
+.lede{color:var(--muted);font-size:17px;max-width:72ch;margin:0}
+h2{font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:23px;margin:42px 0 14px;padding-top:16px;border-top:1px solid var(--line)}
+h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.07em;font-size:17px;margin:0 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px 22px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.card.hi{border-color:var(--signal);background:linear-gradient(180deg,var(--signal-soft),transparent)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:15px;margin:0}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:600}
+code,.mono{font-family:var(--mono);font-size:.92em;color:var(--app)}
+.copy{font-family:var(--mono);font-size:15px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;display:inline-block;margin-top:4px;color:var(--text)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:860px){.pair{grid-template-columns:1fr}}
+.qrcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+.qr{background:#fff;padding:12px;border:1px solid var(--line);border-radius:10px;width:210px;margin:0 auto}
+.qr svg{display:block;width:100%;height:auto}
+.qr-cap{font-family:var(--mono);font-size:14.5px;text-align:center;margin-top:9px;letter-spacing:.04em}
+.badge{display:inline-block;font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:12.5px;font-weight:700;padding:3px 9px;border-radius:5px;margin-bottom:8px}
+.badge.transit{background:rgba(180,83,9,.12);color:var(--warn)}
+.badge.deployed{background:rgba(21,128,61,.12);color:var(--ok)}
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;padding:12px 0;border-top:1px solid var(--line-soft)}
+.verdict .mark{font-family:var(--display);font-size:20px;font-weight:700;line-height:1.2}
+.verdict.yes .mark{color:var(--ok)} .verdict.no .mark{color:var(--alert)}
+.verdict b{display:block} .verdict span{color:var(--muted);font-size:14.5px}
+.step{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.step:last-child{border-bottom:0}
+.step .i{font-family:var(--mono);font-size:13px;color:var(--signal);border:1px solid var(--signal);border-radius:6px;height:28px;display:grid;place-items:center}
+.step b{display:block;margin-bottom:2px} .step span{color:var(--muted);font-size:15px}
+.callout{border-left:3px solid var(--signal);background:var(--signal-soft);border-radius:0 10px 10px 0;padding:16px 20px;margin:22px 0;font-size:15.5px}
+.callout.warn{border-left-color:var(--alert);background:rgba(185,28,28,.06)}
+.callout b{color:var(--signal)} .callout.warn b{color:var(--alert)}
+table{width:100%;border-collapse:collapse;font-size:15.5px}
+th{text-align:left;font-family:var(--display);text-transform:uppercase;letter-spacing:.1em;font-size:13px;color:var(--signal);padding:0 14px 9px 0;border-bottom:1px solid var(--line);font-weight:600}
+td{padding:11px 14px 11px 0;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.yes{color:var(--ok);font-weight:600} .no{color:var(--alert);font-weight:600}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+@media print{body{background:#fff}.wrap{padding:0}.card,.qrcard,table,.callout{break-inside:avoid}h2{break-after:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Mise en situation · démonstration hors réseau</div>
+  <h1>Je suis transporteur.<br>Qu'est-ce que le rôle m'interdit&nbsp;?</h1>
+  <p class="lede">Deux QR codes, deux actions qui passent, deux actions qui sont refusées <b>à cause du rôle et de rien d'autre</b> — le tout en mode avion, sans une seule requête réseau.</p>
+</header>
+
+<div class="pair">
+  <div class="card">
+    <h3>Le compte</h3>
+    <dl class="kv">
+      <dt>Identifiant</dt><dd><span class="copy">transports-vert@logichain.fr</span></dd>
+      <dt>Mot de passe</dt><dd><span class="copy">LogiChain2026!</span></dd>
+      <dt>Rôle API</dt><dd><code>transporter</code></dd>
+      <dt>Titulaire</dt><dd>Paul Rivière (Transports Vert)</dd>
+    </dl>
+  </div>
+  <div class="card hi">
+    <h3>Le principe à énoncer</h3>
+    <p style="margin:0;font-size:15.5px">« Il achemine, il n'installe pas. » Le transporteur peut pointer, charger, signaler une anomalie et déclarer une perte. Il ne peut <b>ni déployer sur site, ni immobiliser un équipement en maintenance</b> — deux décisions qui appartiennent à l'exploitation.</p>
+  </div>
+</div>
+
+<div class="callout warn"><b>Le piège à éviter :</b> j'ai choisi ces deux équipements pour que le refus vienne <b>uniquement du rôle</b>. Sur d'autres, la machine à états interdirait déjà l'action, et le jury ne saurait pas laquelle des deux règles a parlé. Ici, un agent de terrain réussirait exactement là où le transporteur échoue.</div>
+
+<h2>Les deux QR codes</h2>
+<div class="pair">
+  <div class="qrcard">
+    <span class="badge transit">En transit</span>
+    <h3>Chapiteau 10×15 m</h3>
+    <p style="color:var(--muted);margin:0 0 14px;font-size:14.5px">800 kg · catégorie Tente · version 0</p>
+    <div class="qr">
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#000000" d="M1 1.5h7m1 0h4m1 0h2m1 0h1m1 0h7M1 2.5h1m5 0h1m3 0h1m1 0h1m5 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m5 0h4m2 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h3m1 0h5m1 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m2 0h3m2 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m2 0h1m1 0h3m2 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M12 8.5h1m2 0h1m1 0h1M3 9.5h1m1 0h3m1 0h2m2 0h1m4 0h1m3 0h1m2 0h1M3 10.5h1m4 0h1m1 0h1m6 0h2m2 0h1m2 0h2M1 11.5h1m2 0h1m1 0h4m1 0h1m1 0h4m2 0h1m3 0h1M3 12.5h2m4 0h1m3 0h2m1 0h2m3 0h5M1 13.5h1m1 0h1m1 0h3m1 0h3m2 0h3m2 0h1m1 0h1m2 0h1M2 14.5h3m1 0h1m2 0h2m5 0h1m3 0h1m1 0h1M1 15.5h1m1 0h1m1 0h1m1 0h2m1 0h1m1 0h1m1 0h2m2 0h1m2 0h2m1 0h1M2 16.5h1m1 0h1m1 0h1m3 0h2m1 0h1m1 0h2m1 0h4m3 0h1M1 17.5h1m2 0h7m1 0h1m1 0h2m1 0h5M9 18.5h1m1 0h1m2 0h1m1 0h2m3 0h3m1 0h1M1 19.5h7m5 0h1m1 0h1m1 0h1m1 0h1m1 0h1M1 20.5h1m5 0h1m1 0h1m3 0h2m2 0h1m3 0h2M1 21.5h1m1 0h3m1 0h1m1 0h1m2 0h14M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h2m1 0h2m1 0h1m1 0h1M1 23.5h1m1 0h3m1 0h1m1 0h1m4 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1M1 24.5h1m5 0h1m2 0h1m2 0h1m4 0h1m1 0h1m1 0h1m1 0h2M1 25.5h7m3 0h3m3 0h3m1 0h1m1 0h1m1 0h1"/></svg>
+    </div>
+    <div class="qr-cap">LC-TENT-002</div>
+    <div class="verdict yes"><span class="mark">✓</span><span><b>Pointage — accepté</b><span>Bip vert. Le statut ne change pas : le transporteur constate la présence de l’équipement et sa position. Geste ouvert à tous les rôles.</span></span></div>
+    <div class="verdict no"><span class="mark">✗</span><span><b>Déploiement — refusé par le rôle</b><span>Le mode est <b>verrouillé, cadenas visible</b>, avant même de scanner. Pourtant <code>in_transit → deployed</code> est une transition parfaitement légale : un agent de terrain la réussirait sur ce même QR. Seul le rôle bloque.</span></span></div>
+  </div>
+  <div class="qrcard">
+    <span class="badge deployed">Déployé</span>
+    <h3>Bloc sanitaire mobile</h3>
+    <p style="color:var(--muted);margin:0 0 14px;font-size:14.5px">450 kg · catégorie Sanitaire · version 0</p>
+    <div class="qr">
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 27 27" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h27v27H0z"/><path stroke="#000000" d="M1 1.5h7m2 0h1m1 0h4m1 0h1m1 0h7M1 2.5h1m5 0h1m1 0h1m1 0h1m2 0h4m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h2m1 0h3m1 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h1m3 0h2m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h8m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h5m2 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M10 8.5h2m4 0h2M3 9.5h1m2 0h8m2 0h1m1 0h1m1 0h5M1 10.5h2m1 0h1m1 0h1m4 0h2m12 0h1M1 11.5h5m1 0h4m2 0h2m5 0h3m1 0h1M1 12.5h2m1 0h1m3 0h1m4 0h3m3 0h1m2 0h1m2 0h1M4 13.5h1m2 0h2m1 0h5m2 0h1m2 0h1M2 14.5h1m1 0h1m4 0h2m4 0h1m1 0h1m2 0h1m1 0h1m1 0h1M1 15.5h3m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m2 0h6M9 16.5h1m5 0h4m3 0h1m1 0h2M1 17.5h2m1 0h4m2 0h1m1 0h1m4 0h5m1 0h2M9 18.5h1m1 0h1m1 0h2m1 0h2m3 0h1m1 0h3M1 19.5h7m1 0h2m1 0h3m1 0h2m1 0h1m1 0h2m1 0h2M1 20.5h1m5 0h1m1 0h1m1 0h2m4 0h1m3 0h1m3 0h1M1 21.5h1m1 0h3m1 0h1m2 0h2m1 0h2m1 0h6m3 0h1M1 22.5h1m1 0h3m1 0h1m2 0h2m1 0h4m5 0h2M1 23.5h1m1 0h3m1 0h1m1 0h3m1 0h1m1 0h3m1 0h3m2 0h2M1 24.5h1m5 0h1m3 0h5m2 0h3m4 0h1M1 25.5h7m4 0h1m5 0h1m2 0h1m2 0h2"/></svg>
+    </div>
+    <div class="qr-cap">LC-SANIT-003</div>
+    <div class="verdict yes"><span class="mark">✓</span><span><b>Transit — accepté</b><span>Bip vert. <code>deployed → in_transit</code> : on démonte et on recharge. C’est précisément le métier du transporteur, donc le geste lui est ouvert.</span></span></div>
+    <div class="verdict no"><span class="mark">✗</span><span><b>Mise en maintenance — refusée par le rôle</b><span>Sur la fiche, le bouton <b>n’apparaît pas</b>, et la raison est nommée : « Réservé à : Administrateur, Responsable logistique, Agent de terrain. Vous êtes Transporteur. » Or <code>deployed → in_maintenance</code> est une transition légale : encore une fois, seul le rôle bloque.</span></span></div>
+  </div>
+</div>
+
+<h2>Le déroulé, en mode avion</h2>
+<p style="color:var(--muted);margin:0 0 18px;max-width:74ch">Une seule règle à respecter : <b>tout ce qui exige le réseau se fait avant de le couper.</b> La connexion et le téléchargement du secteur en font partie — pas les scans.</p>
+
+<div class="step"><span class="i">1</span><span><b>Encore en ligne — se connecter en transporteur</b><span>Si tu étais connectée en responsable logistique, déconnecte-toi d’abord depuis l’onglet Profil. Le login exige le réseau : c’est le seul moment où il est indispensable.</span></span></div>
+<div class="step"><span class="i">2</span><span><b>Encore en ligne — vérifier le cache du secteur</b><span>Synchro → « Retélécharger le secteur ». L’alerte doit annoncer <b>51 équipement(s) en cache</b>. Sans cette étape, les QR seraient inconnus hors réseau.</span></span></div>
+<div class="step"><span class="i">3</span><span><b>Onglet Profil — montrer le parcours du rôle</b><span>La liste des gestes s’affiche avec « Déployer sur site » et « Mettre en maintenance » <b>barrés</b>, chacun accompagné de sa raison. C’est la réponse visuelle à « que m’interdit mon rôle ».</span></span></div>
+<div class="step"><span class="i">4</span><span><b>Activer le mode avion</b><span>Le bandeau bascule sur « Hors réseau ». À partir d’ici, plus une seule requête ne part.</span></span></div>
+<div class="step"><span class="i">5</span><span><b>Onglet Scan — montrer le cadenas</b><span>Le mode <b>Déploiement</b> est verrouillé, avec la phrase qui nomme les deux moitiés : qui a le droit, et ce que vous êtes. <b>Refus n° 1</b>, et il est visible sans même scanner.</span></span></div>
+<div class="step"><span class="i">6</span><span><b>Scanner LC-TENT-002 en Pointage</b><span>Bip vert, compteur de session à 1, file d’attente à 1. <b>Action n° 1</b>, hors réseau.</span></span></div>
+<div class="step"><span class="i">7</span><span><b>Scanner LC-SANIT-003 en Transit</b><span>Bip vert, le statut passe à « En transit » dans la liste. <b>Action n° 2</b>, toujours hors réseau. La file monte à 2.</span></span></div>
+<div class="step"><span class="i">8</span><span><b>Ouvrir la fiche de LC-SANIT-003</b><span>« Signaler une anomalie » est proposé, <b>« Mettre en maintenance » est absent</b>, avec sa raison affichée juste en dessous. <b>Refus n° 2</b>.</span></span></div>
+<div class="step"><span class="i">9</span><span><b>Centre de synchronisation</b><span>Deux actions en attente, dans l’ordre où tu les as faites. Rien n’est perdu, rien n’est parti.</span></span></div>
+<div class="step"><span class="i">10</span><span><b>Couper le mode avion</b><span>La synchro part seule, la file se vide. Tu peux vérifier ensuite que le serveur a bien enregistré les deux gestes.</span></span></div>
+
+<div class="callout"><b>La phrase qui résume la démonstration :</b> l’application ne protège rien — elle <b>anticipe</b>. La sécurité, c’est <code>requireRole</code> côté API, et elle répondrait 403. Mais un 403 arrivant deux heures après le geste, en pleine synchronisation, serait incompréhensible pour l’agent. Alors l’app connaît la même matrice et refuse tout de suite, hors ligne, en expliquant pourquoi.</div>
+
+<h2>Ce que le rôle change, en un tableau</h2>
+<table>
+  <tr><th>Geste</th><th>Transporteur</th><th>Agent de terrain</th><th>Où ça se voit</th></tr>
+  <tr><td>Pointer un équipement</td><td class="yes">✓</td><td class="yes">✓</td><td>mode Pointage, toujours accessible</td></tr>
+  <tr><td>Déclarer un chargement / transit</td><td class="yes">✓</td><td class="yes">✓</td><td>mode Transit</td></tr>
+  <tr><td>Signaler une anomalie</td><td class="yes">✓</td><td class="yes">✓</td><td>fiche équipement</td></tr>
+  <tr><td>Déclarer une perte</td><td class="yes">✓</td><td class="yes">✓</td><td>fiche équipement</td></tr>
+  <tr><td><b>Déployer sur site</b></td><td class="no">✗</td><td class="yes">✓</td><td>mode verrouillé, cadenas</td></tr>
+  <tr><td><b>Mettre en maintenance</b></td><td class="no">✗</td><td class="yes">✓</td><td>bouton absent de la fiche</td></tr>
+  <tr><td>Créer un compte</td><td class="no">✗</td><td class="no">✗</td><td>section admin absente du Profil</td></tr>
+</table>
+
+<div class="callout"><b>Si le jury demande « et si on modifiait l’application ? »</b> — il obtiendrait un 403 de l’API. La matrice embarquée n’accorde aucun droit, elle ne fait que refléter celle du serveur. Et une sonde d’intégration (<code>npm run parcours:prod</code>) se connecte réellement avec les quatre comptes et compare les deux : si elles divergent, le test casse.</div>
+
+<footer>
+  LogiChain Mobile · MP4 · fiche de démonstration — compte <code>transporter</code>, équipements <code>LC-TENT-002</code> et <code>LC-SANIT-003</code>.<br>
+  Statuts relevés sur l’API de production le 25/08/2026. Après la démo, <code>LC-SANIT-003</code> reste « En transit » : le rescanner en mode Transit ne le ramènera pas à « Déployé » — seul un rôle habilité peut le redéployer.
+</footer>
+
+</div>
+</body>
+</html>

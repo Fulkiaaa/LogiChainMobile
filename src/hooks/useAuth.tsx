@@ -1,8 +1,10 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 
 import {resolveAuthStatus, type AuthStatus} from '@/domain/passwordChange';
-import {authApi} from '@/services/api/auth.api';
+import {AuthRejectedError, authApi} from '@/services/api/auth.api';
 import {tokenStore} from '@/services/api/tokenStore';
+import {metaRepo} from '@/services/db/database';
+import {decideSessionStart, parseCachedProfile} from '@/domain/session';
 import type {MeUser, UserRole} from '@/types/api';
 
 interface AuthUser {
@@ -24,9 +26,15 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Clé du profil mis en cache dans `sync_meta`. */
+const PROFILE_KEY = 'sessionProfile';
+
 export function AuthProvider({children}: {children: React.ReactNode}) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+
+  /** Conserve de quoi rouvrir l'application hors réseau. */
+  const remember = (u: AuthUser) => metaRepo.set(PROFILE_KEY, JSON.stringify(u));
 
   useEffect(() => {
     (async () => {
@@ -40,11 +48,28 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
         // justement pour que l'app puisse découvrir cet état au démarrage.
         const me: MeUser = await authApi.me();
         const next = {...me, mustChangePassword: me.mustChangePassword ?? false};
+        remember(next);
         setUser(next);
         setStatus(resolveAuthStatus(next));
-      } catch {
-        await tokenStore.clear();
-        setStatus('anon');
+      } catch (e) {
+        /*
+         * Deux échecs très différents se ressemblent ici, et les confondre
+         * éjectait l'agent de son application en zone blanche — sans retour
+         * possible, puisque le login exige le réseau.
+         *   • le serveur REFUSE (jeton expiré, compte désactivé) → déconnecter
+         *   • le serveur est INJOIGNABLE → garder la session, travailler sur
+         *     le cache. C'est la promesse offline-first de l'application.
+         */
+        const failure = e instanceof AuthRejectedError ? 'rejected' : 'unreachable';
+        const decision = decideSessionStart(failure, parseCachedProfile(metaRepo.get(PROFILE_KEY)));
+        if (decision.status === 'anon') {
+          await tokenStore.clear();
+          metaRepo.set(PROFILE_KEY, '');
+          setStatus('anon');
+          return;
+        }
+        setUser(decision.profile);
+        setStatus(resolveAuthStatus(decision.profile));
       }
     })();
   }, []);
@@ -59,6 +84,7 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
       role: res.user.role,
       mustChangePassword: res.user.mustChangePassword ?? false,
     };
+    remember(next);
     setUser(next);
     setStatus(resolveAuthStatus(next));
   };
@@ -76,12 +102,14 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
       role: res.user.role,
       mustChangePassword: res.user.mustChangePassword ?? false,
     };
+    remember(next);
     setUser(next);
     setStatus(resolveAuthStatus(next));
   };
 
   const logout = async () => {
     await tokenStore.clear();
+    metaRepo.set(PROFILE_KEY, '');
     setUser(null);
     setStatus('anon');
   };

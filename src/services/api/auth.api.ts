@@ -12,22 +12,45 @@ function readApiError(data: unknown, status: number): string {
   if (msg) {
     return msg;
   }
+  if (status === 401) {
+    return 'Email ou mot de passe invalide.';
+  }
   return status === 403
     ? "Action réservée aux administrateurs."
-    : `Échec de la création (HTTP ${status}).`;
+    : `Échec de la requête (HTTP ${status}).`;
+}
+
+/**
+ * Le serveur a répondu, et il refuse. À distinguer d'une panne réseau, où
+ * `fetch` rejette : la première doit déconnecter, la seconde jamais.
+ */
+export class AuthRejectedError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = 'AuthRejectedError';
+  }
 }
 
 export const authApi = {
   async login(email: string, password: string): Promise<LoginResult> {
-    const {data} = await api.apiFetch<LoginResult>('/auth/login', {
+    const {status, data} = await api.apiFetch<LoginResult | ApiErrorEnvelope>('/auth/login', {
       method: 'POST',
       body: {email, password},
     });
-    return data;
+    // Sans ce contrôle, un mot de passe erroné renvoyait l'enveloppe d'erreur
+    // comme s'il s'agissait d'une session : l'app stockait un jeton `undefined`
+    // et se croyait connectée.
+    if (status < 200 || status >= 300) {
+      throw new AuthRejectedError(status, readApiError(data, status));
+    }
+    return data as LoginResult;
   },
   async me(): Promise<MeUser> {
-    const {data} = await api.apiFetch<MeUser>('/auth/me', {auth: true});
-    return data;
+    const {status, data} = await api.apiFetch<MeUser | ApiErrorEnvelope>('/auth/me', {auth: true});
+    if (status < 200 || status >= 300) {
+      throw new AuthRejectedError(status, readApiError(data, status));
+    }
+    return data as MeUser;
   },
   /**
    * Remplacement du mot de passe temporaire. L'API renvoie une NOUVELLE paire de
