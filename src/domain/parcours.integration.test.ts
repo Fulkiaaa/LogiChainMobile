@@ -56,6 +56,7 @@ const SONDE: Record<AppCapability, {method: string; path: string}> = {
   deploy: {method: 'POST', path: `/items/${ITEM_INEXISTANT}/deploy`},
   anomaly: {method: 'POST', path: `/items/${ITEM_INEXISTANT}/anomaly`},
   lost: {method: 'POST', path: `/items/${ITEM_INEXISTANT}/lost`},
+  maintenance: {method: 'POST', path: `/items/${ITEM_INEXISTANT}/maintenance`},
   manageUsers: {method: 'POST', path: '/auth/register'},
 };
 

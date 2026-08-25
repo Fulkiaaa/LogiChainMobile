@@ -79,6 +79,49 @@ test('enqueueReport (anomaly) : enfile sans changer le statut de l’item', () =
   expect(JSON.parse(row.payload).note).toBe('Pied tordu');
 });
 
+test('enqueueReport (maintenance) : bascule le statut local (optimistic UI)', () => {
+  const {items, outbox, service} = fixture('deployed');
+  const res = service.enqueueReport({
+    localId: 'm1', itemId: 'i1', kind: 'maintenance', location: loc,
+    note: 'Ballast HS', now: 'now',
+  });
+  expect(res.ok).toBe(true);
+  expect(items.findById('i1')!.status).toBe('in_maintenance');
+  const row = outbox.listPending()[0];
+  expect(row.actionType).toBe('maintenance');
+  // `previousStatus` est ce qui rend le rollback visuel possible.
+  expect(JSON.parse(row.payload).previousStatus).toBe('deployed');
+});
+
+test('enqueueReport (maintenance) : note facultative', () => {
+  const {service} = fixture('in_stock');
+  const res = service.enqueueReport({
+    localId: 'm2', itemId: 'i1', kind: 'maintenance', location: loc, note: '', now: 'now',
+  });
+  expect(res.ok).toBe(true);
+});
+
+test('enqueueReport (maintenance) refusé depuis in_transit : rien enfilé', () => {
+  const {items, outbox, service} = fixture('in_transit');
+  const res = service.enqueueReport({
+    localId: 'm3', itemId: 'i1', kind: 'maintenance', location: loc, note: '', now: 'now',
+  });
+  expect(res.ok).toBe(false);
+  expect(outbox.countPending()).toBe(0);
+  expect(items.findById('i1')!.status).toBe('in_transit');
+});
+
+test('rollback d’une maintenance : restaure le statut d’avant', () => {
+  const {items, outbox, service} = fixture('deployed');
+  service.enqueueReport({
+    localId: 'm4', itemId: 'i1', kind: 'maintenance', location: loc, note: '', now: 'now',
+  });
+  expect(items.findById('i1')!.status).toBe('in_maintenance');
+
+  service.rollbackRow(outbox.listPending()[0]);
+  expect(items.findById('i1')!.status).toBe('deployed');
+});
+
 test('enqueueReport (lost) : bascule le statut local en lost (optimistic UI)', () => {
   const {items, outbox, service} = fixture('deployed');
   const res = service.enqueueReport({

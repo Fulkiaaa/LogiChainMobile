@@ -97,9 +97,10 @@ describe('whyNot', () => {
  * échouer le test : la documentation ne peut pas diverger du code.
  */
 const PARCOURS: Record<UserRole, readonly AppCapability[]> = {
-  admin: ['scan', 'transit', 'deploy', 'anomaly', 'lost', 'manageUsers'],
-  logistics_manager: ['scan', 'transit', 'deploy', 'anomaly', 'lost'],
-  field_agent: ['scan', 'transit', 'deploy', 'anomaly', 'lost'],
+  admin: ['scan', 'transit', 'deploy', 'anomaly', 'lost', 'maintenance', 'manageUsers'],
+  logistics_manager: ['scan', 'transit', 'deploy', 'anomaly', 'lost', 'maintenance'],
+  field_agent: ['scan', 'transit', 'deploy', 'anomaly', 'lost', 'maintenance'],
+  // Le transporteur reste à l'écart de `deploy` ET de `maintenance`.
   transporter: ['scan', 'transit', 'anomaly', 'lost'],
 };
 

@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {AlertTriangle, MapPin, MapPinned, PackageX} from 'lucide-react-native';
+import {AlertTriangle, MapPin, MapPinned, PackageX, Wrench} from 'lucide-react-native';
 import {useQuery} from '@tanstack/react-query';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -8,6 +8,8 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {ReportSheet} from '@/components/ReportSheet';
 import {StatusBadge} from '@/components/StatusBadge';
 import type {ReportKind} from '@/domain/anomaly';
+import {can, whyNot} from '@/domain/capabilities';
+import {useAuth} from '@/hooks/useAuth';
 import {toItemDetail} from '@/domain/itemDetail';
 import {CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
@@ -21,6 +23,11 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const {id} = route.params;
   const [sheet, setSheet] = useState<ReportKind | null>(null);
+  // Miroir du requireRole côté API : on n'affiche pas un geste qui finirait
+  // en 403 (que `decideReconcile` ne sait pas expliquer à l'utilisateur).
+  const {user} = useAuth();
+  const peutMaintenir = can(user?.role, 'maintenance');
+  const refusMaintenance = whyNot(user?.role, 'maintenance');
 
   const {data, isLoading} = useQuery({
     queryKey: ['item', id],
@@ -94,6 +101,12 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
           <AlertTriangle color={c.warning} size={17} strokeWidth={2.5} />
           <Text style={styles.actionText}>Signaler une anomalie</Text>
         </Pressable>
+        {peutMaintenir ? (
+          <Pressable style={styles.action} onPress={() => setSheet('maintenance')}>
+            <Wrench color={c.textMuted} size={17} strokeWidth={2.5} />
+            <Text style={styles.actionText}>Mettre en maintenance</Text>
+          </Pressable>
+        ) : null}
         <Pressable
           style={[styles.action, styles.actionDanger]}
           onPress={() => setSheet('lost')}>
@@ -104,6 +117,9 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
       <Text style={styles.offlineHint}>
         Fonctionne hors ligne : la position est capturée par le GPS et l’action attend la synchro.
       </Text>
+      {refusMaintenance ? (
+        <Text style={styles.offlineHint}>Mise en maintenance — {refusMaintenance}</Text>
+      ) : null}
 
       <ReportSheet
         visible={sheet !== null}

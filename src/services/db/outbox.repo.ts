@@ -4,7 +4,7 @@ import type {SqlDb} from './SqlDb';
 
 export type OutboxStatus = 'pending' | 'syncing' | 'failed' | 'conflict';
 export type OutboxActionType =
-  | 'scan' | 'transit' | 'deploy' | 'anomaly' | 'lost' | 'allocate' | 'return';
+  | 'scan' | 'transit' | 'deploy' | 'anomaly' | 'lost' | 'maintenance' | 'allocate' | 'return';
 
 export interface OutboxRow {
   localId: string;

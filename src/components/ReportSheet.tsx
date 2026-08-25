@@ -15,6 +15,8 @@ import {MapPin, X} from 'lucide-react-native';
 import type {Palette} from '@/config/theme';
 import {
   ANOMALY_NOTE_MAX,
+  REPORT_DONE,
+  REPORT_HINTS,
   REPORT_LABELS,
   validateAnomalyNote,
   type ReportKind,
@@ -27,7 +29,7 @@ import {makeId} from '@/services/util/id';
 type Phase = 'idle' | 'locating' | 'saving';
 
 /**
- * Saisie d'un signalement terrain (anomalie ou perte).
+ * Saisie d'un signalement terrain (anomalie, perte ou mise en maintenance).
  *
  * Le GPS est interrogé au moment de la validation, pas à l'ouverture : la
  * position doit être celle du signalement, et on évite de réveiller la puce
@@ -90,11 +92,7 @@ export function ReportSheet({
         setPhase('idle');
         return;
       }
-      onDone(
-        kind === 'lost'
-          ? 'Perte enregistrée. Elle partira à la prochaine synchro.'
-          : 'Anomalie enregistrée. Elle partira à la prochaine synchro.',
-      );
+      onDone(REPORT_DONE[kind]);
       close();
     } catch (e) {
       setError(
@@ -128,16 +126,12 @@ export function ReportSheet({
             </Pressable>
           </View>
 
-          <Text style={styles.hint}>
-            {kind === 'lost'
-              ? 'L’équipement passera en « Perdu ». Cet état est définitif.'
-              : 'Le statut de l’équipement ne change pas : le signalement est ajouté à son historique.'}
-          </Text>
+          <Text style={styles.hint}>{REPORT_HINTS[kind]}</Text>
 
           <TextInput
             style={styles.input}
             placeholder={
-              kind === 'lost' ? 'Note (facultative)' : 'Décrivez l’anomalie (obligatoire)'
+              kind === 'anomaly' ? 'Décrivez l’anomalie (obligatoire)' : 'Note (facultative)'
             }
             placeholderTextColor={c.textMuted}
             multiline

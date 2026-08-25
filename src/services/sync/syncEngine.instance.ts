@@ -33,6 +33,9 @@ async function sendAction(row: OutboxRow): Promise<ApiOutcome & {item?: ItemJSON
       // Sans ce cas, 'lost' tombait dans le default et appelait /scan.
       res = await itemsApi.lost(row.entityId, p.note ? {note: p.note} : {});
       break;
+    case 'maintenance':
+      res = await itemsApi.maintenance(row.entityId, p.note ? {note: p.note} : {});
+      break;
     default:
       res = await itemsApi.scan(row.entityId, {location: p.location, note: p.note});
   }

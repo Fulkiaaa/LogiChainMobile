@@ -51,4 +51,8 @@ export const itemsApi = {
   lost(id: string, body: {note?: string}): Promise<ItemActionResult> {
     return api.apiFetch<ItemJSON>(`/items/${id}/lost`, {method: 'POST', body, auth: true});
   },
+  /** Mise hors service. L'API n'attend pas de position ici, juste la note. */
+  maintenance(id: string, body: {note?: string}): Promise<ItemActionResult> {
+    return api.apiFetch<ItemJSON>(`/items/${id}/maintenance`, {method: 'POST', body, auth: true});
+  },
 };

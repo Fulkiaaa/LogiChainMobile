@@ -1,4 +1,4 @@
-import {validateAnomalyNote, type ReportKind} from '@/domain/anomaly';
+import {REPORT_TARGET, validateAnomalyNote, type ReportKind} from '@/domain/anomaly';
 import {canTransition} from '@/domain/itemStateMachine';
 import {resolveScanAction, type ScanMode} from '@/domain/scanAction';
 import type {CachedItem} from '@/services/db/items.repo';
@@ -105,8 +105,11 @@ export function createOutboxService(deps: OutboxDeps) {
         return {ok: false, reason: noteError};
       }
 
-      if (params.kind === 'lost' && !canTransition(item.status, 'lost')) {
-        return {ok: false, reason: `${item.status} → lost interdit`};
+      // `REPORT_TARGET` dit si ce signalement change le statut. L'anomalie n'y
+      // est pas : elle n'a donc ni garde de transition, ni rollback à jouer.
+      const target = REPORT_TARGET[params.kind];
+      if (target && !canTransition(item.status, target)) {
+        return {ok: false, reason: `${item.status} → ${target} interdit`};
       }
 
       const row = buildOutboxRow({
@@ -117,14 +120,17 @@ export function createOutboxService(deps: OutboxDeps) {
         payload: {
           location: params.location,
           note: params.note.trim(),
-          // Seule la perte change le statut : elle seule a quelque chose à annuler.
-          ...(params.kind === 'lost' ? {previousStatus: item.status} : {}),
+          // Seules les actions qui changent le statut ont quelque chose à annuler.
+          ...(target ? {previousStatus: item.status} : {}),
         },
         now: params.now,
       });
 
-      if (params.kind === 'lost') {
-        deps.items.updateStatus(item.id, 'lost', item.version);
+      // Optimistic UI : le statut bascule tout de suite en local, bien avant
+      // que l'API ne réponde. `rollbackRow` restaure `previousStatus` si la
+      // synchro échoue définitivement.
+      if (target) {
+        deps.items.updateStatus(item.id, target, item.version);
       }
       deps.outbox.enqueue(row);
       return {ok: true};

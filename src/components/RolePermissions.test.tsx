@@ -44,9 +44,9 @@ const allText = (tree: TestRenderer.ReactTestRenderer) =>
  * gestes interdits laisserait croire qu'ils n'existent pas.
  */
 describe('RolePermissions — la liste complète, autorisés et interdits', () => {
-  it('liste les 6 gestes quel que soit le rôle', () => {
-    expect(rows(render('transporter'))).toHaveLength(6);
-    expect(rows(render('admin'))).toHaveLength(6);
+  it('liste les 7 gestes quel que soit le rôle', () => {
+    expect(rows(render('transporter'))).toHaveLength(7);
+    expect(rows(render('admin'))).toHaveLength(7);
   });
 
   it('montre le déploiement comme interdit pour un transporteur', () => {

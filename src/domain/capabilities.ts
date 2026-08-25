@@ -14,7 +14,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
  * côté API mais n'ont aucun point d'entrée ici, les lister donnerait une fausse
  * idée du périmètre de l'app.
  */
-export type AppCapability = 'scan' | 'transit' | 'deploy' | 'anomaly' | 'lost' | 'manageUsers';
+export type AppCapability =
+  | 'scan' | 'transit' | 'deploy' | 'anomaly' | 'lost' | 'maintenance' | 'manageUsers';
 
 export const ALL_CAPABILITIES: readonly AppCapability[] = [
   'scan',
@@ -22,6 +23,7 @@ export const ALL_CAPABILITIES: readonly AppCapability[] = [
   'deploy',
   'anomaly',
   'lost',
+  'maintenance',
   'manageUsers',
 ];
 
@@ -31,6 +33,7 @@ export const CAPABILITY_LABELS: Record<AppCapability, string> = {
   deploy: 'Déployer sur site',
   anomaly: 'Signaler une anomalie',
   lost: 'Déclarer une perte',
+  maintenance: 'Mettre en maintenance',
   manageUsers: 'Créer des comptes utilisateurs',
 };
 
@@ -50,6 +53,8 @@ const ALLOWED: Record<AppCapability, readonly UserRole[] | null> = {
   lost: null,
   // « Le transporteur achemine, il n'installe pas » — requireRole côté API.
   deploy: ['admin', 'logistics_manager', 'field_agent'],
+  // Même garde : le transporteur ne décide pas d'une immobilisation.
+  maintenance: ['admin', 'logistics_manager', 'field_agent'],
   manageUsers: ['admin'],
 };
 
