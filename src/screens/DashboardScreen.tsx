@@ -3,7 +3,7 @@ import {FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View} 
 import {useNavigation, useScrollToTop} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X} from 'lucide-react-native';
+import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X, Route as RouteIcon} from 'lucide-react-native';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import type {Palette} from '@/config/theme';
@@ -84,10 +84,16 @@ export function DashboardScreen() {
         <View>
           <View style={styles.headerRow}>
             <Text style={styles.hello}>Bonjour, {user?.fullName ?? 'agent'}</Text>
-            <Pressable style={styles.mapLink} onPress={() => nav.navigate('Map')}>
-              <MapIcon color={c.primary} size={16} strokeWidth={2.5} />
-              <Text style={styles.mapLinkText}>Carte</Text>
-            </Pressable>
+            <View style={styles.headerLinks}>
+              <Pressable style={styles.mapLink} onPress={() => nav.navigate('Routes')}>
+                <RouteIcon color={c.primary} size={16} strokeWidth={2.5} />
+                <Text style={styles.mapLinkText}>Tournées</Text>
+              </Pressable>
+              <Pressable style={styles.mapLink} onPress={() => nav.navigate('Map')}>
+                <MapIcon color={c.primary} size={16} strokeWidth={2.5} />
+                <Text style={styles.mapLinkText}>Carte</Text>
+              </Pressable>
+            </View>
           </View>
 
           <View style={[styles.banner, {backgroundColor: online ? c.surface : c.warning + '22'}]}>
@@ -224,6 +230,7 @@ export function DashboardScreen() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, backgroundColor: c.bg, padding: 16},
+  headerLinks: {flexDirection: 'row', gap: 8},
   headerRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   hello: {color: c.text, fontSize: 16, fontWeight: '600', flexShrink: 1},
   mapLink: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingLeft: 10},

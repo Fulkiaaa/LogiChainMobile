@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, StyleSheet, Text, View} from 'react-native';
 import {Layers, LocateFixed, Maximize2} from 'lucide-react-native';
-import MapView, {Marker, Polygon, PROVIDER_DEFAULT} from 'react-native-maps';
+import MapView, {Marker, Polygon, Polyline, PROVIDER_DEFAULT} from 'react-native-maps';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
@@ -18,7 +18,8 @@ import {
 import {getCurrentPosition} from '@/services/geo/location';
 import {useTheme} from '@/hooks/useTheme';
 import {useItems} from '@/hooks/useItems';
-import {eventsRepo, zonesRepo} from '@/services/db/database';
+import {eventsRepo, routesRepo, zonesRepo} from '@/services/db/database';
+import {orderedStops, routePath, toRouteView} from '@/domain/route';
 import type {RootScreenProps, RootStackParamList} from '@/navigation/types';
 
 /**
@@ -33,6 +34,7 @@ export function MapScreen() {
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const route = useRoute<RootScreenProps<'Map'>['route']>();
   const focusItemId = route.params?.focusItemId;
+  const focusRouteId = route.params?.focusRouteId;
   const {items, eventId} = useItems();
   const [showItems, setShowItems] = useState(true);
   const [locating, setLocating] = useState(false);
@@ -79,6 +81,21 @@ export function MapScreen() {
     [items],
   );
 
+  /**
+   * La tournée à tracer, si on arrive depuis « Mes tournées ». Lue en base
+   * locale comme le reste : le tracé s'affiche hors réseau.
+   */
+  const tournee = useMemo(() => {
+    if (!focusRouteId) {
+      return null;
+    }
+    const r = routesRepo.findById(focusRouteId);
+    if (!r) {
+      return null;
+    }
+    return {view: toRouteView(r), path: routePath(r.stops), stops: orderedStops(r.stops)};
+  }, [focusRouteId]);
+
   /** L'équipement sur lequel on nous a demandé de centrer, s'il est localisé. */
   const focused = useMemo(
     () => (focusItemId ? (placed.find(i => i.id === focusItemId) ?? null) : null),
@@ -98,9 +115,13 @@ export function MapScreen() {
    * Arrivé depuis une fiche équipement, on ouvre serré sur lui plutôt que sur
    * tout le secteur : la question posée était « où est-il exactement ».
    */
+  /*
+   * Priorité de cadrage : un équipement précis, puis le trajet d'une tournée,
+   * puis le secteur entier. On ouvre toujours sur ce qui a été demandé.
+   */
   const region: MapRegion | null = focused
     ? focusRegion({latitude: focused.lat as number, longitude: focused.lng as number})
-    : overview;
+    : (tournee && tournee.path.length >= 2 ? boundingRegion(tournee.path) : null) ?? overview;
 
   const eventName = eventId ? (eventsRepo.findById(eventId)?.name ?? null) : null;
 
@@ -125,6 +146,32 @@ export function MapScreen() {
         // Le bouton natif ferait doublon avec le nôtre, et ne se place pas
         // au même endroit selon la plateforme.
         showsMyLocationButton={false}>
+        {tournee && tournee.path.length >= 2 ? (
+          <Polyline
+            coordinates={tournee.path}
+            strokeColor={c.primary}
+            strokeWidth={4}
+            // Pointillés tant que la distance est prévisionnelle : le trajet
+            // affiché est une intention, pas un relevé.
+            lineDashPattern={tournee.view.distanceIsActual ? undefined : [10, 8]}
+          />
+        ) : null}
+
+        {tournee
+          ? tournee.stops.map((st, idx) => {
+              const pt = pointToLatLng(st.location);
+              return pt ? (
+                <Marker
+                  key={st.id ?? `stop-${st.sequence}`}
+                  coordinate={pt}
+                  title={`${idx + 1}. ${st.label}`}
+                  description={st.completedAt ? 'Étape terminée' : 'Étape à venir'}
+                  pinColor={st.completedAt ? c.success : c.primary}
+                />
+              ) : null;
+            })
+          : null}
+
         {zones.map(z => {
           const tint = ZONE_COLORS[z.category] ?? ZONE_COLORS.default;
           return z.points.length >= 3 ? (

@@ -11,7 +11,7 @@ import {useIsFocused} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ModeSelector} from '@/components/ModeSelector';
-import type {Palette} from '@/config/theme';
+import {OVERLAY, type Palette} from '@/config/theme';
 import {useAuth} from '@/hooks/useAuth';
 import {useTheme} from '@/hooks/useTheme';
 import {useScanMode} from '@/hooks/useScanMode';
@@ -84,7 +84,7 @@ export function ScanScreen() {
           <TextInput
             style={styles.manualInput}
             placeholder="Saisir un QR / code…"
-            placeholderTextColor={c.textMuted}
+            placeholderTextColor={OVERLAY.textMuted}
             autoCapitalize="characters"
             value={manual}
             onChangeText={setManual}
@@ -107,7 +107,7 @@ export function ScanScreen() {
           </Pressable>
         </View>
         {lastResults.slice(0, 4).map((r, i) => (
-          <Text key={i} style={[styles.result, {color: r.ok ? c.success : c.danger}]}>
+          <Text key={i} style={[styles.result, {color: r.ok ? OVERLAY.success : OVERLAY.danger}]}>
             {r.ok ? '✓' : '✗'} {r.label}
           </Text>
         ))}
@@ -123,20 +123,20 @@ const makeStyles = (c: Palette) =>
   noCamText: {color: c.textMuted, textAlign: 'center'},
   top: {position: 'absolute', top: 16, left: 12, right: 12, gap: 8},
   counters: {flexDirection: 'row', justifyContent: 'space-between'},
-  count: {color: '#fff', fontSize: 18, fontWeight: '700'},
-  pending: {color: c.warning, fontSize: 14, fontWeight: '600'},
+  count: {color: OVERLAY.text, fontSize: 18, fontWeight: '700'},
+  pending: {color: OVERLAY.warning, fontSize: 14, fontWeight: '600'},
   bottom: {position: 'absolute', bottom: 24, left: 12, right: 12, gap: 6},
   manualRow: {flexDirection: 'row', gap: 8, marginBottom: 8},
   manualInput: {
     flex: 1,
-    backgroundColor: 'rgba(15,23,42,0.85)',
-    color: c.text,
+    backgroundColor: OVERLAY.scrimStrong,
+    color: OVERLAY.text,
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: OVERLAY.border,
   },
-  manualBtn: {backgroundColor: c.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
-  manualBtnText: {color: '#0f172a', fontWeight: '700'},
+  manualBtn: {backgroundColor: OVERLAY.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
+  manualBtnText: {color: OVERLAY.onPrimary, fontWeight: '700'},
   result: {fontSize: 14, fontWeight: '600'},
 });

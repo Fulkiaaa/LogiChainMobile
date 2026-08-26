@@ -20,6 +20,10 @@ export const MIGRATIONS: string[] = [
      payload TEXT NOT NULL, baseVersion INTEGER, status TEXT NOT NULL,
      attempts INTEGER DEFAULT 0, lastError TEXT)`,
   `CREATE INDEX IF NOT EXISTS idx_outbox_status ON outbox(status)`,
+  `CREATE TABLE IF NOT EXISTS routes (id TEXT PRIMARY KEY, eventId TEXT, reference TEXT,
+     mode TEXT, status TEXT, plannedDistanceKm REAL, actualDistanceKm REAL,
+     totalWeightKg REAL, stops TEXT, version INTEGER, syncedAt TEXT)`,
+  `CREATE INDEX IF NOT EXISTS idx_routes_eventId ON routes(eventId)`,
   `CREATE TABLE IF NOT EXISTS sync_meta (key TEXT PRIMARY KEY, value TEXT)`,
 ];
 

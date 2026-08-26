@@ -110,3 +110,33 @@ export const STATUS_COLORS_BY_SCHEME: Record<ColorScheme, Record<ItemStatus, str
 };
 
 export const STATUS_COLORS = STATUS_COLORS_BY_SCHEME.dark;
+
+/**
+ * Palette des contrôles superposés à l'aperçu caméra.
+ *
+ * Partout ailleurs, une couleur de texte suppose un fond connu — celui du
+ * thème. Au-dessus de la caméra, le fond est l'image filmée : un hangar sans
+ * lumière, un mur blanc en plein soleil, et tout l'intervalle entre les deux.
+ * Suivre le thème y produit un défaut visible : en clair, `text` vaut presque
+ * noir et disparaît sur le voile sombre des boutons de mode.
+ *
+ * Ces valeurs sont donc FIXES, indépendantes du thème choisi, et vérifiées par
+ * `contrast.test.ts` : chacune garde un rapport d'au moins 4,5:1 sur le voile,
+ * qu'il soit composé sur du noir ou sur du blanc.
+ */
+export const OVERLAY = {
+  /** Voile posé derrière les contrôles. Séparé en couleur + alpha pour être testable. */
+  scrimColor: '#0f172a',
+  scrimAlpha: 0.82,
+  scrim: 'rgba(15,23,42,0.82)',
+  scrimStrong: 'rgba(15,23,42,0.93)',
+  text: '#f8fafc',
+  textMuted: '#dbe3ec',
+  border: 'rgba(248,250,252,0.45)',
+  warning: '#fbbf24',
+  success: '#86efac',
+  danger: '#fca5a5',
+  /** Fond du mode sélectionné : assez foncé pour porter du texte blanc. */
+  primary: '#0369a1',
+  onPrimary: '#ffffff',
+} as const;

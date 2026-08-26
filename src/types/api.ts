@@ -61,3 +61,44 @@ export interface EventCarbonReport {
   byCategory: Record<string, number>; byTransportMode: Record<string, number>;
   itemCount: number; routeCount: number;
 }
+
+/* ── Tournées ────────────────────────────────────────────────────────────
+ * Miroir de `RouteJSON` côté API (`route.entity.ts`). Les tournées portent le
+ * calcul carbone du transport : distance réelle si elle a été relevée, sinon
+ * la distance planifiée.
+ */
+export const TRANSPORT_MODES = ['truck', 'electric_truck', 'van', 'rail', 'bike_cargo'] as const;
+export type TransportMode = (typeof TRANSPORT_MODES)[number];
+
+export const ROUTE_STATUSES = ['draft', 'planned', 'in_progress', 'completed', 'cancelled'] as const;
+export type RouteStatus = (typeof ROUTE_STATUSES)[number];
+
+export type StopType = 'pickup' | 'dropoff' | 'transit';
+
+export interface RouteStop {
+  id?: string;
+  sequence: number;
+  label: string;
+  type: StopType;
+  location: GeoPoint;
+  scheduledAt: string;
+  completedAt: string | null;
+  itemIds: string[];
+  note?: string;
+}
+
+export interface RouteJSON {
+  id: string;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  reference: string;
+  eventId: string;
+  transporterId: string;
+  mode: TransportMode;
+  status: RouteStatus;
+  plannedDistanceKm: number;
+  actualDistanceKm: number | null;
+  totalWeightKg: number;
+  stops: RouteStop[];
+}

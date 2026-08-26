@@ -1,4 +1,5 @@
 import {createEventsRepo, createZonesRepo} from './events.repo';
+import {createRoutesRepo} from './routes.repo';
 import {createItemsRepo} from './items.repo';
 import {createMetaRepo} from './meta.repo';
 import {createOutboxRepo} from './outbox.repo';
@@ -25,4 +26,5 @@ export const itemsRepo = createItemsRepo(getDb());
 export const outboxRepo = createOutboxRepo(getDb());
 export const eventsRepo = createEventsRepo(getDb());
 export const zonesRepo = createZonesRepo(getDb());
+export const routesRepo = createRoutesRepo(getDb());
 export const metaRepo = createMetaRepo(getDb());

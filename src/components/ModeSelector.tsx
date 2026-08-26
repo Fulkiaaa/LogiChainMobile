@@ -1,9 +1,9 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {Lock, MapPin, PackageCheck, Truck} from 'lucide-react-native';
 
-import type {Palette} from '@/config/theme';
-import {useTheme} from '@/hooks/useTheme';
+import {OVERLAY} from '@/config/theme';
+
 import type {ScanMode} from '@/domain/scanAction';
 import {can, whyNot} from '@/domain/capabilities';
 import type {AppCapability} from '@/domain/capabilities';
@@ -28,8 +28,6 @@ export function ModeSelector({
   role: UserRole | null | undefined;
   onChange: (m: ScanMode) => void;
 }) {
-  const {c} = useTheme();
-  const styles = useMemo(() => makeStyles(c), [c]);
 
   /*
    * On affiche UNE raison, pas une par mode : avec un seul geste restreint
@@ -43,7 +41,7 @@ export function ModeSelector({
         {MODES.map(({key, label, Icon, capability}) => {
           const autorise = can(role, capability);
           const active = key === mode && autorise;
-          const tint = active ? c.onPrimary : autorise ? c.text : c.textMuted;
+          const tint = active ? OVERLAY.onPrimary : autorise ? OVERLAY.text : OVERLAY.textMuted;
           return (
             <Pressable
               key={key}
@@ -69,7 +67,7 @@ export function ModeSelector({
               {autorise ? (
                 <Icon color={tint} size={16} strokeWidth={2} />
               ) : (
-                <Lock color={c.textMuted} size={14} strokeWidth={2.5} />
+                <Lock color={OVERLAY.textMuted} size={14} strokeWidth={2.5} />
               )}
               <Text
                 style={[
@@ -88,33 +86,48 @@ export function ModeSelector({
   );
 }
 
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    wrap: {gap: 6},
-    row: {flexDirection: 'row', gap: 8},
-    chip: {
-      flex: 1,
-      flexDirection: 'row',
-      gap: 6,
-      paddingVertical: 10,
-      borderRadius: 10,
-      backgroundColor: 'rgba(15,23,42,0.7)',
-      borderWidth: 1,
-      borderColor: c.border,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    chipActive: {backgroundColor: c.primary, borderColor: c.primary},
-    // Verrouillé : atténué et en pointillés. Le pointillé se lit même en
-    // niveaux de gris, contrairement à une simple baisse d'opacité.
-    chipLocked: {
-      backgroundColor: 'transparent',
-      borderStyle: 'dashed',
-      borderColor: c.textMuted,
-      opacity: 0.75,
-    },
-    label: {color: c.text, fontWeight: '600', fontSize: 13},
-    labelActive: {color: c.onPrimary},
-    labelLocked: {color: c.textMuted, fontWeight: '500'},
-    reason: {color: c.warning, fontSize: 12, fontWeight: '600'},
-  });
+/*
+ * Couleurs FIXES, pas celles du thème : ces boutons sont posés sur l'aperçu
+ * caméra. En thème clair, `c.text` vaut presque noir et disparaissait sur le
+ * voile sombre — le mode « Transit », pourtant disponible, était illisible dans
+ * une salle sombre. `contrast.test.ts` vérifie chaque couleur sur les deux
+ * extrêmes que l'objectif peut renvoyer.
+ */
+const styles = StyleSheet.create({
+  wrap: {gap: 6},
+  row: {flexDirection: 'row', gap: 8},
+  chip: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: OVERLAY.scrim,
+    borderWidth: 1,
+    borderColor: OVERLAY.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipActive: {backgroundColor: OVERLAY.primary, borderColor: OVERLAY.primary},
+  // Verrouillé : pointillés plutôt qu'une simple baisse d'opacité, qui se lit
+  // même en niveaux de gris. Le voile est CONSERVÉ — le rendre transparent
+  // laissait le libellé seul sur l'image, donc invisible sur un fond sombre.
+  chipLocked: {
+    backgroundColor: OVERLAY.scrim,
+    borderStyle: 'dashed',
+    borderColor: OVERLAY.textMuted,
+  },
+  label: {color: OVERLAY.text, fontWeight: '600', fontSize: 13},
+  labelActive: {color: OVERLAY.onPrimary},
+  labelLocked: {color: OVERLAY.textMuted, fontWeight: '500'},
+  reason: {
+    color: OVERLAY.warning,
+    fontSize: 12,
+    fontWeight: '600',
+    backgroundColor: OVERLAY.scrim,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    overflow: 'hidden',
+  },
+});

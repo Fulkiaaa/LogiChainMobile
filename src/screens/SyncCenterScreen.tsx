@@ -50,7 +50,10 @@ export function SyncCenterScreen() {
     setResyncing(true);
     try {
       const res = await resyncSector();
-      Alert.alert('Secteur retéléchargé', `${res.itemCount} équipement(s) en cache.`);
+      Alert.alert(
+        'Secteur retéléchargé',
+        `${res.itemCount} équipement(s) et ${res.routeCount} tournée(s) en cache.`,
+      );
     } catch (e) {
       Alert.alert('Échec', e instanceof Error ? e.message : 'Retéléchargement impossible.');
     } finally {

@@ -8,6 +8,7 @@ import {ChangePasswordScreen} from '@/screens/ChangePasswordScreen';
 import {ItemDetailScreen} from '@/screens/ItemDetailScreen';
 import {LoginScreen} from '@/screens/LoginScreen';
 import {MapScreen} from '@/screens/MapScreen';
+import {RoutesScreen} from '@/screens/RoutesScreen';
 
 import {AgentTabs} from './AgentTabs';
 import type {RootStackParamList} from './types';
@@ -38,6 +39,7 @@ export function RootNavigator() {
           <Stack.Screen name="AgentTabs" component={AgentTabs} options={{headerShown: false}} />
           <Stack.Screen name="ItemDetail" component={ItemDetailScreen} options={{title: 'Fiche équipement'}} />
           <Stack.Screen name="Map" component={MapScreen} options={{title: 'Carte du secteur'}} />
+          <Stack.Screen name="Routes" component={RoutesScreen} options={{title: 'Mes tournées'}} />
         </>
       ) : status === 'must_change_password' ? (
         /*

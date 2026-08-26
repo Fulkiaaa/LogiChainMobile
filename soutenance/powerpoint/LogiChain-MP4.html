@@ -1064,15 +1064,18 @@ body.plan-on .plan{display:block}
     <li><b>Pas de tests de rendu</b> — <code>react-native-testing-library</code> n'est pas installée. Les composants sont testés par leurs fonctions pures (filtrage, visibilité selon le rôle, libellés) ; le rendu visuel et les contrastes sont validés à la main sur iPhone. Limite assumée, pas oubliée.</li>
     <li><b>Android non validé</b> — le code est cross-platform et ne contient aucune API spécifique à iOS, mais je ne l'ai testé que sur iPhone. Je ne prétendrai pas qu'il tourne sur Android : je ne l'ai pas vérifié.</li>
     <li><b>Écrans admin absents</b> — hors périmètre, choisi. L'app cible l'agent de terrain ; seule la création de compte est disponible, parce que l'API l'expose déjà.</li>
+    <li><b>Les goulots d'étranglement ne sont pas exposés</b> — l'algorithme du banquier tourne côté API et refuse une allocation qui rendrait l'état non sûr. Mais son résultat s'adresse à celui qui <b>décide d'allouer</b>, et allouer n'est pas un geste de terrain. L'afficher à un agent qui ne peut pas agir dessus aurait été un indicateur décoratif.</li>
+    <li><b>Pas de « tâches prioritaires » sur le tableau de bord</b> — le sujet les mentionne. Il aurait fallu une notion de mission assignée, que ni le modèle de données ni l'API ne portent : rien n'affecte un équipement à un agent nommé. J'aurais dû inventer une priorité côté client, donc l'afficher comme une vérité alors qu'elle n'aurait été qu'une heuristique. Le tableau de bord montre plutôt ce qui est réel : l'état des stocks, les alertes reçues, la file d'attente.</li>
     <li><b>Résolution de conflit manuelle</b> — l'app détecte le conflit, l'affiche avec l'état local et l'état serveur, et laisse l'agent trancher. Une fusion automatique déciderait à sa place sur une donnée physique qu'il est le seul à pouvoir constater.</li>
   </ul>
 
-  <div class="callout">Ces quatre points sont des <b>décisions</b>, pas des oublis. C'est la différence que je veux montrer : un périmètre tenu et documenté vaut mieux qu'un périmètre affiché et creux.</div>
+  <div class="callout">Ces points sont des <b>décisions</b>, pas des oublis — et deux d'entre eux se justifient par la même règle que j'ai suivie partout : <b>ne pas afficher un indicateur sur lequel son lecteur ne peut pas agir</b>, et ne pas présenter une heuristique comme une donnée. Un périmètre tenu et documenté vaut mieux qu'un périmètre affiché et creux.</div>
 
   <div class="notes">
     <h4>Conduite</h4>
     <p>Slide courageuse, garde-la. Un jury pose toujours la question des limites — mieux vaut l'avoir posée soi-même, avec la justification prête.</p>
-    <p>La quatrième ligne est la plus intéressante : la résolution manuelle des conflits n'est pas de la paresse. Sur un conflit de statut d'équipement, <b>seul l'agent qui a l'objet sous les yeux</b> sait qui a raison. Une fusion automatique produirait une donnée que personne n'a constatée.</p>
+    <p>La résolution manuelle des conflits n'est pas de la paresse. Sur un conflit de statut d'équipement, <b>seul l'agent qui a l'objet sous les yeux</b> sait qui a raison. Une fusion automatique produirait une donnée que personne n'a constatée.</p>
+    <p>Les deux points ajoutés sont ceux que le sujet mentionne et que je n'ai pas faits — annonce-les avant qu'on te les trouve. Pour les <b>goulots</b> : l'algorithme existe et tourne, je l'ai présenté au MP3, il protège chaque allocation. Ce qui manque, c'est un écran — et cet écran n'a pas de lecteur dans le périmètre que j'ai choisi. Pour les <b>tâches prioritaires</b> : le blocage est en amont, dans le modèle. Rien n'affecte un équipement à un agent, donc aucune priorité n'est calculable honnêtement.</p>
     <p>Ne t'excuse pas en disant ça. Ce sont des arbitrages, énonce-les comme tels.</p>
   </div>
 </section>
