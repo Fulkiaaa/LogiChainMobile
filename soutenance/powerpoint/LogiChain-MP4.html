@@ -902,32 +902,8 @@ body.plan-on .plan{display:block}
 </section>
 
 <!-- 23 ─────────────────────────────────────────────────────────────────── -->
-<section class="slide" data-title="Refonte UI" data-net="online">
-  <div class="eyebrow"><span class="num">22</span> Itération produit</div>
-  <h1>Ce que le terrain<br>a fait évoluer</h1>
-  <p class="lede">L'app tourne sur iPhone physique. Trois constats se sont imposés à ce moment-là — aucun n'était perceptible dans le simulateur.</p>
-
-  <div class="row app"><span class="tag">constat</span><span class="body"><b>Des emoji en guise d'icônes</b> <span>— taille et alignement non maîtrisés, rendu variable selon la version d'iOS</span></span><span class="state">→ Lucide</span></div>
-  <div class="row app"><span class="tag">constat</span><span class="body"><b>Palette figée en sombre</b> <span>— inutilisable en plein soleil, et c'est un usage extérieur</span></span><span class="state">→ clair / sombre / auto</span></div>
-  <div class="row app"><span class="tag">constat</span><span class="body"><b>Aucun écran de compte</b> <span>— « je ne me sens pas administrateur » : le rôle n'était visible nulle part</span></span><span class="state">→ onglet Profil</span></div>
-  <div class="row app"><span class="tag">constat</span><span class="body"><b>51 équipements dans une liste</b> <span>— impossible à parcourir à la main sur un chantier</span></span><span class="state">→ filtres + recherche</span></div>
-
-  <div class="callout">Le diagnostic honnête sur la liste : ce <b>n'était pas</b> un problème de performance. Le <code>FlatList</code> est virtualisé, seules les lignes visibles sont rendues. Paginer n'aurait rien réglé — le vrai besoin était de <b>retrouver</b> un équipement, pas d'en afficher moins. Les tuiles de statut sont devenues des filtres, et un champ de recherche couvre le code QR et le libellé.</div>
-
-  <div class="notes">
-    <h4>Conduite</h4>
-    <p>Cette slide montre que tu sais <b>diagnostiquer avant de corriger</b>. La demande initiale était « paginer la liste ». La bonne réponse était « le problème n'est pas la quantité affichée, c'est la findabilité ». Un développeur qui applique la demande sans l'examiner aurait paginé pour rien.</p>
-    <p>Le passage aux icônes Lucide a un bénéfice qui n'était pas prévu et qui a servi juste après : les SVG héritent de la couleur, donc le thème clair/sombre n'a demandé aucun travail supplémentaire sur les icônes. C'est le lot 1 qui a rendu le lot 3 facile.</p>
-    <p>Le thème clair est un besoin terrain, pas un caprice : un écran sombre en plein soleil est illisible.</p>
-  </div>
-</section>
-
-
-
-
-<!-- 24 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Tests" data-net="online">
-  <div class="eyebrow"><span class="num">23</span> Qualité</div>
+  <div class="eyebrow"><span class="num">22</span> Qualité</div>
   <h1>333 tests,<br>une seconde</h1>
 
   <div class="cols c4" style="margin-bottom:26px">
@@ -957,9 +933,9 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
-<!-- 25 ─────────────────────────────────────────────────────────────────── -->
+<!-- 24 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Limites" data-net="online">
-  <div class="eyebrow"><span class="num">24</span> Honnêteté</div>
+  <div class="eyebrow"><span class="num">23</span> Honnêteté</div>
   <h1>Ce que je n'ai pas fait,<br>et pourquoi</h1>
 
   <ul class="clean">
@@ -982,9 +958,9 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
-<!-- 26 ─────────────────────────────────────────────────────────────────── -->
+<!-- 25 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Récapitulatif" data-net="online">
-  <div class="eyebrow"><span class="num">25</span> Récapitulatif</div>
+  <div class="eyebrow"><span class="num">24</span> Récapitulatif</div>
   <h1>La chaîne est complète</h1>
 
   <div class="cols c2">
@@ -1015,7 +991,7 @@ body.plan-on .plan{display:block}
   </div>
 </section>
 
-<!-- 27 ─────────────────────────────────────────────────────────────────── -->
+<!-- 26 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Merci" data-net="online">
   <div class="title-slide">
     <div class="sub">Module MP4 · Application mobile terrain</div>
