@@ -8,6 +8,7 @@ import {
 } from 'react-native-vision-camera';
 
 import {useIsFocused} from '@react-navigation/native';
+import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ModeSelector} from '@/components/ModeSelector';
@@ -16,6 +17,8 @@ import {useAuth} from '@/hooks/useAuth';
 import {useTheme} from '@/hooks/useTheme';
 import {useScanMode} from '@/hooks/useScanMode';
 import {useScanner} from '@/hooks/useScanner';
+import {useKeyboardHeight} from '@/hooks/useKeyboardHeight';
+import {inputBottomOffset} from '@/domain/keyboard';
 import {outboxRepo} from '@/services/db/database';
 
 export function ScanScreen() {
@@ -23,6 +26,10 @@ export function ScanScreen() {
   const styles = useMemo(() => makeStyles(c), [c]);
   const {user} = useAuth();
   const {mode, setMode} = useScanMode();
+  // Le clavier recouvrait la barre de saisie : elle est en position absolue,
+  // rien ne la pousse. On la remonte nous-mêmes.
+  const keyboardHeight = useKeyboardHeight();
+  const tabBarHeight = useBottomTabBarHeight();
   const {onCode, sessionCount, lastResults} = useScanner(mode);
   const {hasPermission, requestPermission} = useCameraPermission();
   // La caméra ne tourne que si l'onglet Scan est au premier plan : sinon elle
@@ -79,7 +86,11 @@ export function ScanScreen() {
         </View>
       </View>
 
-      <View style={styles.bottom}>
+      <View
+        style={[
+          styles.bottom,
+          {bottom: inputBottomOffset({keyboardHeight, tabBarHeight, base: 24})},
+        ]}>
         <View style={styles.manualRow}>
           <TextInput
             style={styles.manualInput}
@@ -125,7 +136,8 @@ const makeStyles = (c: Palette) =>
   counters: {flexDirection: 'row', justifyContent: 'space-between'},
   count: {color: OVERLAY.text, fontSize: 18, fontWeight: '700'},
   pending: {color: OVERLAY.warning, fontSize: 14, fontWeight: '600'},
-  bottom: {position: 'absolute', bottom: 24, left: 12, right: 12, gap: 6},
+  // `bottom` est piloté à l'affichage : il suit l'ouverture du clavier.
+  bottom: {position: 'absolute', left: 12, right: 12, gap: 6},
   manualRow: {flexDirection: 'row', gap: 8, marginBottom: 8},
   manualInput: {
     flex: 1,
