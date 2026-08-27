@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
+import {Linking, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 import {
   Camera,
   useCameraDevice,
@@ -12,7 +12,7 @@ import {useBottomTabBarHeight} from '@react-navigation/bottom-tabs';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {ModeSelector} from '@/components/ModeSelector';
-import {OVERLAY, type Palette} from '@/config/theme';
+import {TOUCH_MIN, OVERLAY, type Palette} from '@/config/theme';
 import {useAuth} from '@/hooks/useAuth';
 import {useTheme} from '@/hooks/useTheme';
 import {useScanMode} from '@/hooks/useScanMode';
@@ -73,8 +73,21 @@ export function ScanScreen() {
       ) : (
         <View style={styles.noCam}>
           <Text style={styles.noCamText}>
-            Caméra indisponible (permission refusée ou simulateur). Utilisez la saisie manuelle.
+            Caméra indisponible. Le scan en rafale est la fonction principale de cet écran :
+            sans autorisation, il reste la saisie manuelle ci-dessous.
           </Text>
+          {/*
+            * iOS ne redemande jamais une permission refusée : sans ce bouton,
+            * l'écran est une impasse définitive. `openSettings` ouvre la fiche
+            * de l'application, seul endroit où le choix peut être repris.
+            */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ouvrir les réglages de l’application"
+            style={styles.settingsBtn}
+            onPress={() => void Linking.openSettings()}>
+            <Text style={styles.settingsBtnText}>Ouvrir les réglages</Text>
+          </Pressable>
         </View>
       )}
 
@@ -107,6 +120,7 @@ export function ScanScreen() {
             }}
           />
           <Pressable
+            accessibilityRole="button"
             style={styles.manualBtn}
             onPress={() => {
               if (manual.trim()) {
@@ -131,7 +145,19 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, backgroundColor: '#000'},
   noCam: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', padding: 24, backgroundColor: c.bg},
-  noCamText: {color: c.textMuted, textAlign: 'center'},
+  noCamText: {color: c.textMuted, textAlign: 'center', lineHeight: 20},
+  settingsBtn: {
+    minHeight: TOUCH_MIN,
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: c.borderStrong,
+  },
+  settingsBtnText: {color: c.primary, fontWeight: '700'},
   top: {position: 'absolute', top: 16, left: 12, right: 12, gap: 8},
   counters: {flexDirection: 'row', justifyContent: 'space-between'},
   count: {color: OVERLAY.text, fontSize: 18, fontWeight: '700'},

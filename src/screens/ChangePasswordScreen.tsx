@@ -124,15 +124,17 @@ export function ChangePasswordScreen() {
 
         {serverError ? <Text style={styles.error}>{serverError}</Text> : null}
 
-        <Pressable style={styles.button} onPress={onSubmit} disabled={loading}>
+        <Pressable
+            accessibilityRole="button" style={styles.button} onPress={onSubmit} disabled={loading}>
           {loading ? (
-            <ActivityIndicator color="#0f172a" />
+            <ActivityIndicator color={c.onPrimary} />
           ) : (
             <Text style={styles.buttonText}>Valider</Text>
           )}
         </Pressable>
 
-        <Pressable style={styles.linkButton} onPress={logout} disabled={loading}>
+        <Pressable
+            accessibilityRole="button" style={styles.linkButton} onPress={logout} disabled={loading}>
           <Text style={styles.linkText}>Se déconnecter</Text>
         </Pressable>
       </ScrollView>
@@ -144,8 +146,8 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: {flex: 1, backgroundColor: c.bg},
     content: {padding: 24, paddingBottom: 48},
-    title: {fontSize: 28, fontWeight: '800', color: c.text},
-    subtitle: {fontSize: 15, color: c.textMuted, marginTop: 8, marginBottom: 4, lineHeight: 21},
+    title: {fontSize: 26, fontWeight: '800', color: c.text},
+    subtitle: {fontSize: 14, color: c.textMuted, marginTop: 8, marginBottom: 4, lineHeight: 21},
     account: {fontSize: 14, color: c.primary, marginBottom: 24},
     input: {
       backgroundColor: c.surface,
@@ -154,10 +156,10 @@ const makeStyles = (c: Palette) =>
       padding: 16,
       marginBottom: 8,
       borderWidth: 1,
-      borderColor: c.border,
+      borderColor: c.borderStrong,
     },
-    rules: {marginBottom: 12, marginTop: 2, gap: 2},
-    rule: {color: c.textMuted, fontSize: 13},
+    rules: {marginBottom: 12, marginTop: 4, gap: 4},
+    rule: {color: c.textMuted, fontSize: 14},
     ruleMet: {color: c.primary},
     error: {color: c.danger, marginBottom: 8},
     button: {
@@ -167,7 +169,7 @@ const makeStyles = (c: Palette) =>
       alignItems: 'center',
       marginTop: 16,
     },
-    buttonText: {color: '#0f172a', fontWeight: '700', fontSize: 16},
+    buttonText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
     linkButton: {padding: 16, alignItems: 'center'},
     linkText: {color: c.textMuted, fontSize: 14},
   });

@@ -281,7 +281,7 @@ const makeStyles = (c: Palette) =>
     container: {flex: 1, backgroundColor: c.bg},
     empty: {flex: 1, backgroundColor: c.bg, justifyContent: 'center', padding: 32},
     emptyText: {color: c.textMuted, textAlign: 'center', lineHeight: 20},
-    controls: {position: 'absolute', top: 16, right: 16, gap: 10},
+    controls: {position: 'absolute', top: 16, right: 16, gap: 12},
     control: {
       width: 44,
       height: 44,
@@ -290,7 +290,7 @@ const makeStyles = (c: Palette) =>
       justifyContent: 'center',
       backgroundColor: c.surface,
       borderWidth: 1,
-      borderColor: c.border,
+      borderColor: c.borderStrong,
       // Le relief détache les boutons du fond de carte, qui peut être clair
       // comme sombre selon la zone survolée.
       shadowColor: '#000',
@@ -309,9 +309,9 @@ const makeStyles = (c: Palette) =>
       borderRadius: 12,
       borderWidth: 1,
       borderColor: c.border,
-      padding: 14,
+      padding: 16,
       gap: 4,
     },
-    panelTitle: {color: c.text, fontWeight: '700', fontSize: 15},
+    panelTitle: {color: c.text, fontWeight: '700', fontSize: 14},
     panelMeta: {color: c.textMuted, fontSize: 12},
   });

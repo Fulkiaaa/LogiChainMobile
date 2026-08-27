@@ -59,9 +59,10 @@ export function LoginScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <Pressable style={styles.button} onPress={onSubmit} disabled={loading}>
+      <Pressable
+            accessibilityRole="button" style={styles.button} onPress={onSubmit} disabled={loading}>
         {loading ? (
-          <ActivityIndicator color="#0f172a" />
+          <ActivityIndicator color={c.onPrimary} />
         ) : (
           <Text style={styles.buttonText}>Se connecter</Text>
         )}
@@ -74,7 +75,7 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, justifyContent: 'center', padding: 24, backgroundColor: c.bg},
   title: {fontSize: 40, fontWeight: '800', color: c.text, textAlign: 'center'},
-  subtitle: {fontSize: 16, color: c.primary, textAlign: 'center', marginBottom: 32},
+  subtitle: {fontSize: 17, color: c.primary, textAlign: 'center', marginBottom: 32},
   input: {
     backgroundColor: c.surface,
     color: c.text,
@@ -82,7 +83,7 @@ const makeStyles = (c: Palette) =>
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: c.borderStrong,
   },
   error: {color: c.danger, marginBottom: 12},
   button: {
@@ -92,5 +93,5 @@ const makeStyles = (c: Palette) =>
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonText: {color: '#0f172a', fontWeight: '700', fontSize: 16},
+  buttonText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
 });

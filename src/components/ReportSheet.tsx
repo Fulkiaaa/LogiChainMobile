@@ -121,7 +121,12 @@ export function ReportSheet({
         <View style={styles.sheet}>
           <View style={styles.head}>
             <Text style={styles.title}>{REPORT_LABELS[kind]}</Text>
-            <Pressable onPress={close} hitSlop={10} disabled={busy}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Fermer"
+              onPress={close}
+              hitSlop={10}
+              disabled={busy}>
               <X color={c.textMuted} size={20} strokeWidth={2.5} />
             </Pressable>
           </View>
@@ -147,6 +152,7 @@ export function ReportSheet({
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Pressable
+            accessibilityRole="button"
             style={[styles.submit, kind === 'lost' && styles.submitDanger, busy && styles.busy]}
             onPress={submit}
             disabled={busy}>
@@ -177,31 +183,31 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.bg,
       borderTopLeftRadius: 18,
       borderTopRightRadius: 18,
-      padding: 20,
-      paddingBottom: 34,
-      gap: 10,
+      padding: 24,
+      paddingBottom: 32,
+      gap: 12,
     },
     head: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-    title: {color: c.text, fontSize: 18, fontWeight: '700'},
-    hint: {color: c.textMuted, fontSize: 13, lineHeight: 18},
+    title: {color: c.text, fontSize: 17, fontWeight: '700'},
+    hint: {color: c.textMuted, fontSize: 14, lineHeight: 18},
     input: {
       backgroundColor: c.surface,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: c.border,
+      borderColor: c.borderStrong,
       padding: 12,
       color: c.text,
       minHeight: 96,
       textAlignVertical: 'top',
     },
-    counter: {color: c.textMuted, fontSize: 11, textAlign: 'right', marginTop: -6},
-    error: {color: c.danger, fontSize: 13},
+    counter: {color: c.textMuted, fontSize: 12, textAlign: 'right'},
+    error: {color: c.danger, fontSize: 14},
     submit: {
       flexDirection: 'row',
       gap: 8,
       backgroundColor: c.primary,
       borderRadius: 12,
-      paddingVertical: 14,
+      paddingVertical: 16,
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: 4,

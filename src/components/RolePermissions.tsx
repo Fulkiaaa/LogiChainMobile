@@ -55,9 +55,9 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     wrap: {gap: 8, marginTop: 4},
     title: {color: c.textMuted, fontSize: 12, fontWeight: '700', textTransform: 'uppercase'},
-    row: {flexDirection: 'row', gap: 10, alignItems: 'flex-start'},
-    icon: {width: 20, alignItems: 'center', paddingTop: 2},
-    texts: {flex: 1, gap: 2},
+    row: {flexDirection: 'row', gap: 12, alignItems: 'flex-start'},
+    icon: {width: 20, alignItems: 'center', paddingTop: 4},
+    texts: {flex: 1, gap: 4},
     label: {color: c.text, fontSize: 14, fontWeight: '600'},
     // Barré plutôt que simplement grisé : lisible même en niveaux de gris et
     // pour un daltonien, contrairement à un simple contraste de couleur.

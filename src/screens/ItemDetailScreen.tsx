@@ -127,17 +127,20 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
 
       <Text style={styles.section}>Signalement terrain</Text>
       <View style={styles.actions}>
-        <Pressable style={styles.action} onPress={() => setSheet('anomaly')}>
+        <Pressable
+            accessibilityRole="button" style={styles.action} onPress={() => setSheet('anomaly')}>
           <AlertTriangle color={c.warning} size={17} strokeWidth={2.5} />
           <Text style={styles.actionText}>Signaler une anomalie</Text>
         </Pressable>
         {peutMaintenir ? (
-          <Pressable style={styles.action} onPress={() => setSheet('maintenance')}>
+          <Pressable
+            accessibilityRole="button" style={styles.action} onPress={() => setSheet('maintenance')}>
             <Wrench color={c.textMuted} size={17} strokeWidth={2.5} />
             <Text style={styles.actionText}>Mettre en maintenance</Text>
           </Pressable>
         ) : null}
         <Pressable
+            accessibilityRole="button"
           style={[styles.action, styles.actionDanger]}
           onPress={() => setSheet('lost')}>
           <PackageX color={c.danger} size={17} strokeWidth={2.5} />
@@ -215,9 +218,9 @@ function Row({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     container: {flex: 1, backgroundColor: c.bg},
-    label: {color: c.text, fontSize: 24, fontWeight: '800', marginBottom: 8},
-    headRow: {flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap'},
-    qr: {color: c.textMuted, fontSize: 13, fontWeight: '600'},
+    label: {color: c.text, fontSize: 21, fontWeight: '800', marginBottom: 8},
+    headRow: {flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap'},
+    qr: {color: c.textMuted, fontSize: 14, fontWeight: '600'},
     offlineBanner: {
       color: c.warning,
       fontSize: 12,
@@ -227,19 +230,19 @@ const makeStyles = (c: Palette) =>
     },
     section: {
       color: c.textMuted,
-      marginTop: 22,
+      marginTop: 24,
       marginBottom: 8,
       fontWeight: '700',
       textTransform: 'uppercase',
       fontSize: 12,
     },
-    card: {backgroundColor: c.surface, borderRadius: 12, paddingHorizontal: 14},
+    card: {backgroundColor: c.surface, borderRadius: 12, paddingHorizontal: 16},
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       gap: 12,
-      paddingVertical: 11,
+      paddingVertical: 12,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: c.border,
     },
@@ -247,7 +250,7 @@ const makeStyles = (c: Palette) =>
     rowLabel: {color: c.textMuted, fontSize: 14},
     rowValue: {color: c.text, fontSize: 14, fontWeight: '600', flexShrink: 1, textAlign: 'right'},
     rowValueEmpty: {color: c.textMuted, fontSize: 14, flexShrink: 1, textAlign: 'right'},
-    geoRow: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 13},
+    geoRow: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12},
     geoRowWithAction: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: c.border,
@@ -267,15 +270,15 @@ const makeStyles = (c: Palette) =>
     muted: {color: c.textMuted},
     histRow: {flexDirection: 'row', gap: 12},
     histRail: {width: 10, alignItems: 'center'},
-    histDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: c.primary, marginTop: 5},
-    histLine: {flex: 1, width: 2, backgroundColor: c.border, marginTop: 2},
+    histDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: c.primary, marginTop: 4},
+    histLine: {flex: 1, width: 2, backgroundColor: c.border, marginTop: 4},
     histBody: {flex: 1, paddingBottom: 16},
-    histHead: {flexDirection: 'row', alignItems: 'center', gap: 6},
+    histHead: {flexDirection: 'row', alignItems: 'center', gap: 8},
     histType: {color: c.text, fontWeight: '700', fontSize: 14},
-    histMeta: {color: c.textMuted, fontSize: 12, marginTop: 2},
-    histTransition: {color: c.primary, fontSize: 12, fontWeight: '600', marginTop: 3},
-    histNote: {color: c.text, fontSize: 13, fontStyle: 'italic', marginTop: 4},
-    actions: {flexDirection: 'row', gap: 10},
+    histMeta: {color: c.textMuted, fontSize: 12, marginTop: 4},
+    histTransition: {color: c.primary, fontSize: 12, fontWeight: '600', marginTop: 4},
+    histNote: {color: c.text, fontSize: 14, fontStyle: 'italic', marginTop: 4},
+    actions: {flexDirection: 'row', gap: 12},
     action: {
       flex: 1,
       flexDirection: 'row',
@@ -285,12 +288,12 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.surface,
       borderRadius: 10,
       borderWidth: 1,
-      borderColor: c.border,
-      paddingVertical: 14,
-      paddingHorizontal: 10,
+      borderColor: c.borderStrong,
+      paddingVertical: 16,
+      paddingHorizontal: 12,
     },
     actionDanger: {borderColor: c.danger},
-    actionText: {color: c.text, fontWeight: '600', fontSize: 13, flexShrink: 1},
+    actionText: {color: c.text, fontWeight: '600', fontSize: 14, flexShrink: 1},
     actionTextDanger: {color: c.danger},
-    offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 10, lineHeight: 17},
+    offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 12, lineHeight: 17},
   });

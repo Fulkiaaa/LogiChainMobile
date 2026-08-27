@@ -81,15 +81,26 @@ const makeStyles = (c: Palette) =>
       gap: 4,
       backgroundColor: c.surface,
       borderRadius: 14,
-      paddingVertical: 14,
-      paddingHorizontal: 10,
-      borderWidth: 1,
+      paddingVertical: 16,
+      paddingHorizontal: 12,
+      // Bordure de 2 px dès le repos, transparente : l'état actif ne fait que
+      // la colorer. Sans cela, l'apparition d'une bordure décalerait le contenu
+      // de la tuile de 1 px à chaque sélection.
+      borderWidth: 2,
       borderColor: 'transparent',
     },
-    tileActive: {borderColor: c.primary, backgroundColor: c.surfaceAlt},
+    /*
+     * La sélection ne change QUE la bordure.
+     *
+     * Elle passait le fond à `surfaceAlt`, plus proche de la couleur des
+     * libellés : trois statuts y tombaient sous 4,5:1 (« Perdu » à 3,74:1).
+     * Sélectionner un filtre rendait donc son libellé moins lisible qu'au
+     * repos — l'inverse de ce qu'un état actif doit faire.
+     */
+    tileActive: {borderColor: c.primary},
     // `flexShrink` autorise le bloc texte à se compresser avant l'icône : sans
     // lui, un libellé long pousse l'icône hors de la tuile.
-    texts: {flexShrink: 1, gap: 2},
+    texts: {flexShrink: 1, gap: 4},
     count: {color: c.text, fontSize: 26, fontWeight: '800', lineHeight: 30},
-    label: {fontSize: 13, fontWeight: '600'},
+    label: {fontSize: 14, fontWeight: '600'},
   });

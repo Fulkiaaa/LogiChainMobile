@@ -6,7 +6,7 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X, Route as RouteIcon} from 'lucide-react-native';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useAuth} from '@/hooks/useAuth';
 import {useConnectivity} from '@/hooks/useConnectivity';
@@ -85,11 +85,13 @@ export function DashboardScreen() {
           <View style={styles.headerRow}>
             <Text style={styles.hello}>Bonjour, {user?.fullName ?? 'agent'}</Text>
             <View style={styles.headerLinks}>
-              <Pressable style={styles.mapLink} onPress={() => nav.navigate('Routes')}>
+              <Pressable
+            accessibilityRole="button" style={styles.mapLink} onPress={() => nav.navigate('Routes')}>
                 <RouteIcon color={c.primary} size={16} strokeWidth={2.5} />
                 <Text style={styles.mapLinkText}>Tournées</Text>
               </Pressable>
-              <Pressable style={styles.mapLink} onPress={() => nav.navigate('Map')}>
+              <Pressable
+            accessibilityRole="button" style={styles.mapLink} onPress={() => nav.navigate('Map')}>
                 <MapIcon color={c.primary} size={16} strokeWidth={2.5} />
                 <Text style={styles.mapLinkText}>Carte</Text>
               </Pressable>
@@ -132,7 +134,7 @@ export function DashboardScreen() {
                 return (
                   <View
                     key={a.id}
-                    style={[styles.alert, {backgroundColor: tint + '1f', borderLeftColor: tint}]}>
+                    style={[styles.alert, {backgroundColor: tint + '1f'}]}>
                     <Icon color={tint} size={18} strokeWidth={2.5} />
                     <View style={styles.alertBody}>
                       <Text style={[styles.alertTitle, {color: tint}]}>{a.title}</Text>
@@ -197,7 +199,8 @@ export function DashboardScreen() {
         </View>
       }
       renderItem={({item}) => (
-        <Pressable style={styles.itemRow} onPress={() => nav.navigate('ItemDetail', {id: item.id})}>
+        <Pressable
+            accessibilityRole="button" style={styles.itemRow} onPress={() => nav.navigate('ItemDetail', {id: item.id})}>
           <View style={{flex: 1}}>
             <Text style={styles.itemLabel}>{item.label}</Text>
             <Text style={styles.itemQr}>{item.qrCode}</Text>
@@ -232,24 +235,23 @@ const makeStyles = (c: Palette) =>
   container: {flex: 1, backgroundColor: c.bg, padding: 16},
   headerLinks: {flexDirection: 'row', gap: 8},
   headerRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
-  hello: {color: c.text, fontSize: 16, fontWeight: '600', flexShrink: 1},
-  mapLink: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingLeft: 10},
+  hello: {color: c.text, fontSize: 17, fontWeight: '600', flexShrink: 1},
+  mapLink: {
+    minHeight: TOUCH_MIN,flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4, paddingLeft: 12},
   mapLinkText: {color: c.primary, fontWeight: '600'},
-  logout: {color: c.primary},
   banner: {padding: 12, borderRadius: 10, marginTop: 12},
-  bannerText: {color: c.text},
   error: {color: c.danger, marginTop: 8},
-  section: {color: c.textMuted, marginTop: 20, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
+  section: {color: c.textMuted, marginTop: 24, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
   // Deux rangées de trois : les tuiles sont en `flex: 1`, donc à largeur égale
   // quelle que soit la longueur du libellé.
-  statusRow: {flexDirection: 'row', gap: 10, marginBottom: 10},
+  statusRow: {flexDirection: 'row', gap: 12, marginBottom: 12},
   searchBar: {
     flexDirection: 'row',
     // `stretch` plutôt que `center` : le bouton adopte la hauteur exacte de la
     // barre de recherche, quelle que soit la taille de police du système.
     alignItems: 'stretch',
-    gap: 10,
-    marginBottom: 10,
+    gap: 12,
+    marginBottom: 12,
   },
   filterButton: {
     width: 44,
@@ -261,13 +263,20 @@ const makeStyles = (c: Palette) =>
     justifyContent: 'center',
     backgroundColor: c.surface,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: c.borderStrong,
   },
   filterButtonActive: {backgroundColor: c.primary, borderColor: c.primary},
+  /*
+   * Pastille RENTRÉE dans le bouton (0 / 0 au lieu de -5 / -5).
+   *
+   * Sur iOS un enfant qui dépasse son parent reste visible ; sur Android il est
+   * rogné par défaut. Le compteur de filtres actifs y était donc amputé de ses
+   * coins — un défaut invisible depuis un simulateur iOS.
+   */
   filterCount: {
     position: 'absolute',
-    top: -5,
-    right: -5,
+    top: 0,
+    right: 0,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
@@ -276,7 +285,7 @@ const makeStyles = (c: Palette) =>
     alignItems: 'center',
     justifyContent: 'center',
   },
-  filterCountText: {color: '#fff', fontSize: 11, fontWeight: '800'},
+  filterCountText: {color: c.onPrimary, fontSize: 12, fontWeight: '800'},
   searchRow: {
     // Occupe toute la largeur restante à gauche du bouton de filtre (44 px).
     flex: 1,
@@ -286,24 +295,29 @@ const makeStyles = (c: Palette) =>
     backgroundColor: c.surface,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: c.borderStrong,
     paddingHorizontal: 12,
   },
-  searchInput: {flex: 1, color: c.text, paddingVertical: 10},
+  searchInput: {flex: 1, color: c.text, paddingVertical: 12},
+  /*
+   * Pas de liseré coloré à gauche : c'est l'ornement le plus recopié des
+   * interfaces d'administration, et il faisait ici un quatrième signal pour la
+   * même information — l'icône de sévérité, la couleur du titre et le fond
+   * teinté la portaient déjà.
+   */
   alert: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 12,
     borderRadius: 8,
-    borderLeftWidth: 3,
     padding: 12,
     marginBottom: 8,
   },
-  alertBody: {flex: 1, gap: 2},
-  alertTitle: {fontWeight: '700', fontSize: 13},
-  alertText: {color: c.text, flexShrink: 1, fontSize: 13, lineHeight: 18},
-  itemRow: {flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface, borderRadius: 10, padding: 14, marginBottom: 8},
+  alertBody: {flex: 1, gap: 4},
+  alertTitle: {fontWeight: '700', fontSize: 14},
+  alertText: {color: c.text, flexShrink: 1, fontSize: 14, lineHeight: 18},
+  itemRow: {flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface, borderRadius: 10, padding: 16, marginBottom: 8},
   itemLabel: {color: c.text, fontWeight: '600'},
-  itemQr: {color: c.textMuted, fontSize: 12, marginTop: 2},
-  empty: {color: c.textMuted, textAlign: 'center', marginTop: 20},
+  itemQr: {color: c.textMuted, fontSize: 12, marginTop: 4},
+  empty: {color: c.textMuted, textAlign: 'center', marginTop: 24},
 });

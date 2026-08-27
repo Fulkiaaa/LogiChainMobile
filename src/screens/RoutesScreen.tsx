@@ -4,7 +4,7 @@ import {CircleCheck, Flag, MapPinned, Package, Route as RouteIcon, Truck} from '
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {STOP_TYPE_LABELS, nextStop, orderedStops, toRouteView} from '@/domain/route';
 import {useTheme} from '@/hooks/useTheme';
 import type {RootStackParamList} from '@/navigation/types';
@@ -150,25 +150,26 @@ const makeStyles = (c: Palette) =>
     content: {padding: 16, paddingBottom: 32},
     empty: {flex: 1, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center', padding: 32, gap: 12},
     emptyText: {color: c.textMuted, textAlign: 'center', lineHeight: 20},
-    card: {backgroundColor: c.surface, borderRadius: 12, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: c.border},
-    head: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6},
-    ref: {color: c.text, fontWeight: '700', fontSize: 16, flex: 1},
+    card: {backgroundColor: c.surface, borderRadius: 12, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: c.border},
+    head: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8},
+    ref: {color: c.text, fontWeight: '700', fontSize: 17, flex: 1},
     status: {color: c.textMuted, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5},
-    meta: {color: c.textMuted, fontSize: 13.5, marginTop: 2},
+    meta: {color: c.textMuted, fontSize: 14, marginTop: 4},
     reel: {color: c.success, fontWeight: '600'},
     prevu: {color: c.warning, fontWeight: '600'},
-    next: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8},
-    nextText: {color: c.text, fontSize: 13.5, flex: 1},
-    doneText: {color: c.success, fontSize: 13.5, flex: 1},
-    stops: {marginTop: 14, borderTopWidth: 1, borderTopColor: c.border, paddingTop: 12},
+    next: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8},
+    nextText: {color: c.text, fontSize: 14, flex: 1},
+    doneText: {color: c.success, fontSize: 14, flex: 1},
+    stops: {marginTop: 16, borderTopWidth: 1, borderTopColor: c.border, paddingTop: 12},
     stop: {flexDirection: 'row', gap: 12, marginBottom: 12},
     stopDot: {width: 24, height: 24, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: 'center', justifyContent: 'center'},
     stopSeq: {color: c.text, fontSize: 12, fontWeight: '700'},
     stopBody: {flex: 1},
     stopLabel: {color: c.text, fontWeight: '600'},
-    stopMeta: {color: c.textMuted, fontSize: 12.5},
-    stopItems: {flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3},
-    mapBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: c.primary, borderRadius: 10, paddingVertical: 10, marginTop: 4},
+    stopMeta: {color: c.textMuted, fontSize: 12},
+    stopItems: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4},
+    mapBtn: {
+    minHeight: TOUCH_MIN,flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: c.primary, borderRadius: 10, paddingVertical: 12, marginTop: 4},
     mapBtnText: {color: c.primary, fontWeight: '700'},
     footnote: {color: c.textMuted, fontSize: 12, lineHeight: 17, marginTop: 4},
   });

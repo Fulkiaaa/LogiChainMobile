@@ -13,7 +13,17 @@ export interface Palette {
   success: string;
   danger: string;
   warning: string;
+  /** Séparateur décoratif : filets de listes, bords de cartes. Non porteur de sens. */
   border: string;
+  /**
+   * Limite d'un contrôle — contour de champ, bouton fantôme.
+   *
+   * Distinct de `border` parce que WCAG 1.4.11 attend 3:1 pour tout élément
+   * d'interface non textuel : le bord d'un champ de saisie EST une information
+   * (« on peut écrire ici »), là où un filet de liste n'est qu'un ornement.
+   * `border` seul valait 1,4:1 en clair — les champs ne se détachaient pas.
+   */
+  borderStrong: string;
 }
 
 const DARK: Palette = {
@@ -28,6 +38,7 @@ const DARK: Palette = {
   danger: '#f87171',
   warning: '#fbbf24',
   border: '#334155',
+  borderStrong: '#64748b',
 };
 
 /**
@@ -40,15 +51,75 @@ const LIGHT: Palette = {
   surfaceAlt: '#e2e8f0',
   text: '#0f172a',
   textMuted: '#64748b',
-  primary: '#0284c7',
+  // `#0284c7` échouait sur les TROIS fonds (3,3 à 4,1:1) — or `primary` porte
+  // tous les liens, toutes les icônes actives et l'onglet sélectionné. Un cran
+  // plus foncé suffit : 5,7:1 sur le fond, 5,9:1 sur une carte.
+  primary: '#0369a1',
   onPrimary: '#ffffff',
   success: '#15803d',
   danger: '#b91c1c',
   warning: '#b45309',
   border: '#cbd5e1',
+  // Même valeur qu'en sombre : c'est le gris médian, le seul qui tienne les
+  // 3:1 sur un fond ardoise (3,75:1) comme sur un fond blanc cassé (4,55:1).
+  borderStrong: '#64748b',
 };
 
 export const PALETTES: Record<ColorScheme, Palette> = {dark: DARK, light: LIGHT};
+
+/**
+ * Échelle d'espacement, grille de 4 pt.
+ *
+ * Le code comptait 19 valeurs différentes, dont sept hors grille (3, 5, 11, 13,
+ * 18, 22, 34) : chaque écran avait improvisé ses marges, et un même élément —
+ * l'intitulé de section — valait 20 px ici, 22 là, 12 ailleurs.
+ */
+export const SPACE = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+  xxl: 32,
+  xxxl: 48,
+} as const;
+
+/**
+ * Échelle typographique, rapport ~1,25 entre deux échelons.
+ *
+ * Il y avait treize tailles, dont cinq séparées d'un facteur 1,08 — un écart
+ * qu'on ne perçoit pas, donc une hiérarchie qui n'existait pas.
+ *
+ * Les interlignes sont fixés ici plutôt que laissés au système : sur un texte
+ * clair posé sur fond sombre, l'œil a besoin d'un peu plus d'air.
+ */
+export const TYPE = {
+  /** Métadonnées, notes de bas de bloc, compteurs. */
+  caption: {fontSize: 12, lineHeight: 17},
+  /** Texte courant d'une liste ou d'une fiche. */
+  body: {fontSize: 14, lineHeight: 20},
+  /** Intitulé d'élément, valeur mise en avant. */
+  base: {fontSize: 17, lineHeight: 23},
+  /** Titre d'écran. */
+  title: {fontSize: 21, lineHeight: 27},
+  /** Chiffre clé — compteur de tuile, total d'un KPI. */
+  headline: {fontSize: 26, lineHeight: 31},
+  /** Réservé à l'écran de connexion. */
+  display: {fontSize: 40, lineHeight: 46},
+} as const;
+
+/** Toutes les tailles autorisées, pour le test qui interdit les valeurs hors échelle. */
+export const TYPE_SIZES: readonly number[] = Object.values(TYPE).map(t => t.fontSize);
+
+/**
+ * Hauteur minimale d'une cible tactile — Human Interface Guidelines d'Apple.
+ *
+ * Relevé avant correction : de 17 pt (les actions de la file de synchro) à
+ * 33 pt (les puces de filtre). Pour une application manipulée debout, en
+ * mouvement, parfois avec des gants, c'est la contrainte la plus concrète du
+ * cahier des charges.
+ */
+export const TOUCH_MIN = 44;
 
 /**
  * Palette par défaut, conservée pour les rares usages hors composant React

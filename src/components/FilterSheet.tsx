@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {Modal, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
 import {RotateCcw, X} from 'lucide-react-native';
 
-import {CATEGORY_LABELS, type Palette} from '@/config/theme';
+import {TOUCH_MIN, CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {DEFAULT_SORT, type ItemSort} from '@/domain/itemFilter';
 import {ITEM_CATEGORIES, type ItemCategory} from '@/types/api';
@@ -37,11 +37,23 @@ export function FilterSheet({
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      {/* L'appui sur le fond ferme : geste attendu sur un bandeau iOS. */}
-      <Pressable style={styles.backdrop} onPress={onClose}>
+      {/*
+        * L'appui sur le fond ferme : geste attendu sur un bandeau iOS.
+        *
+        * `accessible={false}` : ce n'est pas un bouton. Annoncé comme tel, il
+        * offrirait à VoiceOver une cible plein écran sans libellé utile, en
+        * doublon du « Fermer » explicite de l'en-tête.
+        */}
+      <Pressable accessible={false} style={styles.backdrop} onPress={onClose}>
         {/* Ce Pressable interne absorbe l'appui pour qu'un toucher DANS le
             bandeau ne le referme pas. */}
-        <Pressable style={styles.sheet} onPress={() => {}}>
+        <Pressable
+          accessible={false}
+          // Retient le focus VoiceOver dans le bandeau : sans cela, le lecteur
+          // continue de parcourir la liste d'équipements restée derrière.
+          accessibilityViewIsModal
+          style={styles.sheet}
+          onPress={() => {}}>
           <View style={styles.header}>
             <Text style={styles.title}>Filtrer et trier</Text>
             <View style={styles.headerActions}>
@@ -145,7 +157,7 @@ const makeStyles = (c: Palette) =>
       borderTopLeftRadius: 18,
       borderTopRightRadius: 18,
       paddingTop: 16,
-      paddingBottom: 28,
+      paddingBottom: 32,
       // Plafonné : avec dix catégories et trois tris, le bandeau couvrirait
       // presque tout l'écran sur un petit iPhone.
       maxHeight: '75%',
@@ -157,10 +169,10 @@ const makeStyles = (c: Palette) =>
       paddingHorizontal: 16,
       paddingBottom: 12,
     },
-    headerActions: {flexDirection: 'row', alignItems: 'center', gap: 14},
+    headerActions: {flexDirection: 'row', alignItems: 'center', gap: 16},
     title: {color: c.text, fontSize: 17, fontWeight: '700'},
-    reset: {flexDirection: 'row', alignItems: 'center', gap: 5},
-    resetText: {color: c.primary, fontSize: 13, fontWeight: '600'},
+    reset: {flexDirection: 'row', alignItems: 'center', gap: 4},
+    resetText: {color: c.primary, fontSize: 14, fontWeight: '600'},
     scroll: {paddingHorizontal: 16},
     scrollBody: {paddingBottom: 8},
     section: {
@@ -173,14 +185,15 @@ const makeStyles = (c: Palette) =>
     },
     chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
     chip: {
+    minHeight: TOUCH_MIN, justifyContent: 'center',
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 999,
       backgroundColor: c.surface,
       borderWidth: 1,
-      borderColor: c.border,
+      borderColor: c.borderStrong,
     },
     chipActive: {backgroundColor: c.primary, borderColor: c.primary},
-    chipText: {color: c.text, fontSize: 13, fontWeight: '600'},
+    chipText: {color: c.text, fontSize: 14, fontWeight: '600'},
     chipTextActive: {color: c.onPrimary},
   });

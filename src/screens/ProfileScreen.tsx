@@ -12,7 +12,7 @@ import {
 import {useScrollToTop} from '@react-navigation/native';
 import {LogOut, Mail, Monitor, Moon, ShieldCheck, Sun, UserPlus} from 'lucide-react-native';
 
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import type {ThemeMode} from '@/domain/theme';
 import {
@@ -24,6 +24,7 @@ import {
 import {RolePermissions} from '@/components/RolePermissions';
 import {useAuth} from '@/hooks/useAuth';
 import {authApi} from '@/services/api/auth.api';
+import {outboxRepo} from '@/services/db/database';
 import type {UserRole} from '@/types/api';
 
 const CREATABLE_ROLES: UserRole[] = ['field_agent', 'logistics_manager', 'transporter', 'admin'];
@@ -46,6 +47,25 @@ export function ProfileScreen() {
    */
   const scrollRef = useRef<ScrollView>(null);
   useScrollToTop(scrollRef);
+
+  /**
+   * Se déconnecter sur le terrain n'est pas anodin : sans réseau, impossible de
+   * se reconnecter avant de retrouver du signal. Et si des actions attendent
+   * encore dans la file, l'agent doit savoir ce qu'il laisse derrière lui.
+   */
+  const confirmerDeconnexion = () => {
+    const enAttente = outboxRepo.countPending();
+    Alert.alert(
+      'Se déconnecter ?',
+      enAttente > 0
+        ? `${enAttente} action(s) attendent encore d’être synchronisées. Elles resteront enregistrées sur ce terminal, mais ne partiront qu’à la prochaine connexion d’un agent.\n\nSans réseau, la reconnexion sera impossible.`
+        : 'Sans réseau, la reconnexion sera impossible avant de retrouver du signal.',
+      [
+        {text: 'Rester connecté', style: 'cancel'},
+        {text: 'Se déconnecter', style: 'destructive', onPress: () => void logout()},
+      ],
+    );
+  };
 
   return (
     <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={{padding: 16}}>
@@ -74,6 +94,9 @@ export function ProfileScreen() {
             return (
               <Pressable
                 key={key}
+                accessibilityRole="button"
+                accessibilityState={{selected: active}}
+                accessibilityLabel={`Thème ${label}`}
                 onPress={() => setMode(key)}
                 style={[styles.themeChip, active && styles.roleChipActive]}>
                 <Icon color={active ? c.onPrimary : c.textMuted} size={15} strokeWidth={2} />
@@ -86,7 +109,11 @@ export function ProfileScreen() {
 
       {canManageUsers(user?.role) ? <AdminSection /> : null}
 
-      <Pressable style={styles.logout} onPress={logout}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Déconnexion"
+        style={styles.logout}
+        onPress={confirmerDeconnexion}>
         <LogOut color={c.danger} size={16} strokeWidth={2} />
         <Text style={styles.logoutText}>Déconnexion</Text>
       </Pressable>
@@ -175,6 +202,8 @@ function AdminSection() {
           {CREATABLE_ROLES.map(r => (
             <Pressable
               key={r}
+              accessibilityRole="button"
+              accessibilityState={{selected: r === role}}
               onPress={() => setRole(r)}
               style={[styles.roleChip, r === role && styles.roleChipActive]}>
               <Text style={[styles.roleText, r === role && styles.roleTextActive]}>
@@ -184,7 +213,8 @@ function AdminSection() {
           ))}
         </View>
 
-        <Pressable style={[styles.submit, busy && {opacity: 0.6}]} disabled={busy} onPress={submit}>
+        <Pressable
+            accessibilityRole="button" style={[styles.submit, busy && {opacity: 0.6}]} disabled={busy} onPress={submit}>
           {busy ? (
             <ActivityIndicator color={c.onPrimary} />
           ) : (
@@ -210,38 +240,40 @@ const makeStyles = (c: Palette) =>
     textTransform: 'uppercase',
     fontSize: 12,
   },
-  card: {backgroundColor: c.surface, borderRadius: 12, padding: 14, gap: 10},
-  cardTitle: {color: c.text, fontWeight: '700', marginBottom: 2},
-  line: {flexDirection: 'row', alignItems: 'center', gap: 10},
-  value: {color: c.text, fontSize: 15, flexShrink: 1},
+  card: {backgroundColor: c.surface, borderRadius: 12, padding: 16, gap: 12},
+  cardTitle: {color: c.text, fontWeight: '700', marginBottom: 4},
+  line: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  value: {color: c.text, fontSize: 14, flexShrink: 1},
   input: {
     backgroundColor: c.bg,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: c.borderStrong,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     color: c.text,
   },
-  error: {color: c.danger, fontSize: 12, marginTop: -4},
-  roleRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 2},
+  error: {color: c.danger, fontSize: 12},
+  roleRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4},
   roleChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: c.border,
-  },
-  roleChipActive: {backgroundColor: c.primary, borderColor: c.primary},
-  themeChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    minHeight: TOUCH_MIN, justifyContent: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: c.border,
+    borderColor: c.borderStrong,
+  },
+  roleChipActive: {backgroundColor: c.primary, borderColor: c.primary},
+  themeChip: {
+    minHeight: TOUCH_MIN,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: c.borderStrong,
   },
   roleText: {color: c.textMuted, fontSize: 12, fontWeight: '600'},
   roleTextActive: {color: c.onPrimary},

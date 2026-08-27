@@ -4,6 +4,7 @@ import {useScrollToTop} from '@react-navigation/native';
 import {useQuery} from '@tanstack/react-query';
 
 import {categoryLabel, type Palette} from '@/config/theme';
+import {carbonShares} from '@/domain/carbonSplit';
 import {useTheme} from '@/hooks/useTheme';
 import {useConnectivity} from '@/hooks/useConnectivity';
 import {dashboardApi} from '@/services/api/dashboard.api';
@@ -43,16 +44,23 @@ export function KpiScreen() {
         </Text>
       ) : data ? (
         <>
-          <View style={styles.hero}>
-            <Text style={styles.heroValue}>{Math.round(data.totalCo2Kg)} kg</Text>
-            <Text style={styles.heroLabel}>CO₂ total · {data.eventName}</Text>
-          </View>
-          <View style={styles.grid}>
-            <Stat label="Fabrication" value={`${Math.round(data.manufacturingCo2Kg)} kg`} />
-            <Stat label="Transport" value={`${Math.round(data.transportCo2Kg)} kg`} />
-            <Stat label="Équipements" value={String(data.itemCount)} />
-            <Stat label="Trajets" value={String(data.routeCount)} />
-          </View>
+          {/*
+            * Le total porte seul la taille d'affichage : c'est le sujet de
+            * l'écran. Aligné à gauche, sur le fond — pas centré dans une carte,
+            * qui le mettait à égalité visuelle avec « 4 trajets ».
+            */}
+          <Text style={styles.total}>{Math.round(data.totalCo2Kg)} kg</Text>
+          <Text style={styles.totalLabel}>éq. CO₂ · {data.eventName}</Text>
+
+          <CarbonBar
+            manufacturing={data.manufacturingCo2Kg}
+            transport={data.transportCo2Kg}
+          />
+
+          {/* Décomptes d'inventaire : du contexte, pas un indicateur. */}
+          <Text style={styles.context}>
+            {data.itemCount} équipement(s) · {data.routeCount} trajet(s)
+          </Text>
           <Text style={styles.section}>Par catégorie</Text>
           {Object.entries(data.byCategory).map(([cat, kg]) => (
             <View key={cat} style={styles.catRow}>
@@ -68,13 +76,49 @@ export function KpiScreen() {
   );
 }
 
-function Stat({label, value}: {label: string; value: string}) {
+/**
+ * Barre de répartition fabrication / transport.
+ *
+ * Deux segments proportionnels valent mieux que deux nombres côte à côte :
+ * l'œil lit « le transport pèse deux fois plus » sans faire la division. Les
+ * valeurs restent affichées dessous, parce qu'une proportion seule ne permet
+ * pas de comparer deux événements entre eux.
+ */
+function CarbonBar({manufacturing, transport}: {manufacturing: number; transport: number}) {
   const {c} = useTheme();
   const styles = useMemo(() => makeStyles(c), [c]);
+  const parts = carbonShares(manufacturing, transport);
+
+  if (!parts) {
+    return null;
+  }
+
   return (
-    <View style={styles.stat}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View
+      style={styles.split}
+      accessibilityRole="image"
+      // La barre est décorative pour un lecteur d'écran : ce sont les deux
+      // lignes de légende qui portent l'information chiffrée.
+      accessibilityLabel={`Fabrication ${parts.manufacturing} %, transport ${parts.transport} %`}>
+      <View style={styles.bar}>
+        <View style={[styles.segment, {flex: parts.manufacturing, backgroundColor: c.primary}]} />
+        <View style={[styles.segment, {flex: parts.transport, backgroundColor: c.warning}]} />
+      </View>
+
+      <View style={styles.legendRow}>
+        <View style={[styles.dot, {backgroundColor: c.primary}]} />
+        <Text style={styles.legendName}>Fabrication</Text>
+        <Text style={styles.legendValue}>
+          {Math.round(manufacturing)} kg · {parts.manufacturing} %
+        </Text>
+      </View>
+      <View style={styles.legendRow}>
+        <View style={[styles.dot, {backgroundColor: c.warning}]} />
+        <Text style={styles.legendName}>Transport</Text>
+        <Text style={styles.legendValue}>
+          {Math.round(transport)} kg · {parts.transport} %
+        </Text>
+      </View>
     </View>
   );
 }
@@ -82,18 +126,28 @@ function Stat({label, value}: {label: string; value: string}) {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, backgroundColor: c.bg},
-  title: {color: c.text, fontSize: 22, fontWeight: '800', marginBottom: 12},
+  title: {color: c.text, fontSize: 21, fontWeight: '800', marginBottom: 12},
   muted: {color: c.textMuted, marginTop: 16},
   error: {color: c.danger, marginTop: 16},
-  hero: {backgroundColor: c.surface, borderRadius: 14, padding: 20, alignItems: 'center'},
-  heroValue: {color: c.success, fontSize: 40, fontWeight: '800'},
-  heroLabel: {color: c.textMuted, marginTop: 4},
-  grid: {flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12},
-  stat: {backgroundColor: c.surface, borderRadius: 10, padding: 14, minWidth: 100, flex: 1},
-  statValue: {color: c.text, fontSize: 22, fontWeight: '800'},
-  statLabel: {color: c.textMuted, fontSize: 12, marginTop: 2},
-  section: {color: c.textMuted, marginTop: 22, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
-  catRow: {flexDirection: 'row', justifyContent: 'space-between', backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 6},
+  total: {color: c.text, fontSize: 40, lineHeight: 46, fontWeight: '800', letterSpacing: -1},
+  totalLabel: {color: c.textMuted, fontSize: 14, marginTop: 4},
+  context: {color: c.textMuted, fontSize: 12, marginTop: 16},
+  split: {marginTop: 24, gap: 8},
+  bar: {
+    flexDirection: 'row',
+    height: 12,
+    borderRadius: 999,
+    overflow: 'hidden',
+    backgroundColor: c.surface,
+    marginBottom: 4,
+  },
+  segment: {height: '100%'},
+  legendRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  dot: {width: 8, height: 8, borderRadius: 4},
+  legendName: {color: c.text, fontSize: 14, flex: 1},
+  legendValue: {color: c.textMuted, fontSize: 14, fontVariant: ['tabular-nums']},
+  section: {color: c.textMuted, marginTop: 24, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
+  catRow: {flexDirection: 'row', justifyContent: 'space-between', backgroundColor: c.surface, borderRadius: 8, padding: 12, marginBottom: 8},
   catName: {color: c.text},
   catVal: {color: c.text, fontWeight: '600'},
 });
