@@ -264,6 +264,8 @@ body.plan-on .plan{display:block}
 
 <div class="chrome">
   <span class="brand">Logi<em>Chain</em> Mobile</span>
+  <span class="net"><span class="dot"></span><span id="netLabel">En ligne</span></span>
+  <span class="queue">file sortante <b id="queue">0</b></span>
   <span class="spacer"></span>
   <span class="hint"><kbd>←</kbd><kbd>→</kbd> naviguer · <kbd>N</kbd> notes · <kbd>P</kbd> plan · <kbd>T</kbd> thème</span>
 </div>
@@ -492,7 +494,7 @@ body.plan-on .plan{display:block}
   <div class="notes">
     <h4>Conduite</h4>
     <p>Fais le parallèle explicite avec le MP3 : là-bas c'était Entity / Repository / Service / Controller. Ici c'est UI / Hooks / Services. <b>Même principe, appliqué à un contexte différent</b> : ce n'est pas une recette recopiée, c'est le même raisonnement.</p>
-    <p>Le dossier <span class="mono">domain/</span> mérite une phrase : j'y ai isolé toutes les règles pures : machine à états, matrice de permissions, décision de réconciliation, filtrage. Aucune dépendance à React ni à React Native. C'est <b>pour ça</b> que je peux avoir 633 tests qui tournent en une seconde sans simulateur.</p>
+    <p>Le dossier <span class="mono">domain/</span> mérite une phrase : j'y ai isolé toutes les règles pures : machine à états, matrice de permissions, décision de réconciliation, filtrage. Aucune dépendance à React ni à React Native. C'est <b>pour ça</b> que je peux avoir 333 tests qui tournent en une seconde sans simulateur.</p>
     <p class="q">Si on demande la preuve que la règle tient : <span class="mono">grep -r "services/" src/screens</span>. L'écran de scan ne connaît que <span class="mono">useScanner</span>.</p>
   </div>
 </section>
@@ -902,11 +904,11 @@ body.plan-on .plan{display:block}
 <!-- 23 ─────────────────────────────────────────────────────────────────── -->
 <section class="slide" data-title="Tests" data-net="online">
   <div class="eyebrow"><span class="num">22</span> Qualité</div>
-  <h1>633 tests,<br>une seconde</h1>
+  <h1>333 tests,<br>une seconde</h1>
 
   <div class="cols c4" style="margin-bottom:26px">
-    <div class="stat"><span class="n ok">633</span><span class="l">tests, tous verts</span></div>
-    <div class="stat"><span class="n ok">48</span><span class="l">suites</span></div>
+    <div class="stat"><span class="n ok">333</span><span class="l">tests, tous verts</span></div>
+    <div class="stat"><span class="n ok">40</span><span class="l">suites</span></div>
     <div class="stat"><span class="n app">&lt;&nbsp;1&nbsp;s</span><span class="l">temps d'exécution</span></div>
     <div class="stat"><span class="n">2</span><span class="l">sondes contre l'API réelle</span></div>
   </div>
@@ -925,7 +927,7 @@ body.plan-on .plan{display:block}
 
   <div class="notes">
     <h4>Conduite</h4>
-    <p>Compare au MP3 : 40 tests côté API, 633 ici. Ce n'est pas que le front est mieux testé, c'est que <b>l'architecture le permet</b>. En sortant les règles des composants, elles deviennent testables sans device. C'est la récompense concrète de la séparation en couches, et c'est ce qu'il faut dire.</p>
+    <p>Compare au MP3 : 40 tests côté API, 333 ici. Ce n'est pas que le front est mieux testé, c'est que <b>l'architecture le permet</b>. En sortant les règles des composants, elles deviennent testables sans device. C'est la récompense concrète de la séparation en couches, et c'est ce qu'il faut dire.</p>
     <p>Les sondes sont ton argument le plus fort sur le risque de duplication de la machine à états : la divergence entre l'app et l'API n'est pas surveillée à l'œil, elle est vérifiée par un test contre l'API réelle, en local ou en production.</p>
     <p>Mentionne la précaution des identifiants inexistants : c'est le détail qui montre qu'une sonde a été conçue pour tourner sans casser la démo.</p>
   </div>
@@ -937,8 +939,7 @@ body.plan-on .plan{display:block}
   <h1>Ce que je n'ai pas fait,<br>et pourquoi</h1>
 
   <ul class="clean">
-    <li><b>Pas de tests de bout en bout</b> : les composants sont couverts par <code>react-test-renderer</code> et les contrastes par un test automatisé, mais le <b>parcours complet</b> 
-      , connexion, scan, synchronisation : n'est validé qu'à la main sur iPhone. Detox demandait un budget temps que je n'avais pas. Limite assumée, pas oubliée.</li>
+    <li><b>Pas de tests de rendu</b> : <code>react-native-testing-library</code> n'est pas installée. Les composants sont testés par leurs fonctions pures (filtrage, visibilité selon le rôle, libellés) ; le rendu visuel et les contrastes sont validés à la main sur iPhone. Limite assumée, pas oubliée.</li>
     <li><b>Android non validé</b> : le code est cross-platform et ne contient aucune API spécifique à iOS, mais je ne l'ai testé que sur iPhone. Je ne prétendrai pas qu'il tourne sur Android : je ne l'ai pas vérifié.</li>
     <li><b>Écrans admin absents</b> : hors périmètre, choisi. L'app cible l'agent de terrain ; seule la création de compte est disponible, parce que l'API l'expose déjà.</li>
     <li><b>Les goulots d'étranglement ne sont pas exposés</b> : l'algorithme du banquier tourne côté API et refuse une allocation qui rendrait l'état non sûr. Mais son résultat s'adresse à celui qui <b>décide d'allouer</b>, et allouer n'est pas un geste de terrain. L'afficher à un agent qui ne peut pas agir dessus aurait été un indicateur décoratif.</li>
@@ -976,7 +977,7 @@ body.plan-on .plan{display:block}
         <li><b>Verrouillage optimiste bout-en-bout</b> : le <code>__v</code> du MP3 traverse le téléphone et revient.</li>
         <li><b>Rôles miroir de l'API</b> : vérifiés par une sonde contre le serveur réel.</li>
         <li><b>Tournées consultables hors réseau</b> : étapes, prochaine action, tracé sur la carte.</li>
-        <li><b>633 tests</b> en moins d'une seconde, sans simulateur.</li>
+        <li><b>333 tests</b> en moins d'une seconde, sans simulateur.</li>
       </ul>
     </div>
   </div>
@@ -1046,10 +1047,10 @@ body.plan-on .plan{display:block}
     var s = slides[i];
     var off = s.getAttribute('data-net') === 'offline';
     document.body.setAttribute('data-net', off ? 'offline' : 'online');
-    if (netLabel) { netLabel.textContent = off ? 'Hors réseau' : 'En ligne'; }
+    netLabel.textContent = off ? 'Hors réseau' : 'En ligne';
     q = 0;
     for (var j = i; j >= 0 && slides[j].getAttribute('data-net') === 'offline'; j--) { q += 3; }
-    if (queue) { queue.textContent = q; }
+    queue.textContent = q;
     bar.style.width = ((i + 1) / slides.length * 100) + '%';
     cur.textContent = i + 1;
     title.textContent = s.getAttribute('data-title') || '';
