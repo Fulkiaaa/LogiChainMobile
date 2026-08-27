@@ -1,10 +1,11 @@
 import React, {useMemo, useState} from 'react';
-import {ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput} from 'react-native';
+import {ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useAuth} from '@/hooks/useAuth';
 import {loginInputSchema} from '@/schemas/item.schema';
+import {BrandMark} from '@/components/BrandMark';
 
 export function LoginScreen() {
   const {c} = useTheme();
@@ -36,6 +37,9 @@ export function LoginScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <View style={styles.brand}>
+        <BrandMark size={64} />
+      </View>
       <Text style={styles.title}>LogiChain</Text>
       <Text style={styles.subtitle}>Terrain</Text>
 
@@ -74,6 +78,8 @@ export function LoginScreen() {
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
   container: {flex: 1, justifyContent: 'center', padding: 24, backgroundColor: c.bg},
+  // La marque, puis le nom : l'œil descend du symbole vers le mot.
+  brand: {alignItems: 'center', marginBottom: 16},
   title: {fontSize: 40, fontWeight: '800', color: c.text, textAlign: 'center'},
   subtitle: {fontSize: 17, color: c.primary, textAlign: 'center', marginBottom: 32},
   input: {
