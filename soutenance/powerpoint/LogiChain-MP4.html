@@ -245,6 +245,13 @@ body.plan-on .plan{display:block}
 .title-slide .rule{width:120px;height:3px;background:var(--signal);margin:26px 0}
 .title-slide .who{font-size:17px;color:var(--muted)}
 .title-slide .who b{color:var(--text);font-weight:600}
+.title-slide h1 .mark{
+  display:inline-block;overflow:hidden;vertical-align:baseline;
+  width:.86em;height:.86em;margin-left:.30em;border-radius:22%;
+  background:var(--app);box-shadow:0 14px 30px -14px var(--app);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.title-slide h1 .mark svg{display:block;width:62%;height:62%;margin:19%;stroke:var(--ink)}
 
 :focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.slide.on{animation:none}.net .dot{animation:none}}
@@ -275,7 +282,7 @@ body.plan-on .plan{display:block}
 <section class="slide" data-title="Titre" data-net="online">
   <div class="title-slide">
     <div class="sub">Module MP4 · Application mobile terrain</div>
-    <h1>LogiChain<br>Mobile</h1>
+    <h1>LogiChain<br>Mobile<span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4 V20 H10"/><path d="M16 4 H20 V8"/><path d="M20 16 V20 H16"/></svg></span></h1>
     <div class="rule"></div>
     <p class="who"><b>Clara Morin</b> · La MANU (NOVEI) · 2026<br>
     React Native · offline-first · scan industriel</p>
