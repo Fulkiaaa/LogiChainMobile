@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, StyleSheet, Text, View} from 'react-native';
 import {Layers, LocateFixed, Maximize2} from 'lucide-react-native';
 import MapView, {Marker, Polygon, Polyline, PROVIDER_DEFAULT} from 'react-native-maps';
@@ -16,6 +16,7 @@ import {
   type MapRegion,
 } from '@/domain/mapGeometry';
 import {getCurrentPosition} from '@/services/geo/location';
+import {shouldAutoLocate} from '@/domain/mapFraming';
 import {useTheme} from '@/hooks/useTheme';
 import {useItems} from '@/hooks/useItems';
 import {eventsRepo, routesRepo, zonesRepo} from '@/services/db/database';
@@ -38,23 +39,37 @@ export function MapScreen() {
   const {items, eventId} = useItems();
   const [showItems, setShowItems] = useState(true);
   const [locating, setLocating] = useState(false);
+  // MapKit signale la fin de sa mise en page. Avant ça, toute commande de
+  // caméra est perdue — voir le commentaire de `shouldAutoLocate`.
+  const [mapReady, setMapReady] = useState(false);
   const mapRef = useRef<MapView>(null);
 
-  /**
-   * Recentre sur la position réelle de l'appareil. Relevé à la demande, jamais
-   * en continu : un suivi permanent viderait la batterie sur une journée de
-   * terrain, pour un besoin qui est ponctuel.
+  /*
+   * La position est relevée deux fois au plus : une à l'ouverture, une par
+   * appui sur le bouton cible. Jamais de suivi continu — il viderait la
+   * batterie sur une journée de terrain, pour un besoin qui reste ponctuel.
    */
+
+  /** Relevé GPS ponctuel. Lève si la position est indisponible ou illisible. */
+  const releverPosition = useCallback(async (): Promise<LatLng> => {
+    const here = pointToLatLng(await getCurrentPosition());
+    if (!here) {
+      throw new Error('Position illisible.');
+    }
+    return here;
+  }, []);
+
+  /** 300 m : on se voit, et on voit ce qu'il y a autour. */
+  const cadrerSur = useCallback((here: LatLng) => {
+    mapRef.current?.animateToRegion(focusRegion(here, 300), 500);
+  }, []);
+
   const goToMyPosition = useCallback(async () => {
     setLocating(true);
     try {
-      const here = pointToLatLng(await getCurrentPosition());
-      if (!here) {
-        throw new Error('Position illisible.');
-      }
-      // 300 m : on se voit, et on voit ce qu'il y a autour.
-      mapRef.current?.animateToRegion(focusRegion(here, 300), 500);
+      cadrerSur(await releverPosition());
     } catch (e) {
+      // Geste explicite : l'échec doit être dit.
       Alert.alert(
         'Position indisponible',
         e instanceof Error ? e.message : 'Impossible de vous localiser.',
@@ -62,7 +77,65 @@ export function MapScreen() {
     } finally {
       setLocating(false);
     }
-  }, []);
+  }, [releverPosition, cadrerSur]);
+
+  /*
+   * Recentrage à l'ouverture.
+   *
+   * La carte s'affiche IMMÉDIATEMENT sur le secteur, puis glisse vers la
+   * position dès que le GPS répond : attendre le relevé avant le premier rendu
+   * laisserait un écran vide une à deux secondes, ce qui se remarque bien plus
+   * qu'un léger déplacement de caméra.
+   *
+   * Un seul relevé, jamais de suivi continu : la contrainte batterie du sujet
+   * reste tenue.
+   */
+  const userMovedMap = useRef(false);
+  const alreadyLocated = useRef(false);
+  /** Évite deux relevés simultanés si l'effet est réévalué pendant l'attente. */
+  const locateEnCours = useRef(false);
+
+  useEffect(() => {
+    if (
+      locateEnCours.current ||
+      !shouldAutoLocate({
+        focusItemId,
+        focusRouteId,
+        userMovedMap: userMovedMap.current,
+        alreadyLocated: alreadyLocated.current,
+        mapReady,
+      })
+    ) {
+      return;
+    }
+    locateEnCours.current = true;
+
+    let annule = false;
+    void (async () => {
+      try {
+        const here = await releverPosition();
+        // Re-vérifié APRÈS l'attente du GPS : l'agent a pu faire glisser la
+        // carte entre-temps, et sa manipulation prime sur notre recentrage.
+        if (annule || userMovedMap.current) {
+          return;
+        }
+        cadrerSur(here);
+        // Marqué APRÈS le succès : un relevé qui échoue ne doit pas condamner
+        // la tentative suivante. C'était le défaut de la première version.
+        alreadyLocated.current = true;
+      } catch {
+        // Silence volontaire : personne n'a rien demandé. La vue du secteur
+        // reste un repli utilisable, et une alerte non sollicitée à chaque
+        // ouverture serait insupportable en zone blanche.
+      } finally {
+        locateEnCours.current = false;
+      }
+    })();
+
+    return () => {
+      annule = true;
+    };
+  }, [focusItemId, focusRouteId, mapReady, releverPosition, cadrerSur]);
 
   const zones = useMemo(() => {
     if (!eventId) {
@@ -142,6 +215,14 @@ export function MapScreen() {
         provider={PROVIDER_DEFAULT}
         style={StyleSheet.absoluteFill}
         initialRegion={region}
+        onMapReady={() => setMapReady(true)}
+        // `isGesture` distingue un déplacement fait au doigt de nos propres
+        // `animateToRegion` : sans lui, notre recentrage s'annulerait lui-même.
+        onRegionChangeComplete={(_r, details) => {
+          if (details?.isGesture) {
+            userMovedMap.current = true;
+          }
+        }}
         showsUserLocation
         // Le bouton natif ferait doublon avec le nôtre, et ne se place pas
         // au même endroit selon la plateforme.
