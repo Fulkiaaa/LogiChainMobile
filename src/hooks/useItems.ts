@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 
 import {itemsRepo, metaRepo} from '@/services/db/database';
 import {changeBus} from '@/services/store/changeBus';
@@ -30,10 +30,17 @@ export function useItems(): ItemsState {
     return changeBus.subscribe('items', reload);
   }, [reload]);
 
-  const byStatus = items.reduce<Record<string, number>>((acc, it) => {
-    acc[it.status] = (acc[it.status] ?? 0) + 1;
-    return acc;
-  }, {});
+  // Sans useMemo : un parcours complet des items à chaque rendu du tableau de
+  // bord — donc à chaque frappe dans la recherche — alors que seuls les
+  // décomptes par statut nous intéressent, et qu'ils ne changent pas.
+  const byStatus = useMemo(
+    () =>
+      items.reduce<Record<string, number>>((acc, it) => {
+        acc[it.status] = (acc[it.status] ?? 0) + 1;
+        return acc;
+      }, {}),
+    [items],
+  );
 
   return {items, byStatus, eventId, reload};
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
-import {Lock, MapPin, PackageCheck, Truck} from 'lucide-react-native';
+import {Lock, MapPin, PackageCheck, Truck} from '@/components/icons';
 
 import {OVERLAY} from '@/config/theme';
 

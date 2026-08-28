@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {DownloadCloud} from 'lucide-react-native';
+import {DownloadCloud} from '@/components/icons';
 import {useFocusEffect, useScrollToTop} from '@react-navigation/native';
 
-import {AlertTriangle} from 'lucide-react-native';
+import {AlertTriangle} from '@/components/icons';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import {outboxService} from '@/services/sync/outboxService.instance';

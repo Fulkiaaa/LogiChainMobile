@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {CircleCheck, Flag, MapPinned, Package, Route as RouteIcon, Truck} from 'lucide-react-native';
+import {CircleCheck, Flag, MapPinned, Package, Route as RouteIcon, Truck} from '@/components/icons';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 

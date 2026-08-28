@@ -6,7 +6,7 @@ import {FilterSheet} from './FilterSheet';
 import {DEFAULT_SORT, type ItemSort} from '@/domain/itemFilter';
 import type {ItemCategory} from '@/types/api';
 
-jest.mock('lucide-react-native', () => ({X: () => null, RotateCcw: () => null}));
+jest.mock('@/components/icons', () => ({X: () => null, RotateCcw: () => null}));
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
     c: {

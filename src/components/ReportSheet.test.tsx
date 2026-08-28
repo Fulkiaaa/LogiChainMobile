@@ -4,7 +4,7 @@ import TestRenderer from 'react-test-renderer';
 
 import {ReportSheet} from './ReportSheet';
 
-jest.mock('lucide-react-native', () => ({MapPin: () => null, X: () => null}));
+jest.mock('@/components/icons', () => ({MapPin: () => null, X: () => null}));
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
     c: {

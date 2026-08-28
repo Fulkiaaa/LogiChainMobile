@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {BarChart3, LayoutDashboard, RefreshCw, ScanLine, User} from 'lucide-react-native';
+import {BarChart3, LayoutDashboard, RefreshCw, ScanLine, User} from '@/components/icons';
 
 import {useTheme} from '@/hooks/useTheme';
 import {DashboardScreen} from '@/screens/DashboardScreen';

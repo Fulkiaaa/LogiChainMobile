@@ -5,7 +5,7 @@ import TestRenderer from 'react-test-renderer';
 import {RolePermissions} from './RolePermissions';
 import type {UserRole} from '@/types/api';
 
-jest.mock('lucide-react-native', () => ({Check: () => null, Lock: () => null}));
+jest.mock('@/components/icons', () => ({Check: () => null, Lock: () => null}));
 jest.mock('@/hooks/useTheme', () => ({
   useTheme: () => ({
     c: {

@@ -3,7 +3,7 @@ import {FlatList, Pressable, RefreshControl, StyleSheet, Text, TextInput, View} 
 import {useNavigation, useScrollToTop} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X, Route as RouteIcon} from 'lucide-react-native';
+import {AlertTriangle, Info, Map as MapIcon, Search, ShieldAlert, SlidersHorizontal, X, Route as RouteIcon} from '@/components/icons';
 
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import {TOUCH_MIN, type Palette} from '@/config/theme';
@@ -18,8 +18,38 @@ import {StatusTile} from '@/components/StatusTile';
 import {FilterSheet, type FilterState} from '@/components/FilterSheet';
 import {DEFAULT_SORT, activeFilterCount, filterItems, sortItems} from '@/domain/itemFilter';
 import type {ItemStatus} from '@/types/api';
+import type {CachedItem} from '@/services/db/items.repo';
 import {runInitialSync} from '@/services/sync/initialSync';
 import type {RootStackParamList} from '@/navigation/types';
+
+/**
+ * Une ligne de la liste, isolée et mémoïsée. Tant que l'item et le thème ne
+ * bougent pas, taper dans la recherche ne la re-rend plus : seule la liste
+ * filtrée change, pas les lignes qui restent affichées.
+ */
+const ItemRow = React.memo(function ItemRowImpl({
+  item,
+  styles,
+  onPress,
+}: {
+  item: CachedItem;
+  styles: ReturnType<typeof makeStyles>;
+  onPress: (id: string) => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      style={styles.itemRow}
+      onPress={() => onPress(item.id)}>
+      <View style={{flex: 1}}>
+        <Text style={styles.itemLabel}>{item.label}</Text>
+        <Text style={styles.itemQr}>{item.qrCode}</Text>
+      </View>
+      <StatusBadge status={item.status} />
+    </Pressable>
+  );
+});
+ItemRow.displayName = 'ItemRow';
 
 export function DashboardScreen() {
   const {c} = useTheme();
@@ -44,6 +74,32 @@ export function DashboardScreen() {
       ),
     [items, statusFilter, query, advanced],
   );
+  /*
+   * Une callback par statut, créée une seule fois. L'ancienne version passait
+   * une flèche inline à chaque tuile : elle changeait d'identité à chaque
+   * rendu, ce qui aurait rendu inutile le React.memo de StatusTile.
+   * La forme fonctionnelle de setStatusFilter évite de dépendre de sa valeur.
+   */
+  const onTilePress = useMemo(
+    () =>
+      Object.fromEntries(
+        ALL_STATUSES.map(s => [s, () => setStatusFilter(prev => (prev === s ? null : s))]),
+      ) as Record<ItemStatus, () => void>,
+    [],
+  );
+
+  const onItemPress = useCallback(
+    (id: string) => nav.navigate('ItemDetail', {id}),
+    [nav],
+  );
+
+  const renderItem = useCallback(
+    ({item}: {item: CachedItem}) => (
+      <ItemRow item={item} styles={styles} onPress={onItemPress} />
+    ),
+    [styles, onItemPress],
+  );
+
   const advancedCount = activeFilterCount(advanced);
   const filtering = statusFilter !== null || query.trim() !== '' || advancedCount > 0;
 
@@ -117,7 +173,7 @@ export function DashboardScreen() {
                   status={s}
                   count={byStatus[s] ?? 0}
                   active={statusFilter === s}
-                  onPress={() => setStatusFilter(statusFilter === s ? null : s)}
+                  onPress={onTilePress[s]}
                 />
               ))}
             </View>
@@ -198,16 +254,7 @@ export function DashboardScreen() {
           </View>
         </View>
       }
-      renderItem={({item}) => (
-        <Pressable
-            accessibilityRole="button" style={styles.itemRow} onPress={() => nav.navigate('ItemDetail', {id: item.id})}>
-          <View style={{flex: 1}}>
-            <Text style={styles.itemLabel}>{item.label}</Text>
-            <Text style={styles.itemQr}>{item.qrCode}</Text>
-          </View>
-          <StatusBadge status={item.status} />
-        </Pressable>
-      )}
+      renderItem={renderItem}
       ListFooterComponent={
         <FilterSheet
           visible={sheetOpen}

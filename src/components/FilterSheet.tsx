@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {Modal, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {RotateCcw, X} from 'lucide-react-native';
+import {RotateCcw, X} from '@/components/icons';
 
 import {TOUCH_MIN, CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';

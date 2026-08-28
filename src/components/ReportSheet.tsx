@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import {MapPin, X} from 'lucide-react-native';
+import {MapPin, X} from '@/components/icons';
 
 import type {Palette} from '@/config/theme';
 import {

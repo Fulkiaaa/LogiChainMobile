@@ -9,7 +9,7 @@ import type {ItemStatus} from '@/types/api';
  * Chaque icône se rend en texte `icon:<Nom>` : le test peut ainsi vérifier
  * QUELLE icône a été choisie pour un statut, pas seulement qu'il y en a une.
  */
-jest.mock('lucide-react-native', () => {
+jest.mock('@/components/icons', () => {
   const React2 = require('react');
   const {Text: T} = require('react-native');
   const mk = (name: string) => () => React2.createElement(T, null, `icon:${name}`);

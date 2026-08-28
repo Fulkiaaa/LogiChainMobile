@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import {useScrollToTop} from '@react-navigation/native';
-import {LogOut, Mail, Monitor, Moon, ShieldCheck, Sun, UserPlus} from 'lucide-react-native';
+import {LogOut, Mail, Monitor, Moon, ShieldCheck, Sun, UserPlus} from '@/components/icons';
 
 import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';

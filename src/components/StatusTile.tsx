@@ -7,7 +7,7 @@ import {
   Package,
   Truck,
   Wrench,
-} from 'lucide-react-native';
+} from '@/components/icons';
 
 import {STATUS_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
@@ -27,7 +27,15 @@ const STATUS_ICONS: Record<ItemStatus, typeof Package> = {
   lost: AlertTriangle,
 };
 
-export function StatusTile({
+/**
+ * Mémoïsée : les six tuiles vivent dans l'en-tête du tableau de bord, qui se
+ * re-rend à chaque frappe dans la recherche. Sans cela, taper huit lettres
+ * re-rendait les six tuiles huit fois pour rien.
+ *
+ * Le memo ne tient que si `onPress` garde son identité entre deux rendus :
+ * côté appelant, la callback doit être stable (voir DashboardScreen).
+ */
+export const StatusTile = React.memo(function StatusTileImpl({
   status,
   count,
   active,
@@ -69,7 +77,8 @@ export function StatusTile({
       <Icon color={tint} size={20} strokeWidth={2} />
     </Pressable>
   );
-}
+});
+StatusTile.displayName = 'StatusTile';
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({

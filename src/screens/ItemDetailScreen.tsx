@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {AlertTriangle, MapPin, MapPinned, PackageX, Wrench} from 'lucide-react-native';
+import {AlertTriangle, MapPin, MapPinned, PackageX, Wrench} from '@/components/icons';
 import {useQuery} from '@tanstack/react-query';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';

@@ -571,13 +571,14 @@ body.plan-on .plan{display:block}
   attempts    <span class="s">INTEGER DEFAULT 0</span>,
   lastError   <span class="s">TEXT</span>);</pre>
 
-  <div class="callout"><b><code>baseVersion</code> est le lien direct avec le MP3.</b> C'est le <code>__v</code> du verrouillage optimiste que j'ai présenté côté API. L'app le capture au moment du geste et le renvoie à la synchro : c'est ce qui permet au serveur de détecter qu'un autre agent est passé entre-temps et de répondre 409.</div>
+  <div class="callout"><b><code>baseVersion</code> est le lien direct avec le MP3.</b> C'est le <code>__v</code> du verrouillage optimiste que j'ai présenté côté API : l'app capture la version de l'équipement <b>au moment du geste</b> et la conserve. Elle sert à l'arbitrage : le centre de synchronisation montre à l'agent sur quel état il a agi, face à l'état que le serveur porte aujourd'hui.</div>
 
   <div class="notes">
     <h4>Conduite</h4>
     <p>C'est <b>la</b> slide du projet. Prends ton temps.</p>
-    <p>Fais le lien explicitement : « en MP3, j'ai présenté le verrouillage optimiste et le code 409, en disant que la partie mobile en aurait besoin. Voilà où il atterrit : dans une colonne d'une table SQLite sur le téléphone. »</p>
-    <p>Le scénario du MP3 se rejoue ici pour de vrai : l'agent A scanne à 9 h dans un sous-sol, <span class="mono">baseVersion: 1</span> écrit en local. L'agent B scanne le même équipement à 9 h 05, le serveur passe à la version 2. À 9 h 12, A retrouve le réseau, envoie sa ligne avec <span class="mono">baseVersion: 1</span> → 409.</p>
+    <p>Fais le lien explicitement : « en MP3, j'ai présenté le verrouillage optimiste et sa version <span class="mono">__v</span>, en disant que la partie mobile en aurait besoin. Voilà où elle atterrit : dans une colonne d'une table SQLite sur le téléphone. »</p>
+    <p>Le scénario du MP3 se rejoue ici pour de vrai : l'agent A scanne à 9 h dans un sous-sol, <span class="mono">baseVersion: 1</span> écrit en local. L'agent B agit sur le même équipement à 9 h 05, le serveur passe à la version 2. À 9 h 12, A retrouve le réseau : sa ligne est rejouée sur un équipement qui n'est plus dans l'état qu'il croyait, et le serveur la refuse. Elle part en conflit avec sa <span class="mono">baseVersion: 1</span> affichée à côté : l'agent voit d'un coup d'œil qu'il a agi sur un état périmé.</p>
+    <p class="q">Si on demande qui détecte le désaccord, du client ou du serveur : <b>c'est le serveur</b>, et de deux façons. La machine à états refuse une transition devenue illégale (<span class="mono">422 item.invalid_transition</span>) — c'est le cas courant après une coupure. Le verrouillage optimiste <span class="mono">__v</span> bloque deux écritures réellement simultanées (<span class="mono">409</span>). L'app ne renvoie pas sa <span class="mono">baseVersion</span> : elle la garde pour pouvoir l'expliquer à l'agent.</p>
     <p class="q">Si on demande pourquoi un <span class="mono">localId</span> en uuid : la ligne existe avant que le serveur n'en sache quoi que ce soit. Il lui faut une identité côté client, sinon on ne peut ni la retrouver, ni la dédoublonner, ni la supprimer après confirmation.</p>
   </div>
 </section>
@@ -613,8 +614,8 @@ body.plan-on .plan{display:block}
   <table>
     <tr><th>Réponse</th><th>Décision</th><th>Ce qui se passe</th></tr>
     <tr><td><code style="color:var(--ok)">2xx</code></td><td><b>succès</b></td><td>la ligne est supprimée, l'équipement est réécrit depuis la réponse du serveur (version incluse)</td></tr>
-    <tr><td><code style="color:var(--alert)">409</code></td><td><b>conflit</b></td><td>quelqu'un est passé avant : la ligne est marquée <code>conflict</code> et remonte dans le centre de synchro</td></tr>
-    <tr><td><code style="color:var(--alert)">422</code> <span class="mono" style="font-size:11px">invalid_transition</span></td><td><b>conflit</b></td><td>l'état réel n'est plus celui qu'on croyait : même traitement, c'est un désaccord, pas une panne</td></tr>
+    <tr><td><code style="color:var(--alert)">422</code> <span class="mono" style="font-size:11px">invalid_transition</span></td><td><b>conflit</b></td><td>le cas courant après une coupure : quelqu'un est passé avant, l'état réel n'est plus celui qu'on croyait. La ligne est marquée <code>conflict</code> et remonte dans le centre de synchro</td></tr>
+    <tr><td><code style="color:var(--alert)">409</code></td><td><b>conflit</b></td><td>verrouillage optimiste : deux écritures réellement concurrentes côté serveur. Même traitement, c'est un désaccord, pas une panne</td></tr>
     <tr><td><code style="color:var(--warn)">5xx</code> / réseau</td><td><b>réessai</b></td><td>ce n'est pas un désaccord, c'est une indisponibilité : on retente plus tard</td></tr>
   </table>
 
@@ -622,9 +623,9 @@ body.plan-on .plan{display:block}
 
   <div class="notes">
     <h4>Conduite</h4>
-    <p>La distinction à faire comprendre est celle entre <b>désaccord</b> et <b>panne</b>. Une panne se retente : le serveur redeviendra disponible. Un désaccord ne se retente pas : le rejouer cent fois donnerait cent fois 409. Il faut un arbitrage humain.</p>
+    <p>La distinction à faire comprendre est celle entre <b>désaccord</b> et <b>panne</b>. Une panne se retente : le serveur redeviendra disponible. Un désaccord ne se retente pas : le rejouer cent fois donnerait cent fois le même refus. Il faut un arbitrage humain.</p>
     <p>C'est pour ça que <span class="mono">decideReconcile</span> est une fonction pure de trois lignes, isolée dans <span class="mono">domain/</span> : c'est la décision la plus importante du moteur, elle doit être lisible et testable seule.</p>
-    <p>Le 422 <span class="mono">item.invalid_transition</span> mérite un mot : techniquement c'est une erreur de validation, mais fonctionnellement c'est un conflit : l'équipement n'est plus dans l'état que l'agent croyait. Je le route donc vers l'arbitrage, pas vers le réessai.</p>
+    <p>Le 422 <span class="mono">item.invalid_transition</span> mérite un mot : techniquement c'est une erreur de validation, mais fonctionnellement c'est un conflit : l'équipement n'est plus dans l'état que l'agent croyait. Je le route donc vers l'arbitrage, pas vers le réessai. C'est d'ailleurs lui, et non le 409, qu'on rencontre le plus souvent au retour du réseau : le 409 suppose deux écritures dans la même fraction de seconde.</p>
   </div>
 </section>
 
@@ -1011,8 +1012,9 @@ body.plan-on .plan{display:block}
     <p><b>Lève les yeux.</b></p>
     <p><b>Sigles :</b> FIFO = premier entré, premier sorti. SSE = Server-Sent Events, flux poussé par le serveur. JSI = l'interface qui permet à op-sqlite d'être synchrone. ATS = App Transport Security, la politique HTTPS d'iOS.</p>
     <p><b>« Pourquoi pas une base de données synchronisée toute faite ? »</b> Parce que le sujet impose la réconciliation avec une API REST existante et son verrouillage optimiste. Une solution clé en main aurait imposé son propre modèle de synchronisation, et je n'aurais rien démontré du mécanisme.</p>
+    <p><b>« Qui a raison quand deux techniciens scannent ? »</b> Le système ne tranche pas, et c'est délibéré : le serveur ne voit que deux écritures, l'agent a l'équipement sous les yeux. Je garantis qu'aucune action n'est perdue silencieusement et que l'ordre des gestes est respecté (FIFO) ; l'arbitrage revient à celui qui peut constater.</p>
     <p><b>« Comment démontrer le mode hors ligne ? »</b> Mode avion, scanner trois équipements, montrer le compteur de la file qui monte, réactiver le réseau, montrer la file qui se vide et les statuts qui se mettent à jour.</p>
-    <p><b>« Et si deux agents scannent le même équipement ? »</b> Le second à synchroniser reçoit un 409, l'action part dans le centre de synchronisation, l'agent tranche. C'est le scénario du MP3, bouclé.</p>
+    <p><b>« Et si deux agents scannent le même équipement ? »</b> Le second à synchroniser voit son action refusée par le serveur : <span class="mono">422</span> si la transition n'est plus légale depuis le nouvel état, <span class="mono">409</span> si les deux écritures sont réellement simultanées. L'action part dans le centre de synchronisation avec sa version d'origine affichée, et l'agent tranche. Si la transition reste légale, elle passe : le dernier à synchroniser écrit, mais les deux gestes restent dans l'historique de l'équipement. C'est le scénario du MP3, bouclé.</p>
   </div>
 </section>
 

@@ -5,7 +5,7 @@ import TestRenderer from 'react-test-renderer';
 import {ModeSelector} from './ModeSelector';
 import type {UserRole} from '@/types/api';
 
-jest.mock('lucide-react-native', () => ({
+jest.mock('@/components/icons', () => ({
   MapPin: () => null,
   PackageCheck: () => null,
   Truck: () => null,

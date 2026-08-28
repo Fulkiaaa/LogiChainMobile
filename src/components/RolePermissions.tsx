@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {Check, Lock} from 'lucide-react-native';
+import {Check, Lock} from '@/components/icons';
 
 import type {Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';

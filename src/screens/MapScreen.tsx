@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, Pressable, StyleSheet, Text, View} from 'react-native';
-import {Layers, LocateFixed, Maximize2} from 'lucide-react-native';
+import {Layers, LocateFixed, Maximize2} from '@/components/icons';
 import MapView, {Marker, Polygon, Polyline, PROVIDER_DEFAULT} from 'react-native-maps';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
