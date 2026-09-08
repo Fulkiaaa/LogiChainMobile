@@ -34,7 +34,7 @@ npm run ios       # ou : npm run android
 ## Variables d'environnement
 
 L'application elle-même ne lit pas de fichier `.env` au runtime : la cible
-API est un simple bouculement de constante dans `src/config/env.ts`
+API est un simple basculement de constante dans `src/config/env.ts`
 (`ENV.API_BASE_URL`, entre `API_ENDPOINTS.LOCAL` et `API_ENDPOINTS.PROD`).
 
 Les scripts de test et d'outillage (suite `parcours`, génération de QR) lisent
@@ -78,8 +78,9 @@ approbation).
 Pour l'exploitation et le déploiement de l'infrastructure (VM, Ansible,
 sauvegardes, procédures d'incident), voir le
 [`RUNBOOK.md`](https://github.com/Fulkiaaa/logichain-infra/blob/main/RUNBOOK.md)
-du dépôt `logichain-infra` (à venir — rédigé dans une tâche ultérieure du
-plan d'industrialisation).
+du dépôt `logichain-infra` — déjà écrit et testé (924 lignes, 10 sections).
+Le lien ci-dessus pointe vers `main` : il deviendra valide après la fusion
+de la branche `develop` de l'infra, aujourd'hui à jour du Runbook.
 
 ---
 
@@ -176,9 +177,14 @@ Le workflow `.github/workflows/ci.yml` exécute `npm run lint` et `npm test` (te
 
 Deux suites sont volontairement exclues de cette CI :
 
-- **`npm run parcours`** (`jest.integration.config.js`) : exige une API LogiChain joignable.
-  Elle est réutilisée par le pipeline de déploiement continu de l'infra, pas par cette CI
-  applicative.
+- **`npm run parcours`** (`jest.integration.config.js`) : exige un jeu de données seedé (un
+  compte utilisateur existant) que le playbook Ansible de `logichain-infra` ne pose pas. La
+  faire tourner sur une machine fraîchement provisionnée produirait un échec sans valeur.
+  Elle n'est donc jouée par aucun pipeline, ni cette CI applicative ni la CD de l'infra, et se
+  lance à la main contre une API déjà peuplée. Ce que le déploiement continu de l'infra vérifie
+  à sa place, ce sont trois tests de fumée bout-en-bout contre l'API que le playbook vient
+  d'installer — dont un `POST /auth/login` qui renvoie 401 au format d'erreur métier, preuve
+  que MongoDB est réellement interrogé et pas seulement que Node répond.
 - **Le build Android** : long, et dépendant de secrets de signature qui n'ont pas leur place
   dans une CI de qualité de code — hors périmètre du sujet académique.
 
