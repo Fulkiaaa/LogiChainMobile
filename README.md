@@ -82,6 +82,19 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
+# Intégration continue
+
+Le workflow `.github/workflows/ci.yml` exécute `npm run lint` et `npm test` (tests unitaires
+`jest`) sur les push et pull requests visant `develop` et `main`.
+
+Deux suites sont volontairement exclues de cette CI :
+
+- **`npm run parcours`** (`jest.integration.config.js`) : exige une API LogiChain joignable.
+  Elle est réutilisée par le pipeline de déploiement continu de l'infra, pas par cette CI
+  applicative.
+- **Le build Android** : long, et dépendant de secrets de signature qui n'ont pas leur place
+  dans une CI de qualité de code — hors périmètre du sujet académique.
+
 # Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.

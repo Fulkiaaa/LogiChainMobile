@@ -1,0 +1,26 @@
+# Pipeline d'intégration continue : lint et tests unitaires.
+# Volontairement absents de cette CI (voir README, section « Intégration continue ») :
+# - la suite `parcours` (jest.integration.config.js), qui exige une API joignable ;
+# - le build Android, long et dépendant de secrets de signature.
+name: ci
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  quality:
+    name: Qualité et tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Linter
+        run: npm run lint
+      - name: Tests unitaires
+        run: npm test
