@@ -1,3 +1,90 @@
+# LogiChainMobile
+
+> Application mobile terrain de la plateforme logistique événementielle
+> **LogiChain** (React Native pur — sans Expo, offline-first).
+> Projet noté — Module MP3.
+
+## Prérequis
+
+- Node.js ≥ 22.11.0 (`engines.node` dans `package.json` — l'adaptateur de
+  test `node:sqlite` l'exige)
+- npm (fourni avec Node)
+- Pour iOS : Xcode + CocoaPods (`bundle install` puis `bundle exec pod
+  install`)
+- Pour Android : Android Studio + un SDK/émulateur configuré
+- `git`, et [`gh`](https://cli.github.com/) authentifié pour les commandes
+  de passation (`CONTRIBUTING.md`, § 8)
+- Suivre au préalable le guide officiel
+  [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment)
+
+## Installation locale
+
+```bash
+npm install
+
+# iOS uniquement, à la première installation ou après mise à jour des
+# dépendances natives :
+bundle install
+bundle exec pod install
+
+npm start        # démarre Metro (bundler JS)
+npm run ios       # ou : npm run android
+```
+
+## Variables d'environnement
+
+L'application elle-même ne lit pas de fichier `.env` au runtime : la cible
+API est un simple bouculement de constante dans `src/config/env.ts`
+(`ENV.API_BASE_URL`, entre `API_ENDPOINTS.LOCAL` et `API_ENDPOINTS.PROD`).
+
+Les scripts de test et d'outillage (suite `parcours`, génération de QR) lisent
+en revanche ces variables d'environnement :
+
+| Variable            | Obligatoire | Défaut                              | Description                                              |
+|----------------------|:-----------:|--------------------------------------|-------------------------------------------------------------|
+| `LOGICHAIN_API`       | non         | `http://localhost:3000/api/v1`       | URL de base de l'API LogiChain ciblée par les tests/scripts |
+| `LOGICHAIN_EMAIL`     | non         | `sofia@logichain.fr`                 | Compte utilisé par les scripts de démo/test d'intégration   |
+| `LOGICHAIN_PASSWORD`  | non         | `LogiChain2026!`                     | Mot de passe associé à `LOGICHAIN_EMAIL`                    |
+
+> Ne jamais committer de véritable identifiant de production dans ces
+> variables — ce dépôt est **public**. Les valeurs par défaut ci-dessus sont
+> celles du jeu de données de démonstration.
+
+## Commandes utiles
+
+| Commande                | Effet                                                        |
+|--------------------------|----------------------------------------------------------------|
+| `npm start`               | Démarre Metro (bundler JS)                                     |
+| `npm run android`         | Build + lance l'app sur émulateur/téléphone Android            |
+| `npm run ios`             | Build + lance l'app sur simulateur/téléphone iOS                |
+| `npm run lint`            | ESLint                                                          |
+| `npm test`                | Tests unitaires Jest                                            |
+| `npm run parcours`        | Tests d'intégration (`LOGICHAIN_API` doit être joignable)       |
+| `npm run scan`            | Sous-ensemble d'intégration ciblé sur le scan QR                |
+| `npm run qr`              | Génère des QR codes de démonstration                            |
+
+## Contribution & passation
+
+Ce dépôt suit un modèle Gitflow (`main` ← `develop` ← `feature/*`), avec des
+règles de protection GitHub actives sur `main` et `develop` (checks CI
+obligatoires, historique linéaire sur `main`, pas d'acteur de contournement).
+
+Voir [`CONTRIBUTING.md`](./CONTRIBUTING.md) pour : le détail du modèle de
+branches, la convention de commit (Conventional Commits), le cycle de vie
+d'une Pull Request, la checklist de revue, et la **procédure de passation**
+à une future équipe (notamment le passage de la revue obligatoire de 0 à 1
+approbation).
+
+Pour l'exploitation et le déploiement de l'infrastructure (VM, Ansible,
+sauvegardes, procédures d'incident), voir le
+[`RUNBOOK.md`](https://github.com/Fulkiaaa/logichain-infra/blob/main/RUNBOOK.md)
+du dépôt `logichain-infra` (à venir — rédigé dans une tâche ultérieure du
+plan d'industrialisation).
+
+---
+
+## Documentation React Native (gabarit d'origine)
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
