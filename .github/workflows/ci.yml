@@ -20,7 +20,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # package.json impose "engines.node": ">= 22.11.0" (l'adaptateur de test
+          # node:sqlite l'exige) : Node 20, prévu au brief, est ici incompatible.
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: Linter
