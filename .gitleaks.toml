@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+# ios/Podfile.lock : les entrées « SPEC CHECKSUMS » sont des SHA1 de podspecs
+# CocoaPods publics (empreintes de contenu, pas des secrets). Faux positif
+# avéré (règle generic-api-key, forte entropie hexadécimale) — vérifié sur ce
+# dépôt : gitleaks detect --source . y signale ios/Podfile.lock:2399.
+[[rules]]
+id = "generic-api-key"
+  [rules.allowlist]
+  description = "SPEC CHECKSUMS CocoaPods — SHA1 de podspecs publics, pas des secrets"
+  paths = ['''ios/Podfile\.lock''']
