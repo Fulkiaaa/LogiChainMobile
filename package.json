@@ -13,7 +13,8 @@
     "scan": "jest --config jest.integration.config.js src/domain/scanQr",
     "scan:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 jest --config jest.integration.config.js src/domain/scanQr",
     "qr": "tsx --tsconfig tsconfig.json scripts/generate-qr.ts",
-    "qr:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 tsx --tsconfig tsconfig.json scripts/generate-qr.ts"
+    "qr:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 tsx --tsconfig tsconfig.json scripts/generate-qr.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@op-engineering/op-sqlite": "^17.1.1",
@@ -44,6 +45,8 @@
     "@babel/plugin-transform-export-namespace-from": "^7.29.7",
     "@babel/preset-env": "^7.25.3",
     "@babel/runtime": "^7.25.0",
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
@@ -58,6 +61,7 @@
     "@types/uuid": "^10.0.0",
     "babel-plugin-module-resolver": "^5.0.3",
     "eslint": "^8.19.0",
+    "husky": "^9.1.7",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
     "qrcode": "^1.5.4",
