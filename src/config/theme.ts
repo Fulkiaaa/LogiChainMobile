@@ -112,14 +112,26 @@ export const TYPE = {
 export const TYPE_SIZES: readonly number[] = Object.values(TYPE).map(t => t.fontSize);
 
 /**
- * Hauteur minimale d'une cible tactile — Human Interface Guidelines d'Apple.
+ * Côté minimal d'une cible tactile.
  *
  * Relevé avant correction : de 17 pt (les actions de la file de synchro) à
- * 33 pt (les puces de filtre). Pour une application manipulée debout, en
- * mouvement, parfois avec des gants, c'est la contrainte la plus concrète du
- * cahier des charges.
+ * 33 pt (les puces de filtre). Une première passe a aligné sept surfaces sur
+ * les 44 pt des Human Interface Guidelines d'Apple — et les vingt-huit autres
+ * ont continué à tomber juste ou faux au gré de leur `paddingVertical`.
+ *
+ * Les essais terrain ont tranché : 44 pt (≈ 7 mm) est le plancher d'un pouce
+ * nu, sur un téléphone tenu à deux mains, assis. Nos utilisateurs sont debout,
+ * en mouvement, et gantés. La littérature ergonomique demande alors 9 à 10 mm ;
+ * 56 pt en vaut environ 9. C'est la valeur qui répond au retour reçu, pas celle
+ * qui coche la ligne du référentiel.
+ *
+ * Ce que ça coûte : une liste d'articles perd environ deux lignes par écran.
+ * C'est le prix assumé — un faux contact sur « Signaler perdu » coûte plus cher
+ * qu'un défilement de plus.
+ *
+ * `touch.test.ts` impose ce plancher en hauteur à chaque `Pressable`.
  */
-export const TOUCH_MIN = 44;
+export const TOUCH_MIN = 56;
 
 /**
  * Palette par défaut, conservée pour les rares usages hors composant React

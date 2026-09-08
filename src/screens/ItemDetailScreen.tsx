@@ -11,7 +11,7 @@ import type {ReportKind} from '@/domain/anomaly';
 import {can, whyNot} from '@/domain/capabilities';
 import {useAuth} from '@/hooks/useAuth';
 import {toItemDetail} from '@/domain/itemDetail';
-import {CATEGORY_LABELS, type Palette} from '@/config/theme';
+import {TOUCH_MIN, CATEGORY_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {itemsApi} from '@/services/api/items.api';
 import {itemsRepo, outboxRepo} from '@/services/db/database';
@@ -256,6 +256,7 @@ const makeStyles = (c: Palette) =>
       borderBottomColor: c.border,
     },
     mapButton: {
+      minHeight: TOUCH_MIN,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -278,9 +279,13 @@ const makeStyles = (c: Palette) =>
     histMeta: {color: c.textMuted, fontSize: 12, marginTop: 4},
     histTransition: {color: c.primary, fontSize: 12, fontWeight: '600', marginTop: 4},
     histNote: {color: c.text, fontSize: 14, fontStyle: 'italic', marginTop: 4},
-    actions: {flexDirection: 'row', gap: 12},
+    // L'écart entre les deux actions monte à 16 : élargir les cibles sans
+    // élargir ce qui les sépare rendrait le faux contact PLUS probable, et
+    // l'une des deux est destructrice.
+    actions: {flexDirection: 'row', gap: 16},
     action: {
       flex: 1,
+      minHeight: TOUCH_MIN,
       flexDirection: 'row',
       gap: 8,
       alignItems: 'center',

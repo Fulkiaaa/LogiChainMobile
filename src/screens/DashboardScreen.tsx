@@ -223,8 +223,8 @@ export function DashboardScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Effacer la recherche"
-                onPress={() => setQuery('')}
-                hitSlop={8}>
+                style={styles.clearSearch}
+                onPress={() => setQuery('')}>
                 <X color={c.textMuted} size={16} strokeWidth={2.5} />
               </Pressable>
             ) : null}
@@ -300,11 +300,20 @@ const makeStyles = (c: Palette) =>
     gap: 12,
     marginBottom: 12,
   },
+  // Carré de cible : sur un bouton-icône, c'est la largeur qui bloque.
+  clearSearch: {
+    minWidth: TOUCH_MIN,
+    minHeight: TOUCH_MIN,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   filterButton: {
-    width: 44,
-    // Pas de hauteur fixe : `alignItems: 'stretch'` du parent l'aligne sur
-    // l'input. Le rayon reprend celui de la barre pour que les deux blocs se
-    // lisent comme une seule rangée.
+    width: TOUCH_MIN,
+    // Plancher, pas hauteur fixe : `alignItems: 'stretch'` du parent aligne le
+    // bouton sur l'input, et c'est ce plancher qui tire toute la rangée à la
+    // taille d'une cible gantée. Le rayon reprend celui de la barre pour que
+    // les deux blocs se lisent comme une seule rangée.
+    minHeight: TOUCH_MIN,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -334,7 +343,7 @@ const makeStyles = (c: Palette) =>
   },
   filterCountText: {color: c.onPrimary, fontSize: 12, fontWeight: '800'},
   searchRow: {
-    // Occupe toute la largeur restante à gauche du bouton de filtre (44 px).
+    // Occupe toute la largeur restante à gauche du bouton de filtre.
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,7 +354,9 @@ const makeStyles = (c: Palette) =>
     borderColor: c.borderStrong,
     paddingHorizontal: 12,
   },
-  searchInput: {flex: 1, color: c.text, paddingVertical: 12},
+  // Un champ de saisie est une cible tactile comme une autre : sans ce
+  // plancher, il restait à 44 pt à côté d'un bouton de filtre passé à 56.
+  searchInput: {flex: 1, minHeight: TOUCH_MIN, color: c.text, paddingVertical: 12},
   /*
    * Pas de liseré coloré à gauche : c'est l'ornement le plus recopié des
    * interfaces d'administration, et il faisait ici un quatrième signal pour la
@@ -363,7 +374,7 @@ const makeStyles = (c: Palette) =>
   alertBody: {flex: 1, gap: 4},
   alertTitle: {fontWeight: '700', fontSize: 14},
   alertText: {color: c.text, flexShrink: 1, fontSize: 14, lineHeight: 18},
-  itemRow: {flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface, borderRadius: 10, padding: 16, marginBottom: 8},
+  itemRow: {minHeight: TOUCH_MIN, flexDirection: 'row', alignItems: 'center', backgroundColor: c.surface, borderRadius: 10, padding: 16, marginBottom: 8},
   itemLabel: {color: c.text, fontWeight: '600'},
   itemQr: {color: c.textMuted, fontSize: 12, marginTop: 4},
   empty: {color: c.textMuted, textAlign: 'center', marginTop: 24},

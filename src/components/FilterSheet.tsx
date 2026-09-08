@@ -72,7 +72,7 @@ export function FilterSheet({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Fermer"
-                hitSlop={8}
+                style={styles.close}
                 onPress={onClose}>
                 <X color={c.textMuted} size={20} strokeWidth={2.5} />
               </Pressable>
@@ -171,7 +171,16 @@ const makeStyles = (c: Palette) =>
     },
     headerActions: {flexDirection: 'row', alignItems: 'center', gap: 16},
     title: {color: c.text, fontSize: 17, fontWeight: '700'},
-    reset: {flexDirection: 'row', alignItems: 'center', gap: 4},
+    // Une croix de 20 px reste une croix de 20 px : sur un bouton-icône,
+    // c'est la LARGEUR qui bloque, pas la hauteur. D'où le carré explicite,
+    // qui remplace le `hitSlop` qu'il fallait deviner à la lecture.
+    close: {
+      minWidth: TOUCH_MIN,
+      minHeight: TOUCH_MIN,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    reset: {minHeight: TOUCH_MIN, flexDirection: 'row', alignItems: 'center', gap: 4},
     resetText: {color: c.primary, fontSize: 14, fontWeight: '600'},
     scroll: {paddingHorizontal: 16},
     scrollBody: {paddingBottom: 8},

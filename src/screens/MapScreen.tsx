@@ -5,7 +5,7 @@ import MapView, {Marker, Polygon, Polyline, PROVIDER_DEFAULT} from 'react-native
 import {useNavigation, useRoute} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
-import {STATUS_LABELS, type Palette} from '@/config/theme';
+import {TOUCH_MIN, STATUS_LABELS, type Palette} from '@/config/theme';
 import {
   boundingRegion,
   focusRegion,
@@ -364,9 +364,9 @@ const makeStyles = (c: Palette) =>
     emptyText: {color: c.textMuted, textAlign: 'center', lineHeight: 20},
     controls: {position: 'absolute', top: 16, right: 16, gap: 12},
     control: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
+      width: TOUCH_MIN,
+      minHeight: TOUCH_MIN,
+      borderRadius: TOUCH_MIN / 2,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: c.surface,

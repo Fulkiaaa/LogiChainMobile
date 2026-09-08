@@ -9,7 +9,7 @@ import {
   Wrench,
 } from '@/components/icons';
 
-import {STATUS_LABELS, type Palette} from '@/config/theme';
+import {TOUCH_MIN, STATUS_LABELS, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import type {ItemStatus} from '@/types/api';
 
@@ -84,6 +84,7 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     tile: {
       flex: 1,
+      minHeight: TOUCH_MIN,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',

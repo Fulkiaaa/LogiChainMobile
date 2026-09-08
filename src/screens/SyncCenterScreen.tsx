@@ -8,7 +8,7 @@ import {AlertTriangle} from '@/components/icons';
 import {ConnectivityBadge} from '@/components/ConnectivityBadge';
 import {outboxService} from '@/services/sync/outboxService.instance';
 import {changeBus} from '@/services/store/changeBus';
-import {explainSyncError} from '@/domain/syncError';
+import {explainSyncConflict, explainSyncError} from '@/domain/syncError';
 import {describeRow, relativeTime} from '@/domain/outboxLabel';
 import {resyncSector} from '@/services/sync/initialSync';
 import {TOUCH_MIN, type Palette} from '@/config/theme';
@@ -169,7 +169,7 @@ export function SyncCenterScreen() {
               <AlertTriangle color={c.warning} size={15} strokeWidth={2.5} />
               <Text style={styles.rowTitle}>{decrire(cf)}</Text>
             </View>
-            <Text style={styles.rowMeta}>{cf.lastError ?? 'conflit de version'} · {cf.attempts} tentative(s)</Text>
+            <Text style={styles.rowMeta}>{explainSyncConflict(cf.lastError)}</Text>
             {/*
               * « Rejouer » est l'issue attendue d'un conflit ; « Abandonner »
               * est la sortie de secours. Les deux étaient côte à côte et à
@@ -245,10 +245,11 @@ const makeStyles = (c: Palette) =>
   container: {flex: 1, backgroundColor: c.bg},
   summary: {backgroundColor: c.surface, borderRadius: 10, padding: 16},
   lastResult: {color: c.textMuted, marginTop: 8, fontSize: 12},
-  button: {backgroundColor: c.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16},
+  button: {minHeight: TOUCH_MIN, justifyContent: 'center', backgroundColor: c.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16},
   buttonDisabled: {opacity: 0.5},
   buttonText: {color: c.onPrimary, fontWeight: '700'},
   secondary: {
+    minHeight: TOUCH_MIN,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',

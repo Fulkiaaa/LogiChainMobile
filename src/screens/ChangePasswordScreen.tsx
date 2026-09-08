@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {
   PASSWORD_RULES,
   validatePasswordChange,
@@ -163,6 +163,8 @@ const makeStyles = (c: Palette) =>
     ruleMet: {color: c.primary},
     error: {color: c.danger, marginBottom: 8},
     button: {
+      minHeight: TOUCH_MIN,
+      justifyContent: 'center',
       backgroundColor: c.primary,
       borderRadius: 12,
       padding: 16,
@@ -170,6 +172,6 @@ const makeStyles = (c: Palette) =>
       marginTop: 16,
     },
     buttonText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
-    linkButton: {padding: 16, alignItems: 'center'},
+    linkButton: {minHeight: TOUCH_MIN, justifyContent: 'center', padding: 16, alignItems: 'center'},
     linkText: {color: c.textMuted, fontSize: 14},
   });

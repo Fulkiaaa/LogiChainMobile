@@ -1,7 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View} from 'react-native';
 
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {useAuth} from '@/hooks/useAuth';
 import {loginInputSchema} from '@/schemas/item.schema';
@@ -93,6 +93,8 @@ const makeStyles = (c: Palette) =>
   },
   error: {color: c.danger, marginBottom: 12},
   button: {
+    minHeight: TOUCH_MIN,
+    justifyContent: 'center',
     backgroundColor: c.primary,
     borderRadius: 12,
     padding: 16,

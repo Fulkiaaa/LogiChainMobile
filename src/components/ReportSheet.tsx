@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import {MapPin, X} from '@/components/icons';
 
-import type {Palette} from '@/config/theme';
+import {TOUCH_MIN, type Palette} from '@/config/theme';
 import {
   ANOMALY_NOTE_MAX,
   REPORT_DONE,
@@ -124,8 +124,8 @@ export function ReportSheet({
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Fermer"
+              style={styles.close}
               onPress={close}
-              hitSlop={10}
               disabled={busy}>
               <X color={c.textMuted} size={20} strokeWidth={2.5} />
             </Pressable>
@@ -202,7 +202,15 @@ const makeStyles = (c: Palette) =>
     },
     counter: {color: c.textMuted, fontSize: 12, textAlign: 'right'},
     error: {color: c.danger, fontSize: 14},
+    // Carré de cible : sur un bouton-icône, c'est la largeur qui bloque.
+    close: {
+      minWidth: TOUCH_MIN,
+      minHeight: TOUCH_MIN,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     submit: {
+      minHeight: TOUCH_MIN,
       flexDirection: 'row',
       gap: 8,
       backgroundColor: c.primary,

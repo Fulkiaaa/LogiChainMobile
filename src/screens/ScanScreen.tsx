@@ -174,7 +174,7 @@ const makeStyles = (c: Palette) =>
     borderWidth: 1,
     borderColor: OVERLAY.border,
   },
-  manualBtn: {backgroundColor: OVERLAY.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
+  manualBtn: {minHeight: TOUCH_MIN, backgroundColor: OVERLAY.primary, borderRadius: 10, paddingHorizontal: 18, justifyContent: 'center'},
   manualBtnText: {color: OVERLAY.onPrimary, fontWeight: '700'},
   result: {fontSize: 14, fontWeight: '600'},
 });

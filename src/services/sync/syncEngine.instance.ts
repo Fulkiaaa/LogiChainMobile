@@ -3,7 +3,7 @@ import {itemsApi} from '@/services/api/items.api';
 import {itemsRepo, outboxRepo} from '@/services/db/database';
 import {fromItemJSON} from '@/services/db/items.repo';
 import type {OutboxRow} from '@/services/db/outbox.repo';
-import type {ApiOutcome} from '@/domain/reconcile';
+import type {ApiErrorBody, ApiOutcome} from '@/domain/reconcile';
 import type {GeoPoint, ItemJSON} from '@/types/api';
 
 import {createGuardedFlush} from './runFlush';
@@ -42,7 +42,7 @@ async function sendAction(row: OutboxRow): Promise<ApiOutcome & {item?: ItemJSON
   const ok = res.status >= 200 && res.status < 300;
   return {
     httpStatus: res.status,
-    body: ok ? undefined : (res.data as unknown as {error?: string}),
+    body: ok ? undefined : (res.data as unknown as ApiErrorBody),
     item: ok ? res.data : undefined,
   };
 }

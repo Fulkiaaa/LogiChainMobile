@@ -2,7 +2,7 @@ import React from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {Lock, MapPin, PackageCheck, Truck} from '@/components/icons';
 
-import {OVERLAY} from '@/config/theme';
+import {TOUCH_MIN, OVERLAY} from '@/config/theme';
 
 import type {ScanMode} from '@/domain/scanAction';
 import {can, whyNot} from '@/domain/capabilities';
@@ -98,6 +98,7 @@ const styles = StyleSheet.create({
   row: {flexDirection: 'row', gap: 8},
   chip: {
     flex: 1,
+    minHeight: TOUCH_MIN,
     flexDirection: 'row',
     gap: 6,
     paddingVertical: 10,

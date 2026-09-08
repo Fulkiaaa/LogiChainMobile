@@ -278,6 +278,7 @@ const makeStyles = (c: Palette) =>
   roleText: {color: c.textMuted, fontSize: 12, fontWeight: '600'},
   roleTextActive: {color: c.onPrimary},
   submit: {
+    minHeight: TOUCH_MIN,
     flexDirection: 'row',
     gap: 8,
     backgroundColor: c.primary,
@@ -289,6 +290,7 @@ const makeStyles = (c: Palette) =>
   },
   submitText: {color: c.onPrimary, fontWeight: '700'},
   logout: {
+    minHeight: TOUCH_MIN,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',

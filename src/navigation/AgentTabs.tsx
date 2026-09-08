@@ -4,6 +4,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {BarChart3, LayoutDashboard, RefreshCw, ScanLine, User} from '@/components/icons';
 
+import {TOUCH_MIN} from '@/config/theme';
 import {useTheme} from '@/hooks/useTheme';
 import {DashboardScreen} from '@/screens/DashboardScreen';
 import {KpiScreen} from '@/screens/KpiScreen';
@@ -56,12 +57,25 @@ const makeTabBarIcon =
 
 export function AgentTabs() {
   const {c} = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({route}) => {
         return {
           headerShown: false,
-          tabBarStyle: {backgroundColor: c.surface, borderTopColor: c.border},
+          // Cinq onglets, la cible la plus sollicitée de l'application — et la
+          // seule que `touch.test.ts` ne peut pas voir, puisque c'est React
+          // Navigation qui la dessine, pas un `Pressable` de notre code. Sa
+          // hauteur par défaut (~49 pt) restait sous le plancher. Fixer la
+          // hauteur désactive la marge de sécurité que la barre pose seule :
+          // on la réinjecte en `paddingBottom`, sans quoi les onglets
+          // passeraient sous la barre d'accueil des téléphones sans bouton.
+          tabBarStyle: {
+            backgroundColor: c.surface,
+            borderTopColor: c.border,
+            height: TOUCH_MIN + insets.bottom,
+            paddingBottom: insets.bottom,
+          },
           tabBarActiveTintColor: c.primary,
           tabBarInactiveTintColor: c.textMuted,
           tabBarIcon: makeTabBarIcon(ICONS[route.name]),

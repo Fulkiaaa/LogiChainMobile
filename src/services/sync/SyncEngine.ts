@@ -38,7 +38,9 @@ export function createSyncEngine(deps: SyncDeps) {
       if (decision === 'conflict') {
         // Le serveur détient une vérité différente : on laisse l'utilisateur
         // arbitrer (rejouer ou abandonner) plutôt que de décider à sa place.
-        deps.outbox.mark(row.localId, 'conflict'); conflicts++;
+        // Le statut HTTP est conservé : sans lui, le centre de synchro ne peut
+        // pas dire à l'agent *pourquoi* son action est bloquée.
+        deps.outbox.mark(row.localId, 'conflict', `HTTP ${outcome.httpStatus}`); conflicts++;
         continue;
       }
 

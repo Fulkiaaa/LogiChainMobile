@@ -65,6 +65,7 @@ export function RoutesScreen() {
             <Pressable
               testID={`route-${r.id}`}
               accessibilityRole="button"
+              style={styles.cardHead}
               onPress={() => setOuverte(depliee ? null : r.id)}>
               <View style={styles.head}>
                 <Truck color={c.primary} size={18} strokeWidth={2.5} />
@@ -162,6 +163,9 @@ const makeStyles = (c: Palette) =>
     doneText: {color: c.success, fontSize: 14, flex: 1},
     stops: {marginTop: 16, borderTopWidth: 1, borderTopColor: c.border, paddingTop: 12},
     stop: {flexDirection: 'row', gap: 12, marginBottom: 12},
+    // La zone dépliante d'une tournée : déjà haute par son contenu, mais le
+    // plancher la garantit même quand une carte n'affiche qu'une ligne.
+    cardHead: {minHeight: TOUCH_MIN, justifyContent: 'center'},
     stopDot: {width: 24, height: 24, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: 'center', justifyContent: 'center'},
     stopSeq: {color: c.text, fontSize: 12, fontWeight: '700'},
     stopBody: {flex: 1},

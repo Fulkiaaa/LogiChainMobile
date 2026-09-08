@@ -55,7 +55,11 @@ test('flush: un conflit 409 n’est PAS rollbacké — il attend l’arbitrage',
   const rolled: string[] = []; const marked: any[] = [];
   const engine = createSyncEngine({
     maxAttempts: 3,
-    outbox: {listPending: () => rows, remove: () => {}, mark: (id: string, s: string) => marked.push([id, s])},
+    outbox: {
+      listPending: () => rows,
+      remove: () => {},
+      mark: (id: string, s: string, e?: string) => marked.push([id, s, e]),
+    },
     sendAction: async () => ({httpStatus: 409}),
     applyServerItem: () => {},
     rollback: (r: any) => rolled.push(r.localId),
@@ -63,5 +67,7 @@ test('flush: un conflit 409 n’est PAS rollbacké — il attend l’arbitrage',
   const res = await engine.flush();
   expect(res.conflicts).toBe(1);
   expect(rolled).toEqual([]);
-  expect(marked).toEqual([['a', 'conflict']]);
+  // Le motif est conservé : le centre de synchro s'en sert pour expliquer le
+  // conflit à l'agent au lieu d'afficher un libellé générique.
+  expect(marked).toEqual([['a', 'conflict', 'HTTP 409']]);
 });
