@@ -7,7 +7,10 @@ on:
   pull_request:
     branches: [develop, main]
   push:
-    branches: [develop, main]
+    # NOTE TEMPORAIRE (retirée avant la version finale) : ci/github-actions ajoutée ici
+    # uniquement pour obtenir une exécution réelle du pipeline sans ouvrir de PR, ni
+    # pousser sur main. La liste finale ne comporte que [develop, main] comme prévu au brief.
+    branches: [develop, main, ci/github-actions]
 
 jobs:
   quality:
