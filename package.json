@@ -12,6 +12,7 @@
     "parcours:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 jest --config jest.integration.config.js",
     "scan": "jest --config jest.integration.config.js src/domain/scanQr",
     "scan:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 jest --config jest.integration.config.js src/domain/scanQr",
+    "screenshots": "bash scripts/screenshots.sh",
     "qr": "tsx --tsconfig tsconfig.json scripts/generate-qr.ts",
     "qr:prod": "LOGICHAIN_API=https://api-logichain.fulkia.fr/api/v1 tsx --tsconfig tsconfig.json scripts/generate-qr.ts",
     "prepare": "husky"

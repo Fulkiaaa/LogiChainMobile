@@ -1,0 +1,134 @@
+# Parcours de capture d'écran — les vues du déroulé de soutenance.
+#
+# Ce flow ne teste rien : il navigue et photographie. Il est volontairement
+# calqué sur le §8 de LANCEMENT.md, pour que les images du README racontent la
+# même histoire que la démo orale.
+#
+# ── Deux pièges appris en l'écrivant, à ne pas défaire ──────────────────────
+#
+# 1. Maestro ANCRE ses regex. `tapOn: "Profil"` échoue, parce que iOS expose
+#    l'onglet comme « Profil, tab, 5 of 5 » : il faut « Profil, tab.* ». Idem
+#    pour les lignes d'équipement, annoncées « Barrière Vauban 2m, LC-FENCE-007,
+#    En transit ». On s'accroche au code QR, seule partie stable — le statut,
+#    lui, change à chaque démo.
+#
+# 2. `clearState` vide le bac à sable mais PAS le Keychain iOS, où vit le jeton
+#    de session. Sans `clearKeychain`, l'app rouvre déjà connectée et l'écran de
+#    connexion n'est jamais capturé.
+#
+# 3. Une capture prise juste après un mouvement n'est pas reproductible. Deux
+#    exécutions de suite donnaient deux images différentes pour l'écran de
+#    connexion (animation de lancement) et pour le bas de la fiche (le
+#    défilement ne s'arrête pas exactement au même pixel) — donc deux images
+#    « modifiées » dans Git à chaque passage, pour rien. D'où le
+#    `waitForAnimationToEnd` systématique avant chaque prise.
+#
+# 4. `takeScreenshot` n'écrit PAS où on croit. Maestro range ses captures sous
+#    son dossier de run (~/.maestro/tests/<horodatage>/screenshots/…), et le
+#    chemin donné ici n'est qu'un nom de fichier relatif à ce dossier. C'est
+#    scripts/screenshots.sh qui fixe ce dossier avec `--debug-output` puis
+#    rapatrie les images dans docs/screenshots/.
+#
+# Lancement : `npm run screenshots` (jamais `maestro test` directement — le
+# script shell gèle la barre d'état et récupère les images, voir le script).
+appId: org.reactjs.native.example.LogiChainMobile
+---
+- clearKeychain
+- launchApp:
+    clearState: true
+
+# L'app démarre sur un écran de chargement le temps de lire le Keychain : on
+# attend la connexion plutôt que de photographier un écran à moitié monté.
+- extendedWaitUntil:
+    visible: 'Se connecter'
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 01-connexion
+
+- tapOn: 'Email'
+- inputText: 'sofia@logichain.fr'
+- tapOn: 'Mot de passe'
+- inputText: 'LogiChain2026!'
+- tapOn:
+    text: 'Se connecter'
+    retryTapIfNoChange: false
+
+# iOS propose d'enregistrer le mot de passe dans son trousseau, environ une
+# seconde APRÈS la connexion. Deux choses à savoir, toutes deux vérifiées ici :
+#
+#   - c'est une alerte SYSTÈME. Tant qu'elle est ouverte, la hiérarchie
+#     d'accessibilité de l'app devient inatteignable : les assertions échouent
+#     sur des éléments pourtant bien visibles à l'écran. Ce n'est donc pas une
+#     gêne esthétique, c'est ce qui casse tout le reste du parcours.
+#   - `defaults write … AutoFillPasswords false` ne la supprime pas (essayé).
+#
+# La pause borne la course : tester la visibilité immédiatement après le tap
+# arrive trop tôt, la fenêtre n'est pas encore montée et le test est « SKIPPED ».
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible: 'Plus tard'
+    commands:
+      - tapOn: 'Plus tard'
+
+# Le tableau de bord télécharge son secteur : on attend une donnée réelle, pas
+# un délai fixe, sinon la capture dépend de l'humeur du réseau.
+- extendedWaitUntil:
+    visible: '.*LC-FENCE-007.*'
+    timeout: 45000
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 02-tableau-de-bord
+
+- tapOn: '.*LC-FENCE-007.*'
+- assertVisible: 'SIGNALEMENT TERRAIN'
+
+# La fiche s'affiche d'abord avec les seules données du cache local, puis se
+# complète quand l'API répond : la valeur d'achat, la durée de vie et le CO₂ de
+# fabrication passent de « — » à leur valeur, et le bandeau orange disparaît.
+# Photographier avant la fin de cette course donnait deux images différentes à
+# deux exécutions. On attend donc la disparition du bandeau — c'est-à-dire la
+# réponse de l'API — et non une durée arbitraire.
+- extendedWaitUntil:
+    notVisible: 'Données locales.*'
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 03-fiche-equipement
+- scrollUntilVisible:
+    element: 'Déclarer perdu'
+    direction: DOWN
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 04-signalement-terrain
+# Pas `back` : le geste de balayage de Maestro entre en conflit avec le défilement
+# de la fiche et ne dépile rien. On vise le bouton de la barre de navigation.
+# Son libellé est « AgentTabs » — le nom interne du navigateur, qui fuit dans
+# l'interface. Le jour où ce défaut sera corrigé, ce sélecteur devra suivre.
+- tapOn: 'AgentTabs'
+
+- tapOn: 'Scan, tab.*'
+- assertVisible: 'Déploiement'
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 05-scan
+
+- tapOn: 'Synchro, tab.*'
+- assertVisible: "File d'attente.*"
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 06-synchro
+
+- tapOn: 'KPI, tab.*'
+- assertVisible: 'Par catégorie'
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 07-kpi
+
+- tapOn: 'Profil, tab.*'
+- assertVisible: 'CE QUE VOTRE RÔLE AUTORISE'
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: 08-profil
