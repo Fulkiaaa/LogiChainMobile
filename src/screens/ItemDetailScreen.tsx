@@ -119,7 +119,7 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
             accessibilityRole="button"
             accessibilityLabel="Voir cet équipement sur la carte"
             onPress={() => nav.navigate('Map', {focusItemId: id})}>
-            <MapPinned color={c.onPrimary} size={16} strokeWidth={2.5} />
+            <MapPinned color={c.onPrimary} size={20} strokeWidth={2.5} />
             <Text style={styles.mapButtonText}>Voir sur la carte</Text>
           </Pressable>
         ) : null}
@@ -128,22 +128,26 @@ export function ItemDetailScreen({route}: RootScreenProps<'ItemDetail'>) {
       <Text style={styles.section}>Signalement terrain</Text>
       <View style={styles.actions}>
         <Pressable
-            accessibilityRole="button" style={styles.action} onPress={() => setSheet('anomaly')}>
-          <AlertTriangle color={c.warning} size={17} strokeWidth={2.5} />
+          accessibilityRole="button"
+          style={styles.action}
+          onPress={() => setSheet('anomaly')}>
+          <AlertTriangle color={c.warning} size={22} strokeWidth={2.5} />
           <Text style={styles.actionText}>Signaler une anomalie</Text>
         </Pressable>
         {peutMaintenir ? (
           <Pressable
-            accessibilityRole="button" style={styles.action} onPress={() => setSheet('maintenance')}>
-            <Wrench color={c.textMuted} size={17} strokeWidth={2.5} />
+            accessibilityRole="button"
+            style={styles.action}
+            onPress={() => setSheet('maintenance')}>
+            <Wrench color={c.textMuted} size={22} strokeWidth={2.5} />
             <Text style={styles.actionText}>Mettre en maintenance</Text>
           </Pressable>
         ) : null}
         <Pressable
-            accessibilityRole="button"
+          accessibilityRole="button"
           style={[styles.action, styles.actionDanger]}
           onPress={() => setSheet('lost')}>
-          <PackageX color={c.danger} size={17} strokeWidth={2.5} />
+          <PackageX color={c.danger} size={22} strokeWidth={2.5} />
           <Text style={[styles.actionText, styles.actionTextDanger]}>Déclarer perdu</Text>
         </Pressable>
       </View>
@@ -260,13 +264,13 @@ const makeStyles = (c: Palette) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
+      gap: 12,
       backgroundColor: c.primary,
-      borderRadius: 10,
-      paddingVertical: 12,
+      borderRadius: 12,
+      paddingVertical: 16,
       marginVertical: 12,
     },
-    mapButtonText: {color: c.onPrimary, fontWeight: '700', fontSize: 14},
+    mapButtonText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
     geoText: {color: c.text, fontSize: 14, fontWeight: '600'},
     muted: {color: c.textMuted},
     histRow: {flexDirection: 'row', gap: 12},
@@ -279,26 +283,37 @@ const makeStyles = (c: Palette) =>
     histMeta: {color: c.textMuted, fontSize: 12, marginTop: 4},
     histTransition: {color: c.primary, fontSize: 12, fontWeight: '600', marginTop: 4},
     histNote: {color: c.text, fontSize: 14, fontStyle: 'italic', marginTop: 4},
-    // L'écart entre les deux actions monte à 16 : élargir les cibles sans
-    // élargir ce qui les sépare rendrait le faux contact PLUS probable, et
-    // l'une des deux est destructrice.
-    actions: {flexDirection: 'row', gap: 16},
+    /*
+     * Une action par ligne, sur toute la largeur.
+     *
+     * À trois de front, chaque cible ne valait qu'un tiers d'écran : « Mettre
+     * en maintenance » se cassait en trois lignes, et le libellé le plus long
+     * imposait sa hauteur aux deux autres. Un pouce ganté vise une bande, pas
+     * un timbre-poste — et il vise nettement mieux en hauteur qu'en largeur.
+     *
+     * L'écart de 16 est conservé : élargir les cibles sans élargir ce qui les
+     * sépare rendrait le faux contact PLUS probable, et la dernière des trois
+     * est destructrice.
+     */
+    actions: {gap: 16},
     action: {
-      flex: 1,
       minHeight: TOUCH_MIN,
       flexDirection: 'row',
-      gap: 8,
+      gap: 12,
       alignItems: 'center',
-      justifyContent: 'center',
       backgroundColor: c.surface,
-      borderRadius: 10,
+      borderRadius: 12,
       borderWidth: 1,
       borderColor: c.borderStrong,
-      paddingVertical: 16,
-      paddingHorizontal: 12,
+      // 24 + 24 + la ligne de texte ≈ 71 pt : bien au-dessus du plancher de
+      // 56, parce que ces trois boutons-là SONT le geste du terrain.
+      paddingVertical: 24,
+      paddingHorizontal: 16,
     },
-    actionDanger: {borderColor: c.danger},
-    actionText: {color: c.text, fontWeight: '600', fontSize: 14, flexShrink: 1},
+    // Bord doublé, pas seulement rouge : la destruction doit se lire aussi en
+    // niveaux de gris et à travers une vitre sale.
+    actionDanger: {borderColor: c.danger, borderWidth: 2},
+    actionText: {color: c.text, fontWeight: '700', fontSize: 17, flexShrink: 1},
     actionTextDanger: {color: c.danger},
     offlineHint: {color: c.textMuted, fontSize: 12, marginTop: 12, lineHeight: 17},
   });

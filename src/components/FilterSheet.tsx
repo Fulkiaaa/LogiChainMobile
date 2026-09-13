@@ -195,8 +195,8 @@ const makeStyles = (c: Palette) =>
     chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
     chip: {
     minHeight: TOUCH_MIN, justifyContent: 'center',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
       borderRadius: 999,
       backgroundColor: c.surface,
       borderWidth: 1,
