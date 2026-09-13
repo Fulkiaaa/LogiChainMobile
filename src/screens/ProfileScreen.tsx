@@ -88,7 +88,7 @@ export function ProfileScreen() {
 
       <Text style={styles.section}>Apparence</Text>
       <View style={styles.card}>
-        <View style={styles.roleRow}>
+        <View style={styles.themeRow}>
           {THEME_OPTIONS.map(({key, label, Icon}) => {
             const active = key === mode;
             return (
@@ -99,8 +99,8 @@ export function ProfileScreen() {
                 accessibilityLabel={`Thème ${label}`}
                 onPress={() => setMode(key)}
                 style={[styles.themeChip, active && styles.roleChipActive]}>
-                <Icon color={active ? c.onPrimary : c.textMuted} size={15} strokeWidth={2} />
-                <Text style={[styles.roleText, active && styles.roleTextActive]}>{label}</Text>
+                <Icon color={active ? c.onPrimary : c.textMuted} size={18} strokeWidth={2} />
+                <Text style={[styles.themeText, active && styles.roleTextActive]}>{label}</Text>
               </Pressable>
             );
           })}
@@ -114,7 +114,7 @@ export function ProfileScreen() {
         accessibilityLabel="Déconnexion"
         style={styles.logout}
         onPress={confirmerDeconnexion}>
-        <LogOut color={c.danger} size={16} strokeWidth={2} />
+        <LogOut color={c.danger} size={20} strokeWidth={2} />
         <Text style={styles.logoutText}>Déconnexion</Text>
       </Pressable>
 
@@ -257,50 +257,61 @@ const makeStyles = (c: Palette) =>
   roleRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4},
   roleChip: {
     minHeight: TOUCH_MIN, justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: c.borderStrong,
   },
   roleChipActive: {backgroundColor: c.primary, borderColor: c.primary},
+  // Les trois apparences se partagent la largeur au lieu de se serrer à
+  // gauche : une puce calibrée sur son libellé fait de « Clair » une cible
+  // deux fois plus petite que « Système », alors que le geste est le même.
+  themeRow: {flexDirection: 'row', gap: 8, marginTop: 4},
   themeChip: {
+    flex: 1,
     minHeight: TOUCH_MIN,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    justifyContent: 'center',
+    // Écart resserré à 4 et texte rétractable : sur un iPhone SE, un tiers de
+    // carte ne laisse qu'une soixantaine de points au libellé, et « Système »
+    // les consomme presque tous. Un pixel de trop et le mot passait à la
+    // ligne — exactement le défaut qu'on vient de corriger sur la fiche.
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: c.borderStrong,
   },
-  roleText: {color: c.textMuted, fontSize: 12, fontWeight: '600'},
+  roleText: {color: c.textMuted, fontSize: 14, fontWeight: '600'},
+  themeText: {color: c.textMuted, fontSize: 14, fontWeight: '700', flexShrink: 1},
   roleTextActive: {color: c.onPrimary},
   submit: {
     minHeight: TOUCH_MIN,
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
     backgroundColor: c.primary,
-    borderRadius: 10,
-    paddingVertical: 12,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 4,
   },
-  submitText: {color: c.onPrimary, fontWeight: '700'},
+  submitText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
   logout: {
     minHeight: TOUCH_MIN,
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 24,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: c.danger,
   },
-  logoutText: {color: c.danger, fontWeight: '700'},
+  logoutText: {color: c.danger, fontWeight: '700', fontSize: 17},
   note: {color: c.textMuted, fontSize: 12, marginTop: 16, textAlign: 'center'},
 });

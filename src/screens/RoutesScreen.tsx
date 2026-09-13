@@ -173,7 +173,7 @@ const makeStyles = (c: Palette) =>
     stopMeta: {color: c.textMuted, fontSize: 12},
     stopItems: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4},
     mapBtn: {
-    minHeight: TOUCH_MIN,flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: c.primary, borderRadius: 10, paddingVertical: 12, marginTop: 4},
-    mapBtnText: {color: c.primary, fontWeight: '700'},
+    minHeight: TOUCH_MIN,flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderWidth: 1, borderColor: c.primary, borderRadius: 12, paddingVertical: 16, marginTop: 4},
+    mapBtnText: {color: c.primary, fontWeight: '700', fontSize: 17},
     footnote: {color: c.textMuted, fontSize: 12, lineHeight: 17, marginTop: 4},
   });

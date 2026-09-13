@@ -247,7 +247,7 @@ const makeStyles = (c: Palette) =>
   lastResult: {color: c.textMuted, marginTop: 8, fontSize: 12},
   button: {minHeight: TOUCH_MIN, justifyContent: 'center', backgroundColor: c.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16},
   buttonDisabled: {opacity: 0.5},
-  buttonText: {color: c.onPrimary, fontWeight: '700'},
+  buttonText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
   secondary: {
     minHeight: TOUCH_MIN,
     flexDirection: 'row',
@@ -257,10 +257,10 @@ const makeStyles = (c: Palette) =>
     borderWidth: 1,
     borderColor: c.primary,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 16,
     marginTop: 12,
   },
-  secondaryText: {color: c.primary, fontWeight: '700'},
+  secondaryText: {color: c.primary, fontWeight: '700', fontSize: 17},
   secondaryHint: {color: c.textMuted, fontSize: 12, marginTop: 8, lineHeight: 15},
   section: {color: c.textMuted, marginTop: 24, marginBottom: 8, fontWeight: '700', textTransform: 'uppercase', fontSize: 12},
   screen: {flex: 1, backgroundColor: c.bg},
@@ -289,6 +289,6 @@ const makeStyles = (c: Palette) =>
    * application manipulée debout et parfois avec des gants.
    */
   rowAction: {minHeight: TOUCH_MIN, justifyContent: 'center'},
-  replay: {color: c.primary, fontWeight: '600'},
-  discard: {color: c.danger, fontWeight: '600'},
+  replay: {color: c.primary, fontWeight: '600', fontSize: 17},
+  discard: {color: c.danger, fontWeight: '600', fontSize: 17},
 });

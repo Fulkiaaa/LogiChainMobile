@@ -222,5 +222,5 @@ const makeStyles = (c: Palette) =>
     },
     submitDanger: {backgroundColor: c.danger},
     busy: {opacity: 0.7},
-    submitText: {color: c.onPrimary, fontWeight: '700'},
+    submitText: {color: c.onPrimary, fontWeight: '700', fontSize: 17},
   });
