@@ -4,6 +4,24 @@
 > **LogiChain** (React Native pur — sans Expo, offline-first).
 > Projet noté — Module MP3.
 
+## L'application en images
+
+| | | |
+|:---:|:---:|:---:|
+| <img src="docs/screenshots/01-connexion.png" width="220" alt="Écran de connexion"> | <img src="docs/screenshots/02-tableau-de-bord.png" width="220" alt="Tableau de bord : stocks par état et liste des équipements du secteur"> | <img src="docs/screenshots/03-fiche-equipement.png" width="220" alt="Fiche équipement : caractéristiques, position GPS et accès carte"> |
+| **Connexion** | **Tableau de bord** | **Fiche équipement** |
+| <img src="docs/screenshots/04-signalement-terrain.png" width="220" alt="Actions de signalement terrain et historique de l'équipement"> | <img src="docs/screenshots/05-scan.png" width="220" alt="Écran de scan : sélecteur de mode et saisie manuelle"> | <img src="docs/screenshots/06-synchro.png" width="220" alt="Centre de synchronisation : file d'attente et conflits"> |
+| **Signalement terrain** | **Scan** ¹ | **Synchro & conflits** |
+| <img src="docs/screenshots/07-kpi.png" width="220" alt="Empreinte carbone de l'événement, répartie par poste et par catégorie"> | <img src="docs/screenshots/08-profil.png" width="220" alt="Profil : permissions du rôle et choix de l'apparence"> | |
+| **Empreinte carbone** | **Profil & permissions** | |
+
+¹ Le simulateur iOS n'a pas de caméra : l'écran bascule sur la saisie manuelle
+et le dit. Sur un téléphone, c'est l'aperçu caméra qui occupe la zone centrale.
+
+Ces captures sont **générées, pas prises à la main** : `npm run screenshots`
+rejoue le parcours de démonstration dans le simulateur et réécrit
+`docs/screenshots/`. Voir [docs/screenshots.md](docs/screenshots.md).
+
 ## Prérequis
 
 - Node.js ≥ 22.11.0 (`engines.node` dans `package.json` — l'adaptateur de
@@ -62,6 +80,7 @@ en revanche ces variables d'environnement :
 | `npm run parcours`        | Tests d'intégration (`LOGICHAIN_API` doit être joignable)       |
 | `npm run scan`            | Sous-ensemble d'intégration ciblé sur le scan QR                |
 | `npm run qr`              | Génère des QR codes de démonstration                            |
+| `npm run screenshots`     | Régénère les captures du README depuis le simulateur iOS        |
 
 ## Contribution & passation
 
